@@ -92,7 +92,7 @@ class BukuController extends Controller
         try {
             $buku = Buku::create([
                 'judul' => $request->judul,
-                'cover' =>  'storage'.$request->file('cover')->store('uploads', 'public'),
+                'cover' =>  'storage/'.$request->file('cover')->store('uploads', 'public'),
                 'penulis_id' => $request->penulis_id,
                 'publisher' => $request->publisher,
                 'tahun' => $request->tahun,
@@ -174,7 +174,7 @@ class BukuController extends Controller
             $buku = Buku::find($id);
             $buku->judul = $request->judul;
             if($request->cover) {
-                $buku->cover = 'storage'.$request->file('cover')->store('uploads', 'public');
+                $buku->cover = 'storage/'.$request->file('cover')->store('uploads', 'public');
             }
             $buku->penulis_id = $request->penulis_id;
             $buku->publisher = $request->publisher;
