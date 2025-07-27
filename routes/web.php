@@ -5,6 +5,7 @@ use App\Http\Controllers\HomePageController;
 use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\PenulisController;
 use App\Http\Controllers\UsersController;
+use App\Models\Buku;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
@@ -16,6 +17,7 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::middleware('auth')->group(function () {
+
     Route::get('/logout', [HomePageController::class, 'logout']);
 
     Route::get('/dashboard', [HomePageController::class, 'home']);
@@ -23,7 +25,6 @@ Route::middleware('auth')->group(function () {
     Route::resource('kategori', KategoriController::class);
     Route::resource('penulis', PenulisController::class);
     Route::resource('buku', BukuController::class);
-
 
 
 });

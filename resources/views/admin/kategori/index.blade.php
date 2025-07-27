@@ -29,20 +29,26 @@
                 </tr>
             </thead>
             <tbody>
-            @foreach ($kategori as $a)
-                <tr>
-                    <td class="px-6 py-4 border-b">{{ $loop->iteration }}</td>
-                    <td class="px-6 py-4 border-b">{{ $a->nama }}</td>
-                    <td class="px-6 py-4 border-b">
-                        <a href="{{ url('kategori/'.$a->id.'/edit') }}" class="text-blue-500 hover:underline">Edit</a>
-                        <form action="{{ url('kategori/'.$a->id) }}" method="post" class="delete-form">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="text-red-500 hover:underline">Hapus</button>
-                        </form>
-                    </td>
-                </tr>
-            @endforeach
+                @if(count($kategori) == 0)
+                    <tr>
+                        <td class="px-6 py-4 border-b" colspan="3">Data tidak tersedia!</td>
+                    </tr>
+                @else
+                    @foreach ($kategori as $a)
+                        <tr>
+                            <td class="px-6 py-4 border-b">{{ $loop->iteration }}</td>
+                            <td class="px-6 py-4 border-b">{{ $a->nama }}</td>
+                            <td class="px-6 py-4 border-b">
+                                <a href="{{ url('kategori/'.$a->id.'/edit') }}" class="text-blue-500 hover:underline">Edit</a>
+                                <form action="{{ url('kategori/'.$a->id) }}" method="post" class="delete-form">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="text-red-500 hover:underline">Hapus</button>
+                                </form>
+                            </td>
+                        </tr>
+                    @endforeach
+                @endif
             <!-- Tambah data lainnya -->
             </tbody>
         </table>

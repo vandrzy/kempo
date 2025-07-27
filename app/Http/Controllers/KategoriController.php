@@ -20,6 +20,8 @@ class KategoriController extends Controller
         } else {
             $data['kategori'] = Kategori::paginate(10);
         }
+
+        // dd(count($data['kategori']));
         return view('admin.kategori.index', $data);
     }
 
