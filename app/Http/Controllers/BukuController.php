@@ -120,7 +120,8 @@ class BukuController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $data['buku'] = Buku::find($id);
+        return view('admin.buku.detail', $data);
     }
 
     /**

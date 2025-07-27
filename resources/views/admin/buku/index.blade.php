@@ -56,6 +56,7 @@
                     </td>
 
                     <td>
+                        <a href="{{ url('buku/'.$a->id) }}" class="btn btn-primary">Detail</a>
                         <a href="{{ url('buku/'.$a->id.'/edit') }}" class="btn btn-success">Edit</a>
                         <form action="{{ url('buku/'.$a->id) }}" method="post" class="delete-form">
                             @csrf
