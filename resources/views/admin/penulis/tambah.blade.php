@@ -4,15 +4,14 @@
     <h1>Tambah Data Penulis</h1>
     <hr>
     <form action="{{ url('penulis') }}" method="post">
-        <div class="d-flex justify-content-between">
-            <div class="p-1">
-                <a href="{{ url('penulis') }}" class="btn btn-dark">Kembali</a>
+        <div class="flex justify-between items-center p-3">
+            <div>
+                <a href="{{ url('penulis') }}" class="bg-black text-white px-4 py-3 rounded">Kembali</a>
             </div>
-            <div class="p-1">
-                <button type="submit" class="btn btn-success">Simpan</button>
+            <div>
+                <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded">Simpan</button>
             </div>
         </div>
-        <br>
         @csrf
         @include('admin.penulis.form')
     </form>

@@ -1,36 +1,40 @@
 @extends('tamplate')
 @section('title', 'Detail Buku')
 @section('content')
-<div class="container my-4">
-    <h1>Detail Buku</h1>
-    <hr>
-    <div class="d-flex justify-content-between">
-        <div class="p-1">
-            <a href="{{ url('/') }}" class="btn btn-dark">Kembali</a>
+<div class="max-w-6xl mx-auto my-6 px-4">
+    <h1 class="text-3xl font-bold mb-2">Detail Buku</h1>
+    <hr class="border-t border-gray-300 mb-4">
+
+    <div class="flex justify-between mb-4">
+        <div>
+            <a href="{{ url('/') }}" class="bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-900 transition">Kembali</a>
         </div>
-        <div class="p-1">
-        </div>
+        <div></div>
     </div>
-    <div class="row">
-        <div class="col-md-6 col-sm-12">
-            <img src="{{ @$buku ? url($buku->cover) : '' }}" style="width: 75%; border: solid black 1px;" id="preview" alt=""><br>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+            <img src="{{ @$buku ? url($buku->cover) : '' }}" alt="Cover Buku"
+                class="w-3/4 border border-black rounded shadow" id="preview">
         </div>
-        <div class="col-md-6 col-sm-12">
-            <h2>{{ $buku->judul }}</h2>
-            <h4 style="color: gray;">Penulis : {{ $buku->penulis->nama }}</h4>
-            <h4 style="color: gray;">Publisher : {{ $buku->publisher }}</h4>
 
-            <h4 style="color: gray;">Rilis Tahun : {{ $buku->tahun }}</h4>
+        <div>
+            <h2 class="text-2xl font-semibold mb-2">{{ $buku->judul }}</h2>
+            <h4 class="text-gray-600 mb-1">Penulis : {{ $buku->penulis->nama }}</h4>
+            <h4 class="text-gray-600 mb-1">Publisher : {{ $buku->publisher }}</h4>
+            <h4 class="text-gray-600 mb-1">Rilis Tahun : {{ $buku->tahun }}</h4>
 
-            <h5 style="color: gray;">
+            <h5 class="text-gray-600 mb-2">
                 @foreach ($buku->KategoriBuku as $a)
                     {{ $a->kategori->nama }},
                 @endforeach
             </h5>
-            <hr>
-            <p>{{ $buku->deskripsi }}</p>
 
+            <hr class="border-t border-gray-200 my-2">
+
+            <p class="text-gray-700">{{ $buku->deskripsi }}</p>
         </div>
     </div>
 </div>
+
 @endsection

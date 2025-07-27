@@ -1,5 +1,6 @@
 @extends('tamplate')
+@section('title', 'Dashboard')
 @section('content')
-      <h2>Dashboard</h2>
-      <p>Selamat Datang {{ Auth::user()->name }} di Aplikasi Manajemen Data Buku</p>
+    <h2 class="text-2xl font-bold mb-2">Dashboard</h2>
+    <p class="text-gray-700">Selamat Datang <span class="font-semibold text-blue-600">{{ Auth::user()->name }}</span> di Aplikasi Manajemen Data Buku</p>
 @endsection

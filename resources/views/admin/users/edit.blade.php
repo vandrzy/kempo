@@ -4,12 +4,12 @@
     <h1>Edit Data Users</h1>
     <hr>
     <form action="{{ url('users/'.$user->id) }}" method="post">
-        <div class="d-flex justify-content-between">
-            <div class="p-1">
-                <a href="{{ url('users') }}" class="btn btn-dark">Kembali</a>
+        <div class="flex justify-between items-center p-3">
+            <div>
+                <a href="{{ url('users') }}" class="bg-black text-white px-4 py-3 rounded">Kembali</a>
             </div>
-            <div class="p-1">
-                <button type="submit" class="btn btn-success">Simpan</button>
+            <div>
+                <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded">Simpan</button>
             </div>
         </div>
         <br>

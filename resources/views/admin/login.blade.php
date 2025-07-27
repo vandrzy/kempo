@@ -1,37 +1,64 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Login</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login</title>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="d-flex justify-content-center align-items-center vh-100 bg-light">
-    <form method="POST" action="{{ url('login') }}" class="bg-white p-4 rounded shadow-sm w-25">
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+
+  <div class="w-full max-w-md bg-white rounded-xl shadow-md p-6">
+    <h1 class="text-4xl font-semibold text-center text-gray-700 mb-6">M. Data Buku</h1>
+    <hr>
+    <h2 class="text-2xl font-semibold text-center text-gray-700 mb-6">Login</h2>
+    @if ($errors->any())
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            {{ $errors->first() }}
+        </div>
+    @endif
+    <form action="{{ url('login') }}" method="POST" class="space-y-4">
         @csrf
 
-        <center>
-            <h2>M. Data Buku</h2>
-            <hr>
-            <h4 class="mb-3">Login</h3>
-        </center>
+      <!-- Email -->
+      <div>
+        <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+        <input
+          type="email"
+          name="email"
+          id="email"
+          class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500"
+          required
+        />
+      </div>
 
-        @if ($errors->any())
-            <div class="alert alert-danger">
-                {{ $errors->first() }}
-            </div>
-        @endif
+      <!-- Password -->
+      <div>
+        <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+        <input
+          type="password"
+          name="password"
+          id="password"
+          class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500"
+          required
+        />
+      </div>
 
-        <div class="mb-3">
-            <label>Email</label>
-            <input type="email" name="email" class="form-control" required autofocus>
-        </div>
-
-        <div class="mb-3">
-            <label>Password</label>
-            <input type="password" name="password" class="form-control" required>
-        </div>
-        <a href="{{ url('/') }}">< Kembali</a>
-        <br><br>
-        <button type="submit" class="btn btn-primary w-100">Login</button>
+      <!-- Submit -->
+      <div>
+        <button
+          type="submit"
+          class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md transition duration-150"
+        >
+          Masuk
+        </button>
+      </div>
     </form>
+
+    <p class="mt-4 text-center text-sm text-gray-600">
+       <a href="{{ url('/') }}" class="text-blue-600 hover:underline">Kembali</a>
+    </p>
+  </div>
+
 </body>
 </html>
