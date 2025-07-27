@@ -1,5 +1,13 @@
 <div class="form-group">
-    <label for="">Cover Buku</label>
+    @php
+        if(isset($buku)) {
+            $cover_required = '';
+        } else {
+            $cover_required = '<span style="color: red;">*</span>';
+
+        }
+    @endphp
+    <label for="">Cover Buku <?php echo $cover_required ?></label>
     <input type="file" name="cover" class="form-control" id="imageInput">
     <br>
     <img src="{{ @$buku ? url($buku->cover) : '' }}" style="width: 50%;" id="preview" alt=""><br>
@@ -8,14 +16,14 @@
     @enderror
 </div>
 <div class="form-group">
-    <label for="">Judul</label>
+    <label for="">Judul <span style="color: red;">*</span></label>
     <input type="text" name="judul" class="form-control" value="{{ old('judul', @$buku->judul) }}" placeholder="Judul Buku" id="">
     @error('judul')
         <span class="text-red" style="color: red;">{{ $message }}</span>
     @enderror
 </div>
 <div class="form-group">
-    <label for="">Penulis</label>
+    <label for="">Penulis <span style="color: red;">*</span></label>
     <select name="penulis_id" class="form-control pilihan" id="">
         <option value="">Pilih Penulis</option>
         @foreach ($penulis as $a)
@@ -27,7 +35,7 @@
     @enderror
 </div>
 <div class="form-group">
-    <label for="">Kategori</label>
+    <label for="">Kategori <span style="color: red;">*</span></label>
     <select name="kategori_id[]" class="form-control pilihan" multiple="multiple" id="">
         <option value="">Pilih kategori</option>
         @php
@@ -46,21 +54,21 @@
     @enderror
 </div>
 <div class="form-group">
-    <label for="">Publisher</label>
+    <label for="">Publisher <span style="color: red;">*</span></label>
     <input type="text" name="publisher" class="form-control" value="{{ old('publisher', @$buku->publisher) }}" placeholder="Publisher Buku" id="">
     @error('publisher')
         <span class="text-red" style="color: red;">{{ $message }}</span>
     @enderror
 </div>
 <div class="form-group">
-    <label for="">Tahun</label>
+    <label for="">Tahun <span style="color: red;">*</span></label>
     <input type="number" name="tahun" class="form-control" value="{{ old('tahun', @$buku->tahun) }}" placeholder="Tahun Rilis Buku" id="">
     @error('tahun')
         <span class="text-red" style="color: red;">{{ $message }}</span>
     @enderror
 </div>
 <div class="form-group">
-    <label for="">Deskripsi</label>
+    <label for="">Deskripsi <span style="color: red;">*</span></label>
     <textarea name="deskripsi" class="form-control" id="" cols="30" rows="10">
         {{ old('deskripsi', @$buku->deskripsi) }}
     </textarea>
