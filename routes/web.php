@@ -10,6 +10,9 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
     Route::get('/', [HomePageController::class, 'index']);
+    Route::get('pendaftarans/{tanggal_lahir}/{jenis_kelamin}', [PertandinganController::class, 'get_pertandingan']);
+    Route::post('daftar', [HomePageController::class, 'daftarProcess']);
+
     // Route::get('/detail/{id}', [HomePageController::class, 'detail']);
 
     Route::get('/login', [HomePageController::class, 'login']);

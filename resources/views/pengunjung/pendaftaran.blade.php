@@ -1,7 +1,7 @@
 <div class="max-w-6xl mx-auto my-6 px-4">
     <h1>Pendaftaran Peserta Kempo</h1><br>
     <hr><br>
-    <form action="{{ url('pendaftaran') }}" method="post" enctype="multipart/form-data">
+    <form action="{{ url('daftar') }}" method="post" enctype="multipart/form-data">
         @csrf
         {{-- <div class="mb-4">
             <label for="">Nomor <span style="color: red;">*</span></label>
@@ -19,7 +19,7 @@
         </div>
         <div class="mb-4">
             <label for="">Jenis Kelamin <span style="color: red;">*</span></label>
-            <select name="jenis_kelamin"  class="form-control pilihan" id="">
+            <select name="jenis_kelamin"  class="form-control pilihan" id="jenis_kelamin">
                 <option value="Laki-Laki" {{ old('jenis_kelamin', @$peserta->jenis_kelamin) == 'Laki-Laki' ? 'selected' : '' }} >Laki-Laki</option>
                 <option value="Perempuan" {{ old('jenis_kelamin', @$peserta->jenis_kelamin) == 'Perempuan' ? 'selected' : '' }} >Perempuan</option>
 
@@ -34,7 +34,7 @@
                 <option value="A" {{ old('golongan_darah', @$peserta->golongan_darah) == 'A' ? 'selected' : '' }} >A</option>
                 <option value="B" {{ old('golongan_darah', @$peserta->golongan_darah) == 'B' ? 'selected' : '' }} >B</option>
                 <option value="AB" {{ old('golongan_darah', @$peserta->golongan_darah) == 'AB' ? 'selected' : '' }} >AB</option>
-                <option value="O" {{ old('golongan_darah', @$peserta->golongan_darah) == 'O' ? 'selected' : '' }} >O</option>S
+                <option value="O" {{ old('golongan_darah', @$peserta->golongan_darah) == 'O' ? 'selected' : '' }} >O</option>
             </select>
             @error('golongan_darah')
                 <span class="text-red" style="color: red;">{{ $message }}</span>
@@ -68,9 +68,9 @@
                     class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-1/2"
                     value="{{ old('tempat') }}" placeholder="Tempat Lahir" id="">
 
-                <input type="date" name="tanggal_lahir"
+                <input type="date" name="tanggal_lahir" id="tanggal_lahir" 
                     class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-1/2"
-                    value="{{ old('tanggal_lahir') }}" id="">
+                    value="{{ old('tanggal_lahir', date('Y-m-d')) }}" id="">
             </div>
 
             @error('tempat')
@@ -107,7 +107,7 @@
         </div>
         <div class="mb-4">
             <label for="">Nomor dan Kelas Pertandingan yang akan diikuti : <span style="color: red;">*</span></label>
-            <select name="pertandingan_id[]" class="form-control pilihan" multiple="multiple" status="false" id="pertandingan_id">
+            <select name="pertandingan_id[]" class="form-control pilihan" multiple="multiple" status="{{ (is_array(old('pertandingan_id')) && count(old('pertandingan_id'))) > 0 ? 'true' : 'false' }}" id="pertandingan_id">
                 <option value="" disabled>Pilih Pertandingan</option>
                 @php
                     // if(isset($peserta)) {
@@ -118,10 +118,10 @@
                     // $selectedpertandingan = (is_array(old('pertandingan_id')) && in_array($a->id, old('pertandingan_id'))) ? 'selected' : '' ;
                 @endphp
                 @foreach ($pertandingan as $a)
-                    <option value="{{ $a->id }}">{{ $a->nama }}</option>
+                    <option value="{{ $a->id }}" {{ (is_array(old('pertandingan_id')) && in_array($a->id, old('pertandingan_id'))) ? 'selected' : '' }}>{{ $a->nama }}</option>
                 @endforeach
             </select>
-            @error('kategori_id')
+            @error('pertandingan_id')
                 <span class="text-red" style="color: red;">{{ $message }}</span>
             @enderror
         </div>
@@ -129,18 +129,60 @@
             <label for="">Foto Berwarna 4 x 6</label>
             <input type="file" name="foto" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" id="imageInput">
             <img src="" style="width: 50%;" id="preview" alt=""><br>
-            @error('cover')
+            @error('foto')
                 <span class="text-red"  style="color: red;" >{{ $message }}</span>
             @enderror
+        </div>
+        <div class="mb-4">
+            <center>
+                <button type="submit"  class="bg-green-500 text-white px-4 py-2 rounded">Daftar</button>
+            </center>
         </div>
     </form>
 </div>
 <script>
     @section('script')
-        $('#pertandingan_id').click(function() {
-            alert("PACE");
-            $(this).attr('status', 'true');
-            $(this).html("");
+        function AmbilDataPertandingan(tanggal_lahir, jenis_kelamin) {
+            $('#pertandingan_id').attr('status', 'true');
+            $('#pertandingan_id').html('');
+            $.ajax({
+                url: `{{url("pendaftarans")}}/${tanggal_lahir}/${jenis_kelamin}`, // URL API
+                type: 'GET',
+                dataType: 'json', // bisa 'html', 'text', dll tergantung respon
+                success: function(response) {
+                    let data = "";
+
+                    // data += `<option value="" disabled>Pilih Pertandingan</option>`;
+                    $.each(response.data, function(index, value) {
+                        data += `<option value="${value.id}">${value.nama}</option>`;
+                    });
+
+                    $('#pertandingan_id').html(data);
+
+
+                    // alert('Judul: ' + response.title);
+                },
+                error: function(xhr, status, error) {
+                    console.error('Gagal:', error);
+                    alert('Gagal mengambil data!');
+                }
+            });
+        }
+
+        $('#jenis_kelamin').on('change', function (e) {
+            AmbilDataPertandingan($('#tanggal_lahir').val(), $('#jenis_kelamin').val());
+        });
+
+        $('#tanggal_lahir').on('change', function (e) {
+            AmbilDataPertandingan($('#tanggal_lahir').val(), $('#jenis_kelamin').val());
+        });
+
+
+
+        $('#pertandingan_id').on('select2:opening', function (e) {
+            if($(this).attr('status') != 'true') {
+                AmbilDataPertandingan($('#tanggal_lahir').val(), $('#jenis_kelamin').val());
+            }
         });
     @endsection
 </script>

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Kategori;
 use App\Models\Pertandingan;
+use Dotenv\Util\Str;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -82,6 +83,21 @@ class PertandinganController extends Controller
     public function show(string $id)
     {
         //
+    }
+
+    public function get_pertandingan(string $tahun, string $kelamin) {
+
+        $data['pertandingan'] = Pertandingan::whereHas('kategori', function($query) use ($tahun) {
+            $query->where('tahun_awal', '<=', Date('Y', strtotime($tahun)))->where('tahun_akhir', '>=', Date('Y', strtotime($tahun)));
+        })->where(function($query) use ($kelamin) {
+            $query->where('jenis_kelamin', $kelamin)
+                ->orWhereNull('jenis_kelamin');
+        })->get();
+
+        return response()->json([
+            'status' => 'true',
+            'data' => $data['pertandingan'],
+        ]);
     }
 
     /**
