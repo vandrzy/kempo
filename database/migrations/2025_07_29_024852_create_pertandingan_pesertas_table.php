@@ -14,7 +14,9 @@ return new class extends Migration
         Schema::create('pertandingan_pesertas', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('peserta_id');
+            $table->string('sudah_terpilih')->default('false');
             $table->unsignedBigInteger('pertandingan_id');
+
             $table->timestamps();
         });
     }

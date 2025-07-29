@@ -4,6 +4,7 @@ use App\Http\Controllers\BukuController;
 use App\Http\Controllers\HomePageController;
 use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\PertandinganController;
+use App\Http\Controllers\PesertaController;
 use App\Http\Controllers\UsersController;
 use App\Models\Buku;
 use Illuminate\Support\Facades\Route;
@@ -27,6 +28,15 @@ Route::middleware('auth')->group(function () {
     Route::resource('users', UsersController::class);
     Route::resource('kategori', KategoriController::class);
     Route::resource('pertandingan', PertandinganController::class);
+    Route::post('pertandingans/tanding/{kategori}', [PertandinganController::class, 'tanding']);
+    Route::delete('pertandingans/tanding-delete/{kategori}', [PertandinganController::class, 'batal_tanding']);
+
+    Route::get('pertandingans/{kategori}', [PesertaController::class, 'get_pertandingan']);
+
+
+
+    Route::resource('peserta', PesertaController::class);
+
     // Route::resource('buku', BukuController::class);
 
 

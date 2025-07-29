@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Kategori;
 use App\Models\Pertandingan;
+use App\Models\PertandinganPeserta;
+use App\Models\PesertaTerpilih;
 use Dotenv\Util\Str;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -82,7 +84,55 @@ class PertandinganController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $data['peserta_ready'] = PertandinganPeserta::where('sudah_terpilih', 'false')->where('pertandingan_id', $id)->count();
+        $data['peserta_lawan'] = PesertaTerpilih::where('pertandingan_id', $id)->paginate(10);
+        $data['pertandingan'] = Pertandingan::find($id);
+        return view('admin.pertandingan.tanding', $data);
+    }
+
+    public function tanding($id) {
+
+        $terpilih = 0;
+        $pertandinganPertama = PertandinganPeserta::where('sudah_terpilih', 'false')->where('pertandingan_id', $id)->inRandomOrder()->first();
+        if ($pertandinganPertama) {
+            $pertandinganPertama->update(['sudah_terpilih' => 'true']);
+            $terpilih += 1;
+        } else {
+            return redirect()->back()
+                ->with('gagal', 'Peserta sudah terpilih semua!')
+                ->withInput();
+        }
+        $pertandinganKedua = PertandinganPeserta::where('sudah_terpilih', 'false')->where('pertandingan_id', $id)->inRandomOrder()->first();
+        if ($pertandinganKedua) {
+            $pertandinganKedua->update(['sudah_terpilih' => 'true']);
+            $terpilih += 1;
+        } else {
+            $pertandinganPertama->update(['sudah_terpilih' => 'false']);
+            return redirect()->back()
+                ->with('gagal', 'Peserta terakhir tidak dapat ditandingkan karena tidak ada lawan!')
+                ->withInput();
+        }
+        if($terpilih > 1) {
+            PesertaTerpilih::create([
+                'pertandingan_id' => $id,
+                'pertandingan_peserta_kiri_id' => $pertandinganPertama->id,
+                'pertandingan_peserta_kanan_id' => $pertandinganKedua->id,
+            ]);
+
+            return redirect()->back()
+                ->with('success', 'Peserta telah terpilih untuk bersaing')
+                ->withInput();
+        }
+    }
+
+    public function batal_tanding($id) {
+        $pesertaTerpilih = PesertaTerpilih::find($id);
+        PertandinganPeserta::where('id', $pesertaTerpilih->pertandingan_peserta_kiri_id)->update(['sudah_terpilih' => 'false']);
+        PertandinganPeserta::where('id', $pesertaTerpilih->pertandingan_peserta_kanan_id)->update(['sudah_terpilih' => 'false']);
+        $pesertaTerpilih->delete();
+        return redirect()->back()
+            ->with('success', 'Peserta telah dibatalkan bertanding')
+            ->withInput();
     }
 
     public function get_pertandingan(string $tahun, string $kelamin) {
@@ -99,7 +149,6 @@ class PertandinganController extends Controller
             'data' => $data['pertandingan'],
         ]);
     }
-
     /**
      * Show the form for editing the specified resource.
      */

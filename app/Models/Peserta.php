@@ -9,4 +9,8 @@ class Peserta extends Model
     //
     protected $guarded = ['id'];
 
+    public function PertandinganPeserta() {
+        return $this->hasMany(PertandinganPeserta::class);
+    }
+
 }

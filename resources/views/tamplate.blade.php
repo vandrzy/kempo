@@ -38,7 +38,7 @@
                 <div x-data="{ open: false }" class="w-full">
                     <a href="{{ url('dashboard') }}" class="block p-2 rounded {{ request()->is('dashboard*') ? 'bg-blue-100 text-blue-700 font-semibold' : 'hover:bg-blue-100' }}">Dashboard</a>
 
-                    <!-- Tombol Dropdown -->
+                    {{-- <!-- Tombol Dropdown -->
                     <button @click="open = !open" class="flex items-center gap-2 px-2 py-2  text-black rounded hover:bg-blue-300 w-full">
                         Master Data
                         <svg class="w-4 h-4 transform transition-transform" :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -48,22 +48,24 @@
 
                     <!-- Menu Dropdown yang mendorong konten di bawah -->
                     <div x-show="open" x-transition @click.away="open = false" class="mt-2 w-full bg-white border border-gray-200 rounded shadow">
-                        <a href="{{ url('users') }}"
-                        class="block px-4 py-2 rounded {{ request()->is('users*') ? 'bg-blue-100 text-blue-700 font-semibold' : 'hover:bg-blue-100' }}">
+
+                    </div> --}}
+
+                    <!-- Elemen di bawah dropdown -->
+                    <div class=" rounded">
+                         <a href="{{ url('users') }}"
+                        class="block px-2 py-2 rounded {{ request()->is('users*') ? 'bg-blue-100 text-blue-700 font-semibold' : 'hover:bg-blue-100' }}">
                         Users
                         </a>
                         <a href="{{ url('kategori') }}"
-                        class="block px-4 py-2 rounded {{ request()->is('kategori*') ? 'bg-blue-100 text-blue-700 font-semibold' : 'hover:bg-blue-100' }}">
+                        class="block px-2 py-2 rounded {{ request()->is('kategori*') ? 'bg-blue-100 text-blue-700 font-semibold' : 'hover:bg-blue-100' }}">
                         Kategori
                         </a>
                         <a href="{{ url('pertandingan') }}"
-                        class="block px-4 py-2 rounded {{ request()->is('pertandingan*') ? 'bg-blue-100 text-blue-700 font-semibold' : 'hover:bg-blue-100' }}">
+                        class="block px-2 py-2 rounded {{ request()->is('pertandingan*') ? 'bg-blue-100 text-blue-700 font-semibold' : 'hover:bg-blue-100' }}">
                         Pertandingan
                         </a>
-                    </div>
-
-                    <!-- Elemen di bawah dropdown -->
-                    <div class="mt-4 p-4 bg-gray-100 rounded">
+                        <a class="block px-2 py-2 rounded {{ request()->is('peserta*') ? 'bg-blue-100 text-blue-700 font-semibold' : 'hover:bg-blue-100' }}" href="{{ url('peserta') }}">Peserta</a>
                         <hr>
                         <a class="block p-2 rounded text-red-800 hover:bg-blue-100" href="{{ url('logout') }}">Log Out</a>
                     </div>
@@ -117,6 +119,8 @@
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const deleteForms = document.querySelectorAll('.delete-form');
+            const tandingForms = document.querySelectorAll('.tanding-form');
+
 
             deleteForms.forEach(function (form) {
                 form.addEventListener('submit', function (e) {
@@ -130,6 +134,27 @@
                         confirmButtonColor: '#d33',
                         cancelButtonColor: '#6c757d',
                         confirmButtonText: 'Ya, hapus!',
+                        cancelButtonText: 'Batal'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            form.submit(); // Submit jika disetujui
+                        }
+                    });
+                });
+            });
+
+            tandingForms.forEach(function (form) {
+                form.addEventListener('submit', function (e) {
+                    e.preventDefault(); // Cegah langsung submit
+
+                    Swal.fire({
+                        title: 'Apakah anda yakin ?',
+                        text: "Sistem ini akan memilih peserta lawan peserta secara otomatis!",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: 'green',
+                        cancelButtonColor: '#6c757d',
+                        confirmButtonText: 'Ya, jalankan!',
                         cancelButtonText: 'Batal'
                     }).then((result) => {
                         if (result.isConfirmed) {

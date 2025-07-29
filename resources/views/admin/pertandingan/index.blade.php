@@ -24,32 +24,56 @@
             <thead class="bg-gray-100">
                 <tr>
                     <th class="text-left px-6 py-3 border-b text-gray-600">No</th>
-                    <th class="text-left px-6 py-3 border-b text-gray-600">Kategori</th>
-
                     <th class="text-left px-6 py-3 border-b text-gray-600">Nama Pertandingan</th>
                     <th class="text-left px-6 py-3 border-b text-gray-600">Jenis Kelamin</th>
                     <th class="text-left px-6 py-3 border-b text-gray-600">Aksi</th>
                 </tr>
             </thead>
             <tbody>
+            @php
+                $kategori_id = 0;
+            @endphp
             @foreach ($pertandingan as $a)
-                <tr>
-                    <td class="px-6 py-4 border-b">{{ $loop->iteration }}</td>
-                    <td class="px-6 py-4 border-b">{{ $a->kategori->nama }}</td>
 
-                    <td class="px-6 py-4 border-b">{{ $a->nama }}</td>
-                    <td class="px-6 py-4 border-b">{{ $a->jenis_kelamin ?? 'Mix' }}</td>
+                @if ($kategori_id != $a->kategori_id)
+                    @php
+                        $kategori_id = $a->kategori_id;
+                    @endphp
+                    <tr>
+                        <th class="px-6 py-4 border-b" style="text-align: left;" colspan="4">{{ $a->kategori->nama }}</th>
+                    </tr>
+                    <tr>
+                        <td class="px-6 py-4 border-b">{{ $loop->iteration }}</td>
+                        <td class="px-6 py-4 border-b">{{ $a->nama }}</td>
+                        <td class="px-6 py-4 border-b">{{ $a->jenis_kelamin ?? 'Mix' }}</td>
 
-                    <td class="px-6 py-4 border-b">
+                        <td class="px-6 py-4 border-b">
+                            <a href="{{ url('pertandingan/'.$a->id) }}" class="text-green-500 hover:underline">Nomor Tanding</a><br>
+                            <a href="{{ url('pertandingan/'.$a->id.'/edit') }}" class="text-blue-500 hover:underline">Edit</a>
+                            <form action="{{ url('pertandingan/'.$a->id) }}" method="post" class="delete-form">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="text-red-500 hover:underline">Hapus</button>
+                            </form>
+                        </td>
+                    </tr>
+                @else
+                    <tr>
+                        <td class="px-6 py-4 border-b">{{ $loop->iteration }}</td>
+                        <td class="px-6 py-4 border-b">{{ $a->nama }}</td>
+                        <td class="px-6 py-4 border-b">{{ $a->jenis_kelamin ?? 'Mix' }}</td>
 
-                        <a href="{{ url('pertandingan/'.$a->id.'/edit') }}" class="text-blue-500 hover:underline">Edit</a>
-                        <form action="{{ url('pertandingan/'.$a->id) }}" method="post" class="delete-form">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="text-red-500 hover:underline">Hapus</button>
-                        </form>
-                    </td>
-                </tr>
+                        <td class="px-6 py-4 border-b">
+                            <a href="{{ url('pertandingan/'.$a->id) }}" class="text-green-500 hover:underline">Nomor Tanding</a><br>
+                            <a href="{{ url('pertandingan/'.$a->id.'/edit') }}" class="text-blue-500 hover:underline">Edit</a><br>
+                            <form action="{{ url('pertandingan/'.$a->id) }}" method="post" class="delete-form">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="text-red-500 hover:underline">Hapus</button>
+                            </form>
+                        </td>
+                    </tr>
+                @endif
             @endforeach
             <!-- Tambah data lainnya -->
             </tbody>
