@@ -1,11 +1,11 @@
 @extends('tamplate')
-@section('title', 'Penulis')
+@section('title', 'Pertandingan')
 @section('content')
-    <h1>Data Penulis</h1>
+    <h1>Data Pertandingan</h1>
     <hr>
     <div class="flex justify-between items-center p-4">
         <div>
-            <a href="{{ url('penulis/create') }}" class="bg-green-500 text-white px-4 py-2 rounded">Tambah Data</a>
+            <a href="{{ url('pertandingan/create') }}" class="bg-green-500 text-white px-4 py-2 rounded">Tambah Data</a>
         </div>
         <div>
             <form action="" method="get">
@@ -24,19 +24,26 @@
             <thead class="bg-gray-100">
                 <tr>
                     <th class="text-left px-6 py-3 border-b text-gray-600">No</th>
-                    <th class="text-left px-6 py-3 border-b text-gray-600">Nama Penulis</th>
+                    <th class="text-left px-6 py-3 border-b text-gray-600">Kategori</th>
+
+                    <th class="text-left px-6 py-3 border-b text-gray-600">Nama Pertandingan</th>
+                    <th class="text-left px-6 py-3 border-b text-gray-600">Jenis Kelamin</th>
                     <th class="text-left px-6 py-3 border-b text-gray-600">Aksi</th>
                 </tr>
             </thead>
             <tbody>
-            @foreach ($penulis as $a)
+            @foreach ($pertandingan as $a)
                 <tr>
                     <td class="px-6 py-4 border-b">{{ $loop->iteration }}</td>
+                    <td class="px-6 py-4 border-b">{{ $a->kategori->nama }}</td>
+
                     <td class="px-6 py-4 border-b">{{ $a->nama }}</td>
+                    <td class="px-6 py-4 border-b">{{ $a->jenis_kelamin ?? 'Mix' }}</td>
+
                     <td class="px-6 py-4 border-b">
 
-                        <a href="{{ url('penulis/'.$a->id.'/edit') }}" class="text-blue-500 hover:underline">Edit</a>
-                        <form action="{{ url('penulis/'.$a->id) }}" method="post" class="delete-form">
+                        <a href="{{ url('pertandingan/'.$a->id.'/edit') }}" class="text-blue-500 hover:underline">Edit</a>
+                        <form action="{{ url('pertandingan/'.$a->id) }}" method="post" class="delete-form">
                             @csrf
                             @method('DELETE')
                             <button type="submit" class="text-red-500 hover:underline">Hapus</button>
@@ -47,8 +54,8 @@
             <!-- Tambah data lainnya -->
             </tbody>
         </table>
-    </div>
+    </div><br>
     <div class="d-flex justify-content-center">
-        {{ $penulis->withQueryString()->links('vendor.pagination.bootstrap-5') }}
+        {{ $pertandingan->withQueryString()->links('vendor.pagination.tailwind') }}
     </div>
 @endsection

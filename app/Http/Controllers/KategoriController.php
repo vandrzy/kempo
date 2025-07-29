@@ -57,6 +57,10 @@ class KategoriController extends Controller
         try {
             Kategori::create([
                 'nama' => $request->nama,
+                'usia_awal' => $request->usia_awal,
+                'usia_akhir' => $request->usia_akhir,
+                'tahun_awal' => $request->tahun_awal,
+                'tahun_akhir' => $request->tahun_akhir,
                 'user_id' => Auth::user()->id,
             ]);
 
@@ -110,6 +114,10 @@ class KategoriController extends Controller
         try {
             $kategori = Kategori::find($id);
             $kategori->nama = $request->nama;
+            $kategori->usia_awal = $request->usia_awal;
+            $kategori->usia_akhir = $request->usia_akhir;
+            $kategori->tahun_awal = $request->tahun_awal;
+            $kategori->tahun_akhir = $request->tahun_akhir;
             $kategori->user_id = Auth::user()->id;
 
             $kategori->save();

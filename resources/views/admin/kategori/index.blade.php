@@ -25,6 +25,8 @@
                 <tr>
                     <th class="text-left px-6 py-3 border-b text-gray-600">No</th>
                     <th class="text-left px-6 py-3 border-b text-gray-600">Nama Kategori</th>
+                    <th class="text-left px-6 py-3 border-b text-gray-600">Usia</th>
+                    <th class="text-left px-6 py-3 border-b text-gray-600">Tahun</th>
                     <th class="text-left px-6 py-3 border-b text-gray-600">Aksi</th>
                 </tr>
             </thead>
@@ -38,6 +40,9 @@
                         <tr>
                             <td class="px-6 py-4 border-b">{{ $loop->iteration }}</td>
                             <td class="px-6 py-4 border-b">{{ $a->nama }}</td>
+                            <td class="px-6 py-4 border-b">{{ $a->usia_awal }} - {{ $a->usia_akhir }}</td>
+                            <td class="px-6 py-4 border-b">{{ $a->tahun_awal }} - {{ $a->tahun_akhir }}</td>
+
                             <td class="px-6 py-4 border-b">
                                 <a href="{{ url('kategori/'.$a->id.'/edit') }}" class="text-blue-500 hover:underline">Edit</a>
                                 <form action="{{ url('kategori/'.$a->id) }}" method="post" class="delete-form">

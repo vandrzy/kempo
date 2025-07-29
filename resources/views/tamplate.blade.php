@@ -16,7 +16,7 @@
   <header class="bg-gray-800 text-white p-4 shadow">
     <div class="flex justify-between items-center p-2">
         <div>
-            <h1 class="text-2xl font-bold">M. Data Buku</h1>
+            <h1 class="text-2xl font-bold">Pertandingan Kempo</h1>
         </div>
         <div>
             @if (Auth::user())
@@ -35,13 +35,40 @@
         @if (Auth::user())
             <aside class="w-64 bg-white p-4 shadow-lg hidden md:block">
             <nav class="space-y-2">
-                <a href="{{ url('dashboard') }}" class="block p-2 rounded {{ request()->is('dashboard*') ? 'bg-blue-100 text-blue-700 font-semibold' : 'hover:bg-blue-100' }}">Dashboard</a>
-                <a href="{{ url('users') }}" class="block p-2 rounded {{ request()->is('users*') ? 'bg-blue-100 text-blue-700 font-semibold' : 'hover:bg-blue-100' }}">Users</a>
-                <a href="{{ url('kategori') }}" class="block p-2 rounded {{ request()->is('kategori*') ? 'bg-blue-100 text-blue-700 font-semibold' : 'hover:bg-blue-100' }}">Kategori</a>
-                <a href="{{ url('penulis') }}" class="block p-2 rounded {{ request()->is('penulis*') ? 'bg-blue-100 text-blue-700 font-semibold' : 'hover:bg-blue-100' }}">Penulis</a>
-                <a href="{{ url('buku') }}" class="block p-2 rounded {{ request()->is('buku*') ? 'bg-blue-100 text-blue-700 font-semibold' : 'hover:bg-blue-100' }}">Buku</a>
-                <hr>
-                <a class="block p-2 rounded text-red-800 hover:bg-blue-100" href="{{ url('logout') }}">Log Out</a>
+                <div x-data="{ open: false }" class="w-full">
+                    <a href="{{ url('dashboard') }}" class="block p-2 rounded {{ request()->is('dashboard*') ? 'bg-blue-100 text-blue-700 font-semibold' : 'hover:bg-blue-100' }}">Dashboard</a>
+
+                    <!-- Tombol Dropdown -->
+                    <button @click="open = !open" class="flex items-center gap-2 px-2 py-2  text-black rounded hover:bg-blue-300 w-full">
+                        Master Data
+                        <svg class="w-4 h-4 transform transition-transform" :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+
+                    <!-- Menu Dropdown yang mendorong konten di bawah -->
+                    <div x-show="open" x-transition @click.away="open = false" class="mt-2 w-full bg-white border border-gray-200 rounded shadow">
+                        <a href="{{ url('users') }}"
+                        class="block px-4 py-2 rounded {{ request()->is('users*') ? 'bg-blue-100 text-blue-700 font-semibold' : 'hover:bg-blue-100' }}">
+                        Users
+                        </a>
+                        <a href="{{ url('kategori') }}"
+                        class="block px-4 py-2 rounded {{ request()->is('kategori*') ? 'bg-blue-100 text-blue-700 font-semibold' : 'hover:bg-blue-100' }}">
+                        Kategori
+                        </a>
+                        <a href="{{ url('pertandingan') }}"
+                        class="block px-4 py-2 rounded {{ request()->is('pertandingan*') ? 'bg-blue-100 text-blue-700 font-semibold' : 'hover:bg-blue-100' }}">
+                        Pertandingan
+                        </a>
+                    </div>
+
+                    <!-- Elemen di bawah dropdown -->
+                    <div class="mt-4 p-4 bg-gray-100 rounded">
+                        <hr>
+                        <a class="block p-2 rounded text-red-800 hover:bg-blue-100" href="{{ url('logout') }}">Log Out</a>
+                    </div>
+                </div>
+
             </nav>
             </aside>
         @endif
@@ -54,7 +81,7 @@
 
   <!-- Footer -->
   <footer class="bg-gray-200 text-black text-center p-4">
-    &copy; 2025 Jenny Nur Rahmawati - All rights reserved
+    &copy; 2025 - All rights reserved
   </footer>
     <script src="{{ asset('js/jquery-3.3.1.slim.min.js') }}" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
     <script src="{{ asset('js/popper.min.js') }}" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
@@ -119,5 +146,12 @@
             }
         });
     </script>
+    <script src="//unpkg.com/alpinejs" defer></script>
+    <script>
+        $(document).ready(function() {
+            @yield('script')
+        });
+    </script>
+
 </body>
 </html>

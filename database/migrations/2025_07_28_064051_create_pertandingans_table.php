@@ -11,16 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('bukus', function (Blueprint $table) {
+        Schema::create('pertandingans', function (Blueprint $table) {
             $table->id();
-            $table->string('judul');
-            $table->unsignedBigInteger('penulis_id');
+            $table->string('nama');
+            $table->unsignedBigInteger('kategori_id');
             $table->unsignedBigInteger('user_id');
-            // $table->unsignedBigInteger('kategori_id');
-            $table->string('publisher');
-            $table->integer('tahun');
-            $table->text('deskripsi');
-            $table->text('cover');
+            $table->enum('jenis_kelamin',['Laki-Laki', 'Perempuan'])->nullable();
+
             $table->timestamps();
         });
     }
@@ -30,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('bukus');
+        Schema::dropIfExists('pertandingans');
     }
 };
