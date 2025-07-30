@@ -1,6 +1,9 @@
 @extends('tamplate')
 @section('title', 'Pertandingan')
 @section('content')
+    @php
+        use App\Models\Pertandingan;
+    @endphp
     <h1>Data Pertandingan</h1>
     <hr>
     <div class="flex justify-between items-center p-4">
@@ -23,15 +26,23 @@
         <table class="min-w-full bg-white border border-gray-200">
             <thead class="bg-gray-100">
                 <tr>
-                    <th class="text-left px-6 py-3 border-b text-gray-600">No</th>
-                    <th class="text-left px-6 py-3 border-b text-gray-600">Nama Pertandingan</th>
-                    <th class="text-left px-6 py-3 border-b text-gray-600">Jenis Kelamin</th>
-                    <th class="text-left px-6 py-3 border-b text-gray-600">Aksi</th>
+                    <th class="text-left px-6 py-3 border-b text-gray-600" rowspan="2">No</th>
+                    <th class="text-left px-6 py-3 border-b text-gray-600" rowspan="2">Nama Pertandingan</th>
+                    {{-- <th class="text-left px-6 py-3 border-b text-gray-600" rowspan="2">Jenis Kelamin</th> --}}
+                    <th class="text-center px-6 py-3 border-b text-gray-600" colspan="3">Medali</th>
+                    <th class="text-center px-6 py-3 border-b text-gray-600" rowspan="2">Aksi</th>
+                </tr>
+                <tr>
+                    <th class="text-center px-6 py-3 border-b text-gray-600">Emas</th>
+                    <th class="text-center px-6 py-3 border-b text-gray-600">Perak</th>
+                    <th class="text-center px-6 py-3 border-b text-gray-600">Perunggu</th>
                 </tr>
             </thead>
             <tbody>
             @php
+                $total_gender_group = 0;
                 $kategori_id = 0;
+                $jenis_kelamin = "-";
             @endphp
             @foreach ($pertandingan as $a)
 
@@ -40,12 +51,27 @@
                         $kategori_id = $a->kategori_id;
                     @endphp
                     <tr>
-                        <th class="px-6 py-4 border-b" style="text-align: left;" colspan="4">{{ $a->kategori->nama }}</th>
+                        <th class="px-6 py-4 border-b" style="text-align: left;" colspan="7">{{ $a->kategori->nama }}</th>
                     </tr>
+                    @if ($a->jenis_kelamin != $jenis_kelamin)
+                        @php
+                            $jenis_kelamin = $a->jenis_kelamin ?? 'Mix';
+                        @endphp
+                        <tr>
+                            <th class="px-6 py-4 border-b" style="text-align: left;" colspan="2">{{ $jenis_kelamin }}</th>
+                            <th class="px-6 py-4 border-b" style="text-align: center;">{{ $a->totalEmasPerJenisKelamin($kategori_id, $jenis_kelamin)->total_emas }}</th>
+                            <th class="px-6 py-4 border-b" style="text-align: center;">{{ $a->totalEmasPerJenisKelamin($kategori_id, $jenis_kelamin)->total_perak }}</th>
+                            <th class="px-6 py-4 border-b" style="text-align: center;">{{ $a->totalEmasPerJenisKelamin($kategori_id, $jenis_kelamin)->total_perunggu }}</th>
+                            <th class="px-6 py-4 border-b" style="text-align: left;"></th>
+                        </tr>
+                    @endif
                     <tr>
                         <td class="px-6 py-4 border-b">{{ $loop->iteration }}</td>
                         <td class="px-6 py-4 border-b">{{ $a->nama }}</td>
-                        <td class="px-6 py-4 border-b">{{ $a->jenis_kelamin ?? 'Mix' }}</td>
+                        {{-- <td class="px-6 py-4 border-b">{{ $a->jenis_kelamin ?? 'Mix' }}</td> --}}
+                        <td class="text-center px-6 py-4 border-b">{{ $a->emas }}</td>
+                        <td class="text-center px-6 py-4 border-b">{{ $a->perak }}</td>
+                        <td class="text-center px-6 py-4 border-b">{{ $a->perunggu }}</td>
 
                         <td class="px-6 py-4 border-b">
                             <a href="{{ url('pertandingan/'.$a->id) }}" class="text-green-500 hover:underline">Nomor Tanding</a><br>
@@ -58,10 +84,26 @@
                         </td>
                     </tr>
                 @else
+                    @if ($a->jenis_kelamin != $jenis_kelamin)
+                        @php
+                            $jenis_kelamin = $a->jenis_kelamin ?? 'Mix';
+                            // dd($a->totalEmasPerJenisKelamin($kategori_id, $jenis_kelamin)->total_emas );
+                        @endphp
+                        <tr>
+                            <th class="px-6 py-4 border-b" style="text-align: left;" colspan="2">{{ $jenis_kelamin }}</th>
+                            <th class="px-6 py-4 border-b" style="text-align: center;">{{ $a->totalEmasPerJenisKelamin($kategori_id, $jenis_kelamin)->total_emas ?? '0' }}</th>
+                            <th class="px-6 py-4 border-b" style="text-align: center;">{{ $a->totalEmasPerJenisKelamin($kategori_id, $jenis_kelamin)->total_perak ?? '0' }}</th>
+                            <th class="px-6 py-4 border-b" style="text-align: center;">{{ $a->totalEmasPerJenisKelamin($kategori_id, $jenis_kelamin)->total_perunggu ?? '0' }}</th>
+                            <th class="px-6 py-4 border-b" style="text-align: left;"></th>
+                        </tr>
+                    @endif
                     <tr>
                         <td class="px-6 py-4 border-b">{{ $loop->iteration }}</td>
                         <td class="px-6 py-4 border-b">{{ $a->nama }}</td>
-                        <td class="px-6 py-4 border-b">{{ $a->jenis_kelamin ?? 'Mix' }}</td>
+                        {{-- <td class="px-6 py-4 border-b">{{ $a->jenis_kelamin ?? 'Mix' }}</td> --}}
+                        <td class="text-center px-6 py-4 border-b">{{ $a->emas }}</td>
+                        <td class="text-center px-6 py-4 border-b">{{ $a->perak }}</td>
+                        <td class="text-center px-6 py-4 border-b">{{ $a->perunggu }}</td>
 
                         <td class="px-6 py-4 border-b">
                             <a href="{{ url('pertandingan/'.$a->id) }}" class="text-green-500 hover:underline">Nomor Tanding</a><br>

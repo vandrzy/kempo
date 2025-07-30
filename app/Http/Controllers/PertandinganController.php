@@ -19,9 +19,14 @@ class PertandinganController extends Controller
     public function index()
     {
         if(isset($_GET['cari'])) {
-            $data['pertandingan'] = Pertandingan::where('nama','like','%'.$_GET['cari'].'%')->orderBy('kategori_id','ASC')->paginate(10);
+            $data['pertandingan'] = Pertandingan::where('nama','like','%'.$_GET['cari'].'%')
+                                    ->orderBy('kategori_id','ASC')
+                                    ->orderBy('jenis_kelamin','ASC')
+                                    ->paginate(10);
         } else {
-            $data['pertandingan'] = Pertandingan::orderBy('kategori_id','ASC')->paginate(10);
+            $data['pertandingan'] = Pertandingan::orderBy('kategori_id','ASC')
+                                    ->orderBy('jenis_kelamin','DESC')
+                                    ->paginate(10);
         }
 
         // dd(count($data['kategori']));
@@ -67,7 +72,9 @@ class PertandinganController extends Controller
                 'nama' => $request->nama,
                 'kategori_id' => $request->kategori_id,
                 'jenis_kelamin' => $request->jenis_kelamin,
-
+                'emas' => $request->emas,
+                'perak' => $request->perak,
+                'perunggu' => $request->perunggu,
                 'user_id' => Auth::user()->id,
             ]);
 
@@ -188,7 +195,9 @@ class PertandinganController extends Controller
             $pertandingan->kategori_id = $request->kategori_id;
             $pertandingan->nama = $request->nama;
             $pertandingan->jenis_kelamin = $request->jenis_kelamin;
-
+            $pertandingan->emas = $request->emas;
+            $pertandingan->perak = $request->perak;
+            $pertandingan->perunggu = $request->perunggu;
             $pertandingan->user_id = Auth::user()->id;
 
             $pertandingan->save();

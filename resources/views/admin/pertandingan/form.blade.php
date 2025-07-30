@@ -31,4 +31,27 @@
         <span class="text-red" style="color: red;">{{ $message }}</span>
     @enderror
 </div>
+<div class="mb-4">
+    <label for="">Medali <span style="color: red;">*</span></label>
+    <div class="flex flex-wrap -mx-2">
+        <div class="w-full md:w-1/3 px-2">
+            <div class="p-1">
+                <input type="number" name="emas" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" value="{{ old('emas', @$pertandingan->emas) }}" placeholder="Emas" id="">
+            </div>
+        </div>
+        <div class="w-full md:w-1/3 px-2">
+            <div class="p-1">
+                <input type="number" name="perak" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" value="{{ old('perak', @$pertandingan->perak) }}" placeholder="Perak" id="">
+            </div>
+        </div>
+        <div class="w-full md:w-1/3 px-2">
+            <div class="p-1">
+                <input type="number" name="perunggu" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" value="{{ old('perunggu', @$pertandingan->perunggu) }}" placeholder="Perunggu" id="">
+            </div>
+        </div>
+    </div>
+    @error('jenis_kelamin')
+        <span class="text-red" style="color: red;">{{ $message }}</span>
+    @enderror
+</div>
 
