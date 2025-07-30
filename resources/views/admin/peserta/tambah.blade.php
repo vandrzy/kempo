@@ -1,7 +1,7 @@
 @extends('tamplate')
-@section('title', 'Buku')
+@section('title', 'Peserta')
 @section('content')
-    <h1>Tambah Data Buku</h1>
+    <h1>Tambah Data Peserta</h1>
     <hr>
     <form action="{{ url('buku') }}" method="post" enctype="multipart/form-data">
         <div class="flex justify-between items-center p-3">

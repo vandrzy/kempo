@@ -55,10 +55,10 @@
                     </tr>
                     @if ($a->jenis_kelamin != $jenis_kelamin)
                         @php
-                            $jenis_kelamin = $a->jenis_kelamin ?? 'Mix';
+                            $jenis_kelamin = $a->jenis_kelamin;
                         @endphp
                         <tr>
-                            <th class="px-6 py-4 border-b" style="text-align: left;" colspan="2">{{ $jenis_kelamin }}</th>
+                            <th class="px-6 py-4 border-b" style="text-align: left;" colspan="2">{{ $jenis_kelamin ?? "Campuran" }}</th>
                             <th class="px-6 py-4 border-b" style="text-align: center;">{{ $a->totalEmasPerJenisKelamin($kategori_id, $jenis_kelamin)->total_emas }}</th>
                             <th class="px-6 py-4 border-b" style="text-align: center;">{{ $a->totalEmasPerJenisKelamin($kategori_id, $jenis_kelamin)->total_perak }}</th>
                             <th class="px-6 py-4 border-b" style="text-align: center;">{{ $a->totalEmasPerJenisKelamin($kategori_id, $jenis_kelamin)->total_perunggu }}</th>
@@ -68,7 +68,7 @@
                     <tr>
                         <td class="px-6 py-4 border-b">{{ $loop->iteration }}</td>
                         <td class="px-6 py-4 border-b">{{ $a->nama }}</td>
-                        {{-- <td class="px-6 py-4 border-b">{{ $a->jenis_kelamin ?? 'Mix' }}</td> --}}
+                        {{-- <td class="px-6 py-4 border-b">{{ $jenis_kelamin }}</td> --}}
                         <td class="text-center px-6 py-4 border-b">{{ $a->emas }}</td>
                         <td class="text-center px-6 py-4 border-b">{{ $a->perak }}</td>
                         <td class="text-center px-6 py-4 border-b">{{ $a->perunggu }}</td>
@@ -86,11 +86,11 @@
                 @else
                     @if ($a->jenis_kelamin != $jenis_kelamin)
                         @php
-                            $jenis_kelamin = $a->jenis_kelamin ?? 'Mix';
+                            $jenis_kelamin = $a->jenis_kelamin;
                             // dd($a->totalEmasPerJenisKelamin($kategori_id, $jenis_kelamin)->total_emas );
                         @endphp
                         <tr>
-                            <th class="px-6 py-4 border-b" style="text-align: left;" colspan="2">{{ $jenis_kelamin }}</th>
+                            <th class="px-6 py-4 border-b" style="text-align: left;" colspan="2">{{ $jenis_kelamin ?? "Campuran" }}</th>
                             <th class="px-6 py-4 border-b" style="text-align: center;">{{ $a->totalEmasPerJenisKelamin($kategori_id, $jenis_kelamin)->total_emas ?? '0' }}</th>
                             <th class="px-6 py-4 border-b" style="text-align: center;">{{ $a->totalEmasPerJenisKelamin($kategori_id, $jenis_kelamin)->total_perak ?? '0' }}</th>
                             <th class="px-6 py-4 border-b" style="text-align: center;">{{ $a->totalEmasPerJenisKelamin($kategori_id, $jenis_kelamin)->total_perunggu ?? '0' }}</th>
@@ -100,7 +100,7 @@
                     <tr>
                         <td class="px-6 py-4 border-b">{{ $loop->iteration }}</td>
                         <td class="px-6 py-4 border-b">{{ $a->nama }}</td>
-                        {{-- <td class="px-6 py-4 border-b">{{ $a->jenis_kelamin ?? 'Mix' }}</td> --}}
+                        {{-- <td class="px-6 py-4 border-b">{{ $jenis_kelamin }}</td> --}}
                         <td class="text-center px-6 py-4 border-b">{{ $a->emas }}</td>
                         <td class="text-center px-6 py-4 border-b">{{ $a->perak }}</td>
                         <td class="text-center px-6 py-4 border-b">{{ $a->perunggu }}</td>
