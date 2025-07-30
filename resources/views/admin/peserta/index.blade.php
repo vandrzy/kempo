@@ -12,7 +12,7 @@
             </div>
             <div class="w-full md:w-3/12">
                 <select name="kategori_id"  class="mx-2 pilihan"   id="kategori_id">
-                    <option value="">Cari Kategori Buku</option>
+                    <option value="">Cari Kategori Pertandingan</option>
                     @foreach ($kategori as $a)
                         <option value="{{ $a->id }}" {{ Request('kategori_id') == $a->id ? 'selected' : '' }} >{{ $a->nama }}</option>
                     @endforeach

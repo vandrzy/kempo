@@ -41,30 +41,38 @@ class HomePageController extends Controller
             'nama' => 'required',
             'jenis_kelamin'=> 'required',
             'golongan_darah'=> 'required',
-            'nik'=> 'required|unique:pesertas,nik',
+            'nik'=> 'required|numeric|digits_between:1,16|unique:pesertas,nik',
             'tingkat'=> 'required',
             'status'=> 'required',
             'tempat'=> 'required',
             'tanggal_lahir'=> 'required',
             'alamat'=> 'required',
-            'telepon'=> 'required',
+            'telepon'=> 'required|numeric|digits_between:1,13',
             'keterangan'=> 'required',
             'pertandingan_id'=> 'required',
-            'foto'=> 'required',
+            'foto'=> 'required|max:1024',
         ], [
             'nama.required' => 'Nama Peserta Wajib Diisi!',
             'jenis_kelamin.required' => 'Jenis Kelamin Wajib Diisi!',
             'golongan_darah.required' => 'Golongan Darah Wajib Diisi!',
             'nik.required' => 'NIK Wajib Diisi!',
+            'nik.numeric' => 'NIK Wajib Diisi dengan Angka!',
+            'nik.digits_between' => 'NIK Maksimal 16 digit!',
+
             'tingkat.required' => 'Tingkat Wajib Diisi!',
             'status.required' => 'Status Wajib Diisi!',
             'tempat.required' => 'Tempat Lahir Wajib Diisi!',
             'tanggal_lahir.required' => 'Tanggal Lahir Wajib Diisi!',
             'alamat.required' => 'Alamat Peserta Wajib Diisi!',
+
             'telepon.required' => 'Nomor Telepon Peserta Wajib Diisi!',
+            'telepon.numeric' => 'Nomor Telepon Peserta Wajib Diisi! dengan Angka',
+            'telepon.digits_between' => 'Nomor Telepon Peserta Tidak boleh melebihi 13 digit!',
+
             'keterangan.required' => 'Keterangan Wajib Diisi!',
             'pertandingan_id.required' => 'Pertandingan Wajib Diisi!',
             'foto.required' => 'Foto Peserta Wajib Diisi!',
+            'foto.max' => 'Foto Peserta tidak boleh sizenya lebih dari 1mb, Mohon dicompres dulu!',
         ]);
 
         if ($validator->fails()) {
@@ -74,7 +82,7 @@ class HomePageController extends Controller
                 ->with('gagal', 'Lengkapi Form yang tidak terisi!');
         }
 
-            
+
             $peserta = Peserta::create([
                 'nama' => $request->nama,
                 'jenis_kelamin'=> $request->jenis_kelamin,

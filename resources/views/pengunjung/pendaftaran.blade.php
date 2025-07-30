@@ -68,7 +68,7 @@
                     class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-1/2"
                     value="{{ old('tempat') }}" placeholder="Tempat Lahir" id="">
 
-                <input type="date" name="tanggal_lahir" id="tanggal_lahir" 
+                <input type="date" name="tanggal_lahir" id="tanggal_lahir"
                     class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-1/2"
                     value="{{ old('tanggal_lahir', date('Y-m-d')) }}" id="">
             </div>
