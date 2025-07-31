@@ -9,7 +9,7 @@
 <body class="bg-gray-100 flex items-center justify-center min-h-screen">
 
   <div class="w-full max-w-md bg-white rounded-xl shadow-md p-6">
-    <h1 class="text-4xl font-semibold text-center text-gray-700 mb-6">Pendaftaran Kempo</h1>
+    <h1 class="text-4xl font-semibold text-center text-gray-700 mb-6">{{ env('APP_NAME') }}</h1>
     <hr>
     <h2 class="text-2xl font-semibold text-center text-gray-700 mb-6">Login</h2>
     @if ($errors->any())

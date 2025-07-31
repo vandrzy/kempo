@@ -21,7 +21,7 @@
             <div class="w-full md:w-3/12">
                 <select name="pertandingan_id"  class="mx-2 pilihan"  id="pertandingan_id">
                     <option value="">Cari Pertandingan</option>
-                    @if(isset($_GET['pertandingan_id']))
+                    @if(isset($_GET['pertandingan_id']) && $_GET['pertandingan_id'] != "")
                         @foreach ($pertandingan as $a)
                             <option value="{{ $a->id }}" {{ Request('pertandingan_id') == $a->id ? 'selected' : '' }}>{{ $a->nama }}</option>
                         @endforeach
@@ -31,6 +31,7 @@
             </div>
 
             <div class="w-full md:w-3/12">
+                <a href="{{ url('pesertas/export') }}" target="_blank" class="bg-green-500 text-white px-6 mx-2 py-3 rounded">Export</a>
                 <button type="submit" class="bg-blue-500 text-white px-6 mx-2 py-2 rounded">Cari</button>
             </div>
         </div>

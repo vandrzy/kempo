@@ -16,7 +16,7 @@
   <header class="bg-gray-800 text-white p-4 shadow">
     <div class="flex justify-between items-center p-2">
         <div>
-            <h1 class="text-2xl font-bold">Pertandingan Kempo</h1>
+            <h1 class="text-2xl font-bold">{{ env('APP_NAME') }}</h1>
         </div>
         <div>
             @if (Auth::user())

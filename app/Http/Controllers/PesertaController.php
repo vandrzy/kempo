@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\PesertaExport;
 use App\Models\Kategori;
 use App\Models\Pertandingan;
 use App\Models\Peserta;
 use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
 
 class PesertaController extends Controller
 {
@@ -43,6 +45,12 @@ class PesertaController extends Controller
         $data['peserta'] = $data['peserta']->paginate(10);
         $data['kategori'] = Kategori::get();
         return view('admin.peserta.index', $data);
+    }
+
+    public function export() {
+        $lastRow = Peserta::count();
+        return Excel::download(new PesertaExport, 'rekap_peserta.xlsx');
+        // return view('admin.peserta.excel', $data);
     }
 
     public function get_pertandingan(string $kategori) {
