@@ -82,7 +82,7 @@
         </table>
     </div>
     <div class="d-flex justify-content-center">
-        {{ $peserta->withQueryString()->links('vendor.pagination.bootstrap-5') }}
+        {{ $peserta->withQueryString()->links('vendor.pagination.tailwind') }}
     </div>
 @endsection
 <script>
