@@ -99,9 +99,25 @@ class HomePageController extends Controller
             ]);
 
             foreach($request->pertandingan_id as $a) {
+                $existing = PertandinganPeserta::where('pertandingan_id', $a)
+                ->orderBy('urutan')
+                ->pluck('urutan')
+                ->toArray();
+
+                // Cari urutan kosong
+                $urutanBaru = 1;
+                foreach ($existing as $num) {
+                    if ($num == $urutanBaru) {
+                        $urutanBaru++;
+                    } else {
+                        break; // lubang ditemukan
+                    }
+                }
+
                 PertandinganPeserta::create([
                     'peserta_id' => $peserta->id,
                     'pertandingan_id' => $a,
+                    'urutan' => $urutanBaru,
                 ]);
             }
 

@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('peserta_terpilihs', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('pertandingan_id');
-            $table->unsignedBigInteger('pertandingan_peserta_kiri_id');
-            $table->unsignedBigInteger('pertandingan_peserta_kanan_id');
+            $table->unsignedBigInteger('pertandingan_peserta_kiri_id')->nullable();
+            $table->unsignedBigInteger('pertandingan_peserta_kanan_id')->nullable();
             $table->timestamps();
         });
     }

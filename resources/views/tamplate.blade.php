@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-      <title> @yield('title') | M. Data Buku</title>
+      <title> @yield('title') | Pertandingan Kempo</title>
 
       <link href="{{ asset('css/select2.min.css') }}" rel="stylesheet" />
     <link href="{{ asset('css/select2-bootstrap4.min.css') }}" rel="stylesheet" />

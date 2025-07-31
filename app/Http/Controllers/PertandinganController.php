@@ -98,37 +98,36 @@ class PertandinganController extends Controller
     }
 
     public function tanding($id) {
+        while (true) {
+            $terpilih = 0;
+            $pertandinganPertama = PertandinganPeserta::where('sudah_terpilih', 'false')->where('pertandingan_id', $id)->inRandomOrder()->first();
+            if ($pertandinganPertama) {
+                $pertandinganPertama->update(['sudah_terpilih' => 'true']);
+                $terpilih += 1;
+            } else {
+                return redirect()->back()
+                    ->with('success', 'Peserta sudah terpilih semua!')
+                    ->withInput();
+                break;
+            }
 
-        $terpilih = 0;
-        $pertandinganPertama = PertandinganPeserta::where('sudah_terpilih', 'false')->where('pertandingan_id', $id)->inRandomOrder()->first();
-        if ($pertandinganPertama) {
-            $pertandinganPertama->update(['sudah_terpilih' => 'true']);
-            $terpilih += 1;
-        } else {
-            return redirect()->back()
-                ->with('gagal', 'Peserta sudah terpilih semua!')
-                ->withInput();
-        }
-        $pertandinganKedua = PertandinganPeserta::where('sudah_terpilih', 'false')->where('pertandingan_id', $id)->inRandomOrder()->first();
-        if ($pertandinganKedua) {
-            $pertandinganKedua->update(['sudah_terpilih' => 'true']);
-            $terpilih += 1;
-        } else {
-            $pertandinganPertama->update(['sudah_terpilih' => 'false']);
-            return redirect()->back()
-                ->with('gagal', 'Peserta terakhir tidak dapat ditandingkan karena tidak ada lawan!')
-                ->withInput();
-        }
-        if($terpilih > 1) {
-            PesertaTerpilih::create([
-                'pertandingan_id' => $id,
-                'pertandingan_peserta_kiri_id' => $pertandinganPertama->id,
-                'pertandingan_peserta_kanan_id' => $pertandinganKedua->id,
-            ]);
-
-            return redirect()->back()
-                ->with('success', 'Peserta telah terpilih untuk bersaing')
-                ->withInput();
+            $pertandinganKedua = PertandinganPeserta::where('sudah_terpilih', 'false')->where('pertandingan_id', $id)->inRandomOrder()->first();
+            if ($pertandinganKedua) {
+                $pertandinganKedua->update(['sudah_terpilih' => 'true']);
+                $terpilih += 1;
+            } else {
+                PesertaTerpilih::create([
+                    'pertandingan_id' => $id,
+                    'pertandingan_peserta_kiri_id' => $pertandinganPertama->id,
+                ]);
+            }
+            if($terpilih > 1) {
+                PesertaTerpilih::create([
+                    'pertandingan_id' => $id,
+                    'pertandingan_peserta_kiri_id' => $pertandinganPertama->id,
+                    'pertandingan_peserta_kanan_id' => $pertandinganKedua->id,
+                ]);
+            }
         }
     }
 

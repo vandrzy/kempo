@@ -33,12 +33,21 @@
             <tbody>
             @foreach ($peserta_lawan as $a)
                 <tr>
-                    <td class="px-6 py-4 border-b">{{ $a->PertandinganPesertaPertama->id }}-{{ $a->PertandinganPesertaPertama->peserta_id }}-{{ $a->PertandinganPesertaPertama->pertandingan_id }}</td>
-                    <td class="px-6 py-4 border-b">{{ $a->PertandinganPesertaPertama->Peserta->nama }}</td>
-                    <td class="px-6 py-4 border-b">{{ $a->PertandinganPesertaKedua->id }}-{{ $a->PertandinganPesertaKedua->peserta_id }}-{{ $a->PertandinganPesertaKedua->pertandingan_id }}</td>
-                    <td class="px-6 py-4 border-b">{{ $a->PertandinganPesertaKedua->Peserta->nama }}</td>
+                    @if (isset($a->PertandinganPesertaPertama))
+                        <td class="px-6 py-4 border-b border-l border-r">{{ $a->PertandinganPesertaPertama->urutan }}</td>
+                        <td class="px-6 py-4 border-b border-l border-r">{{ $a->PertandinganPesertaPertama->Peserta->nama }}</td>
+                    @else
+                        <td class="px-6 py-4 border-b text-center border-l border-r" colspan="2">WO</td>
+                    @endif
 
-                    <td class="px-6 py-4 border-b">
+                    @if (isset($a->PertandinganPesertaKedua))
+                        <td class="px-6 py-4 border-b border-l border-r">{{ $a->PertandinganPesertaKedua->urutan }}</td>
+                        <td class="px-6 py-4 border-b border-l border-r">{{ $a->PertandinganPesertaKedua->Peserta->nama }}</td>
+                    @else
+                        <td class="px-6 py-4 border-b text-center border-l border-r" colspan="2">WO</td>
+                    @endif
+
+                    <td class="px-6 py-4 border-b border-l border-r">
                         {{-- <a href="{{ url('pertandingan/'.$a->id) }}" class="text-green-500 hover:underline">Nomor Tanding</a><br>
                         <a href="{{ url('pertandingan/'.$a->id.'/edit') }}" class="text-blue-500 hover:underline">Edit</a><br> --}}
                         <form action="{{ url('pertandingans/tanding-delete/'.$a->id) }}" method="post" class="delete-form">

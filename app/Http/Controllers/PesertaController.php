@@ -102,6 +102,14 @@ class PesertaController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        try {
+            $peserta = Peserta::find($id);
+            $peserta->PertandinganPeserta()->delete();
+            $peserta->delete();
+
+            return redirect('peserta')->with('success', 'Data Berhasil Dihapus');
+        } catch (\Throwable $th) {
+            //throw $th;
+        }
     }
 }

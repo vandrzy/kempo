@@ -68,7 +68,7 @@
                         <td class="px-6 py-4 border-b">
                             <a href="{{ url('peserta/'.$a->id) }}" class="text-green-500 hover:underline">Detail</a>
                             {{-- <a href="{{ url('peserta/'.$a->id.'/edit') }}" class="text-blue-500 hover:underline">Edit</a> --}}
-                            <form action="{{ url('peserta/'.$a->id) }}" method="post" class="text-red-500 hover:underline">
+                            <form action="{{ url('peserta/'.$a->id) }}" method="post" class="text-red-500 hover:underline delete-form">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="btn btn-danger btn-delete">Hapus</button>
