@@ -41,7 +41,7 @@ class PertandinganController extends Controller
             $data['pertandingan'] = $data['pertandingan']->where('nama','like','%'.$_GET['cari'].'%');
         }
 
-        $data['pertandingan'] = $data['pertandingan']->orderBy('jenis_kelamin','DESC')->paginate(10);
+        $data['pertandingan'] = $data['pertandingan']->orderBy('kategori_id', 'ASC')->orderBy('jenis_kelamin','DESC')->paginate(10);
         $data['kegiatan'] = Kegiatan::get();
         // dd(count($data['kategori']));
         return view('admin.pertandingan.index', $data);
