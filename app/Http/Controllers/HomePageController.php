@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Buku;
 use App\Models\Kategori;
+use App\Models\Kegiatan;
 use App\Models\Penulis;
 use App\Models\Pertandingan;
 use App\Models\PertandinganPeserta;
@@ -15,7 +16,11 @@ use Illuminate\Support\Facades\Validator;
 class HomePageController extends Controller
 {
     //
-    public function index() {
+    public function index($id) {
+
+        $kegiatan_id = explode('-', $id);
+
+        $data['kegiatan'] = Kegiatan::find(base64_decode($kegiatan_id[1]));
 
         $tahun = old('tanggal_lahir');
         $kelamin = old('jenis_kelamin');
@@ -28,6 +33,7 @@ class HomePageController extends Controller
                     ->orWhereNull('jenis_kelamin');
             })->get();
         } else {
+
             $data['pertandingan'] = Pertandingan::get();
         }
 
@@ -121,7 +127,7 @@ class HomePageController extends Controller
                 ]);
             }
 
-            return redirect('/')->with('success', 'Peserta telah terdaftar, mohon tunggu konfirmasi berikutnya!');
+            return back()->with('success', 'Peserta telah terdaftar, mohon tunggu konfirmasi berikutnya!');
 
         try {
 

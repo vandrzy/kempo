@@ -24,6 +24,7 @@
             <thead class="bg-gray-100">
                 <tr>
                     <th class="text-left px-6 py-3 border-b text-gray-600">No</th>
+                    <th class="text-left px-6 py-3 border-b text-gray-600">Kategori</th>
                     <th class="text-left px-6 py-3 border-b text-gray-600">Nama Kategori</th>
                     <th class="text-left px-6 py-3 border-b text-gray-600">Usia</th>
                     <th class="text-left px-6 py-3 border-b text-gray-600">Tahun</th>
@@ -39,6 +40,7 @@
                     @foreach ($kategori as $a)
                         <tr>
                             <td class="px-6 py-4 border-b">{{ $loop->iteration }}</td>
+                            <td class="px-6 py-4 border-b">{{ $a->kegiatan->nama ?? "" }}</td>
                             <td class="px-6 py-4 border-b">{{ $a->nama }}</td>
                             <td class="px-6 py-4 border-b">{{ $a->usia_awal }} - {{ $a->usia_akhir }}</td>
                             <td class="px-6 py-4 border-b">{{ $a->tahun_awal }} - {{ $a->tahun_akhir }}</td>
@@ -59,6 +61,6 @@
         </table>
     </div>
     <div class="d-flex justify-content-center">
-        {{ $peserta->withQueryString()->links('vendor.pagination.tailwind') }}
+        {{ $kategori->withQueryString()->links('vendor.pagination.tailwind') }}
     </div>
 @endsection

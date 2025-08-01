@@ -1,3 +1,16 @@
+
+<div class="mb-4">
+    <label for="kegiatan_id">Pilih Kegiatan <span style="color: red;">*</span></label>
+    <select name="kegiatan_id"  class="form-control pilihan" id="">
+        <option value="">Pilih Kegiatan</option>
+        @foreach ($kegiatan as $a)
+            <option value="{{ $a->id }}" {{ old('kegiatan_id', @$kategori->kegiatan_id) == $a->id ? 'selected' : '' }} >{{ $a->nama }}</option>
+        @endforeach
+    </select>
+    @error('kegiatan_id')
+        <span class="text-red" style="color: red;">{{ $message }}</span>
+    @enderror
+</div>
 <div class="mb-4">
     <label for="">Nama Kategori <span style="color: red;">*</span></label>
     <input type="text" name="nama" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" value="{{ old('nama', @$kategori->nama) }}" placeholder="Nama Kategori" id="">

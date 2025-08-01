@@ -10,6 +10,11 @@ class Kategori extends Model
     //
     protected $guarded = ['id'];
 
+    public function kegiatan()
+    {
+        return $this->belongsTo(Kegiatan::class);
+    }
+
     public function pertandingan()
     {
         return $this->hasMany(Pertandingan::class);

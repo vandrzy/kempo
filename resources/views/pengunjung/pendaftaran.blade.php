@@ -1,8 +1,9 @@
 <div class="max-w-6xl mx-auto my-6 px-4">
-    <h1>Pendaftaran Peserta Kempo</h1><br>
+    <h1>Pendaftaran Peserta {{ $kegiatan->nama }}</h1><br>
     <hr><br>
     <form action="{{ url('daftar') }}" method="post" enctype="multipart/form-data">
         @csrf
+        <input type="hidden" name="kegiatan_id" id="kegiatan_id" value="{{ $kegiatan->id }}">
         {{-- <div class="mb-4">
             <label for="">Nomor <span style="color: red;">*</span></label>
             <input type="number" name="nomor" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" value="{{ old('nomor') }}" placeholder="Nomor" id="">
@@ -108,7 +109,7 @@
         <div class="mb-4">
             <label for="">Nomor dan Kelas Pertandingan yang akan diikuti : <span style="color: red;">*</span></label>
             <select name="pertandingan_id[]" class="form-control pilihan" multiple="multiple" status="{{ (is_array(old('pertandingan_id')) && count(old('pertandingan_id'))) > 0 ? 'true' : 'false' }}" id="pertandingan_id">
-                <option value="" disabled>Pilih Pertandingan</option>
+                {{-- <option value="" disabled>Pilih Pertandingan</option> --}}
                 @php
                     // if(isset($peserta)) {
                     //     $selectedKategori = in_array($a->id, old('kategori_id', $buku->KategoriBuku->pluck('kategori_id')->toArray())) ? 'selected' : '' ;
@@ -142,20 +143,26 @@
 </div>
 <script>
     @section('script')
-        function AmbilDataPertandingan(tanggal_lahir, jenis_kelamin) {
+        function AmbilDataPertandingan(tanggal_lahir, jenis_kelamin, kegiatan_id) {
             $('#pertandingan_id').attr('status', 'true');
             $('#pertandingan_id').html('');
             $.ajax({
-                url: `{{url("pendaftarans")}}/${tanggal_lahir}/${jenis_kelamin}`, // URL API
+                url: `{{url("pendaftarans")}}/${tanggal_lahir}/${jenis_kelamin}?kegiatan_id=${kegiatan_id}`, // URL API
                 type: 'GET',
                 dataType: 'json', // bisa 'html', 'text', dll tergantung respon
                 success: function(response) {
                     let data = "";
 
+                    if(response.data.length > 0) {
+                        $.each(response.data, function(index, value) {
+                            data += `<option value="${value.id}">${value.nama}</option>`;
+                        });
+                    } else {
+                        data += `<option value="" disabled>Pertandingan Tidak Tersedia!</option>`;
+
+                    }
+
                     // data += `<option value="" disabled>Pilih Pertandingan</option>`;
-                    $.each(response.data, function(index, value) {
-                        data += `<option value="${value.id}">${value.nama}</option>`;
-                    });
 
                     $('#pertandingan_id').html(data);
 
@@ -170,11 +177,11 @@
         }
 
         $('#jenis_kelamin').on('change', function (e) {
-            AmbilDataPertandingan($('#tanggal_lahir').val(), $('#jenis_kelamin').val());
+            AmbilDataPertandingan($('#tanggal_lahir').val(), $('#jenis_kelamin').val(), $('#kegiatan_id').val());
         });
 
         $('#tanggal_lahir').on('change', function (e) {
-            AmbilDataPertandingan($('#tanggal_lahir').val(), $('#jenis_kelamin').val());
+            AmbilDataPertandingan($('#tanggal_lahir').val(), $('#jenis_kelamin').val(), $('#kegiatan_id').val());
         });
 
 

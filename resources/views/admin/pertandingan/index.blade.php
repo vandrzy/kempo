@@ -8,17 +8,29 @@
     <hr>
     <div class="flex justify-between items-center p-4">
         <div>
-            <a href="{{ url('pertandingan/create') }}" class="bg-green-500 text-white px-4 py-2 rounded">Tambah Data</a>
+            <a href="{{ url('pertandingan/create') }}?kegiatan_id={{ (@$kegiatan_get->id ? $kegiatan_get->id : Request('kegiatan_id')) }}" class="bg-green-500 text-white px-4 py-2 rounded">Tambah Data</a>
         </div>
         <div>
             <form action="" method="get">
-                <input type="text" name="cari"
-                    class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500"
-                    placeholder="Cari data...">
-                <button type="submit"
-                    class="px-4 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition">
-                    Cari
-                </button>
+                <div class="flex items-center gap-2">
+                    <select name="kegiatan_id" class="pilihan px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500" id="kegiatan_id">
+                        @foreach ($kegiatan as $a)
+                            <option value="{{ $a->id }}" {{ Request('kegiatan_id') == $a->id ? 'selected' : (@$kegiatan_get->id == $a->id ? 'selected' : '') }} >{{ $a->nama }}</option>
+
+                            {{-- <option value="{{ $a->id }}" {{ Request('kegiatan_id') == $a->id ? 'selected' : ''}}>{{ $a->nama }}</option> --}}
+                        @endforeach
+                    </select>
+
+                    <input type="text" name="cari"
+                        class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500"
+                        placeholder="Cari data...">
+
+                    <button type="submit"
+                        class="px-4 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition">
+                        Cari
+                    </button>
+                </div>
+
             </form>
         </div>
     </div>
@@ -74,9 +86,9 @@
                         <td class="text-center px-6 py-4 border-b">{{ $a->perunggu }}</td>
 
                         <td class="px-6 py-4 border-b">
-                            <a href="{{ url('pertandingan/'.$a->id) }}" class="text-green-500 hover:underline">Nomor Tanding</a><br>
-                            <a href="{{ url('pertandingan/'.$a->id.'/edit') }}" class="text-blue-500 hover:underline">Edit</a>
-                            <form action="{{ url('pertandingan/'.$a->id) }}" method="post" class="delete-form">
+                            <a href="{{ url('pertandingan/'.$a->id) }}?kegiatan_id={{ (@$kegiatan_get->id ? $kegiatan_get->id : Request('kegiatan_id')) }}" target="_blank" class="text-green-500 hover:underline">Nomor Tanding</a><br>
+                            <a href="{{ url('pertandingan/'.$a->id.'/edit') }}?kegiatan_id={{ (@$kegiatan_get->id ? $kegiatan_get->id : Request('kegiatan_id')) }}" target="_blank" class="text-blue-500 hover:underline">Edit</a>
+                            <form action="{{ url('pertandingan/'.$a->id) }}?kegiatan_id={{ (@$kegiatan_get->id ? $kegiatan_get->id : Request('kegiatan_id')) }}" method="post" class="delete-form">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="text-red-500 hover:underline">Hapus</button>
@@ -106,9 +118,9 @@
                         <td class="text-center px-6 py-4 border-b">{{ $a->perunggu }}</td>
 
                         <td class="px-6 py-4 border-b">
-                            <a href="{{ url('pertandingan/'.$a->id) }}" class="text-green-500 hover:underline">Nomor Tanding</a><br>
-                            <a href="{{ url('pertandingan/'.$a->id.'/edit') }}" class="text-blue-500 hover:underline">Edit</a><br>
-                            <form action="{{ url('pertandingan/'.$a->id) }}" method="post" class="delete-form">
+                            <a href="{{ url('pertandingan/'.$a->id) }}?kegiatan_id={{ (@$kegiatan_get->id ? $kegiatan_get->id : Request('kegiatan_id')) }}" class="text-green-500 hover:underline">Nomor Tanding</a><br>
+                            <a href="{{ url('pertandingan/'.$a->id.'/edit') }}?kegiatan_id={{ (@$kegiatan_get->id ? $kegiatan_get->id : Request('kegiatan_id')) }}" class="text-blue-500 hover:underline">Edit</a><br>
+                            <form action="{{ url('pertandingan/'.$a->id) }}?kegiatan_id={{ (@$kegiatan_get->id ? $kegiatan_get->id : Request('kegiatan_id')) }}" method="post" class="delete-form">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="text-red-500 hover:underline">Hapus</button>

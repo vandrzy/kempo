@@ -21,9 +21,6 @@
         <div>
             @if (Auth::user())
                 <span class="px-4 py-1 text-2xl text-white rounded-md ">{{ Auth::user()->name }}</span>
-
-            @else
-                <a href="{{ url('login') }}" class="px-4 py-1 text-2xl text-white rounded-md hover:bg-blue-600 transition">Login</a>
             @endif
         </div>
     </div>
@@ -38,7 +35,7 @@
                 <div x-data="{ open: false }" class="w-full">
                     <a href="{{ url('dashboard') }}" class="block p-2 rounded {{ request()->is('dashboard*') ? 'bg-blue-100 text-blue-700 font-semibold' : 'hover:bg-blue-100' }}">Dashboard</a>
 
-                    {{-- <!-- Tombol Dropdown -->
+                    <!-- Tombol Dropdown -->
                     <button @click="open = !open" class="flex items-center gap-2 px-2 py-2  text-black rounded hover:bg-blue-300 w-full">
                         Master Data
                         <svg class="w-4 h-4 transform transition-transform" :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -48,24 +45,28 @@
 
                     <!-- Menu Dropdown yang mendorong konten di bawah -->
                     <div x-show="open" x-transition @click.away="open = false" class="mt-2 w-full bg-white border border-gray-200 rounded shadow">
+                        <a href="{{ url('users') }}"
+                        class="block px-4 py-2 rounded {{ request()->is('users*') ? 'bg-blue-100 text-blue-700 font-semibold' : 'hover:bg-blue-100' }}">
+                        Users
+                        </a>
+                        <a href="{{ url('kegiatan') }}"
+                        class="block px-4 py-2 rounded {{ request()->is('kegiatan*') ? 'bg-blue-100 text-blue-700 font-semibold' : 'hover:bg-blue-100' }}">
+                        Kegiatan
+                        </a>
+                        <a href="{{ url('kategori') }}"
+                        class="block px-4 py-2 rounded {{ request()->is('kategori*') ? 'bg-blue-100 text-blue-700 font-semibold' : 'hover:bg-blue-100' }}">
+                        Kategori
+                        </a>
+                        <a class="block px-4 py-2 rounded {{ request()->is('peserta*') ? 'bg-blue-100 text-blue-700 font-semibold' : 'hover:bg-blue-100' }}" href="{{ url('peserta') }}">Peserta</a>
 
-                    </div> --}}
+                    </div>
 
                     <!-- Elemen di bawah dropdown -->
                     <div class=" rounded">
-                         <a href="{{ url('users') }}"
-                        class="block px-2 py-2 rounded {{ request()->is('users*') ? 'bg-blue-100 text-blue-700 font-semibold' : 'hover:bg-blue-100' }}">
-                        Users
-                        </a>
-                        <a href="{{ url('kategori') }}"
-                        class="block px-2 py-2 rounded {{ request()->is('kategori*') ? 'bg-blue-100 text-blue-700 font-semibold' : 'hover:bg-blue-100' }}">
-                        Kategori
-                        </a>
                         <a href="{{ url('pertandingan') }}"
                         class="block px-2 py-2 rounded {{ request()->is('pertandingan*') ? 'bg-blue-100 text-blue-700 font-semibold' : 'hover:bg-blue-100' }}">
                         Pertandingan
                         </a>
-                        <a class="block px-2 py-2 rounded {{ request()->is('peserta*') ? 'bg-blue-100 text-blue-700 font-semibold' : 'hover:bg-blue-100' }}" href="{{ url('peserta') }}">Peserta</a>
                         <hr>
                         <a class="block p-2 rounded text-red-800 hover:bg-blue-100" href="{{ url('logout') }}">Log Out</a>
                     </div>
@@ -92,6 +93,8 @@
     <script src="{{ asset('js/select2.min.js') }}"></script>
     <script>
         $(document).ready(function() {
+
+
             $('.pilihan').select2({
                 theme: 'bootstrap4', // atau 'bootstrap5' jika pakai tema lain
                 width: '100%' // Biar serasi dengan Bootstrap form-control

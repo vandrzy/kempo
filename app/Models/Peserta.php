@@ -13,4 +13,8 @@ class Peserta extends Model
         return $this->hasMany(PertandinganPeserta::class);
     }
 
+    public function PertandinganPesertaUtama() {
+        return $this->hasOne(PertandinganPeserta::class);
+    }
+
 }

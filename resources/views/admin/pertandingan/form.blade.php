@@ -1,3 +1,4 @@
+<input type="hidden" name="kegiatan_id" value="{{ $kegiatan->id }}">
 <div class="mb-4">
     <label for="">Kategori <span style="color: red;">*</span></label>
     <select name="kategori_id"  class="form-control pilihan" id="">

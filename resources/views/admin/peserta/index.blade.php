@@ -8,33 +8,46 @@
     <form action="" method="get">
         <div class="flex flex-wrap">
             <div class="w-full md:w-3/12">
-                <input type="text" name="nama" value="{{ Request('nama') }}" placeholder="Cari Nama Peserta" class="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" id="">
-            </div>
-            <div class="w-full md:w-3/12">
-                <select name="kategori_id"  class="mx-2 pilihan"   id="kategori_id">
-                    <option value="">Cari Kategori Pertandingan</option>
-                    @foreach ($kategori as $a)
-                        <option value="{{ $a->id }}" {{ Request('kategori_id') == $a->id ? 'selected' : '' }} >{{ $a->nama }}</option>
+                <select name="kegiatan_id" class="pilihan" id="kegiatan_id">
+                    @foreach ($kegiatan as $a)
+                        <option value="{{ $a->id }}" {{ Request('kegiatan_id') == $a->id ? 'selected' : (@$kegiatan_get->id == $a->id ? 'selected' : '') }} >{{ $a->nama }}</option>
                     @endforeach
                 </select>
             </div>
             <div class="w-full md:w-3/12">
+                <select name="kategori_id"  class="mx-2 pilihan"   id="kategori_id">
+                    @if(isset($_GET['kategori_id']) && $_GET['kategori_id'] != "")
+                        <option value="">Pilih Kategori</option>
+                        @foreach ($kategori as $a)
+                            <option value="{{ $a->id }}" {{ Request('kategori_id') == $a->id ? 'selected' : '' }} >{{ $a->nama }}</option>
+                        @endforeach
+                    @else
+                        <option value="">Pilih Kegiatan Dulu</option>
+                    @endif
+                </select>
+            </div>
+            <div class="w-full md:w-3/12">
                 <select name="pertandingan_id"  class="mx-2 pilihan"  id="pertandingan_id">
-                    <option value="">Cari Pertandingan</option>
                     @if(isset($_GET['pertandingan_id']) && $_GET['pertandingan_id'] != "")
+                        <option value="">Pilih Pertandingan</option>
                         @foreach ($pertandingan as $a)
                             <option value="{{ $a->id }}" {{ Request('pertandingan_id') == $a->id ? 'selected' : '' }}>{{ $a->nama }}</option>
                         @endforeach
+                    @else
+                        <option value="">Pilih Kategori Dulu</option>
                     @endif
 
                 </select>
             </div>
-
             <div class="w-full md:w-3/12">
-                <a href="{{ url('pesertas/export') }}" target="_blank" class="bg-green-500 text-white px-6 mx-2 py-3 rounded">Export</a>
-                <button type="submit" class="bg-blue-500 text-white px-6 mx-2 py-2 rounded">Cari</button>
+                <input type="text" name="nama" value="{{ Request('nama') }}" placeholder="Cari Nama Peserta" class="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" id="">
             </div>
+
+
         </div>
+        <button type="submit" name="submit" value="export" class="bg-green-500 text-white px-6 py-2 rounded">Export</button>
+        {{-- <a href="{{ url('pesertas/export') }}" target="_blank" class="bg-green-500 text-white px-6 mx-2 py-3 rounded">Export</a> --}}
+        <button type="submit" name="submit" value="cari" class="bg-blue-500 text-white px-6 py-2 rounded">Cari</button>
     </form>
     <br>
    <div class="overflow-x-auto">
@@ -59,13 +72,15 @@
                         <td class="px-6 py-4 border-b">{{ $a->nama }}</td>
                         <td class="px-6 py-4 border-b">
                             <ul>
+                                {{-- PertandinganPesertaUtama --}}
+                                {{-- <li>{{ $a->PertandinganPesertaUtama->Pertandingan->nama }}</li> --}}
+
                                 @foreach ($a->PertandinganPeserta as $b)
                                     <li>{{ $b->Pertandingan->nama }}</li>
                                 @endforeach
                             </ul>
 
                         </td>
-
                         <td class="px-6 py-4 border-b">
                             <a href="{{ url('peserta/'.$a->id) }}" class="text-green-500 hover:underline">Detail</a>
                             {{-- <a href="{{ url('peserta/'.$a->id.'/edit') }}" class="text-blue-500 hover:underline">Edit</a> --}}
@@ -89,23 +104,59 @@
 <script>
     @section('script')
 
-        $('#kategori_id').on('change', function (e) {
+        function kegiatan_id(id) {
+            $('#kategori_id').attr('status', 'true');
+            $('#kategori_id').html('');
 
+            $('#pertandingan_id').attr('status', 'false');
+            $('#pertandingan_id').html('<option value="">Cari Kategori Dulu</option>');
+            $.ajax({
+                url: `{{url("pertandingans")}}/${id}?type=kategori_id`, // URL API
+                type: 'GET',
+                dataType: 'json', // bisa 'html', 'text', dll tergantung respon
+                success: function(response) {
+                    $('#kategori_id').html('');
+                    let data = "";
+                    // alert(response.data.length);
+                    if(response.data.length > 0) {
+                        data += `<option value="">Cari Kategori</option>`;
+                        $.each(response.data, function(index, value) {
+                            data += `<option value="${value.id}">${value.nama}</option>`;
+                        });
+                    } else {
+                        data += `<option value="">Kategori Tidak Tersedia!</option>`;
+                    }
+                    $('#kategori_id').html(data);
+
+                },
+                error: function(xhr, status, error) {
+                    console.error('Gagal:', error);
+                    alert('Gagal mengambil data!');
+                }
+            });
+        }
+
+        function kategori_id(id) {
             $('#pertandingan_id').attr('status', 'true');
             $('#pertandingan_id').html('');
             $.ajax({
-                url: `{{url("pertandingans")}}/${$(this).val()}`, // URL API
+                url: `{{url("pertandingans")}}/${id}?type=pertandingan_id`, // URL API
                 type: 'GET',
                 dataType: 'json', // bisa 'html', 'text', dll tergantung respon
                 success: function(response) {
                     $('#pertandingan_id').html('');
-
                     let data = "";
 
-                    data += `<option value="">Cari Pertandingan</option>`;
-                    $.each(response.data, function(index, value) {
-                        data += `<option value="${value.id}">${value.nama}</option>`;
-                    });
+                    if(response.data.length > 0) {
+                        data += `<option value="">Cari Pertandingan</option>`;
+                        $.each(response.data, function(index, value) {
+                            data += `<option value="${value.id}">${value.nama}</option>`;
+                        });
+                    } else {
+                        data += `<option value="">Pertandingan Tidak Tersedia!</option>`;
+                    }
+
+
 
                     $('#pertandingan_id').html(data);
                 },
@@ -114,6 +165,23 @@
                     alert('Gagal mengambil data!');
                 }
             });
+        }
+
+        @if (Request('kategori_id') == "")
+            kegiatan_id($('#kegiatan_id').val());
+        @endif
+
+        @if (Request('pertandingan_id') == "")
+            kategori_id($('#kategori_id').val());
+        @endif
+
+        $('#kegiatan_id').on('change', function (e) {
+            kegiatan_id($(this).val());
+        });
+
+
+        $('#kategori_id').on('change', function (e) {
+            kategori_id($(this).val());
         });
     @endsection
 </script>

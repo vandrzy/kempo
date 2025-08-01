@@ -26,6 +26,7 @@
     }
 </style>
 <h1>RANGKUMAN IDENTITAS ATLET DAN OFFICIAL</h1>
+<h2>Kegiatan : {{ $kegiatan->nama }}</h2>
 <table class="basic-table">
     <thead>
         <tr>
