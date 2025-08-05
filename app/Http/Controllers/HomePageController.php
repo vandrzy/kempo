@@ -12,6 +12,8 @@ use App\Models\Peserta;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Intervention\Image\Drivers\Gd\Driver as GdDriver;
+use Intervention\Image\ImageManager;
 
 class HomePageController extends Controller
 {
@@ -56,7 +58,7 @@ class HomePageController extends Controller
             'telepon'=> 'required|numeric|digits_between:1,13',
             'keterangan'=> 'required',
             'pertandingan_id'=> 'required',
-            'foto'=> 'required|max:1024',
+            'foto'=> 'required',
         ], [
             'nama.required' => 'Nama Peserta Wajib Diisi!',
             'jenis_kelamin.required' => 'Jenis Kelamin Wajib Diisi!',
@@ -81,12 +83,16 @@ class HomePageController extends Controller
             'foto.max' => 'Foto Peserta tidak boleh sizenya lebih dari 1mb, Mohon dicompres dulu!',
         ]);
 
+
+
         if ($validator->fails()) {
             return redirect()->back()
                 ->withErrors($validator)
                 ->withInput()
                 ->with('gagal', 'Lengkapi Form yang tidak terisi!');
         }
+
+
 
 
             $peserta = Peserta::create([
@@ -101,8 +107,28 @@ class HomePageController extends Controller
                 'alamat'=> $request->alamat,
                 'telepon'=> $request->telepon,
                 'keterangan'=> $request->keterangan,
-                'foto' => 'storage/'.$request->foto->store('foto_peserta', 'public'),
+                'foto' => 'lol',
             ]);
+
+            $image = $request->file('foto');
+
+            $filename = time() . '.' . $image->getClientOriginalExtension();
+            $path = storage_path('app/public/foto_peserta/' . $filename);
+
+            // 'foto' => 'storage/'.$request->foto->store('foto_peserta', 'public'),
+            // Resize dan compress (quality 75)
+
+
+            $manager = new ImageManager(new GdDriver());
+
+            $manager->read($image->getRealPath())
+                ->scale(width: 1200) // gunakan scale() di v3, bukan resize()
+                ->save($path, quality: 50);
+
+
+            $peserta_image = Peserta::find($peserta->id);
+            $peserta_image->foto = 'storage/foto_peserta/' . $filename;
+            $peserta_image->save();
 
             foreach($request->pertandingan_id as $a) {
                 $existing = PertandinganPeserta::where('list_kategori_id', $a)
