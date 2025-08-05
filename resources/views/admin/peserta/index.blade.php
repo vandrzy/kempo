@@ -71,14 +71,14 @@
                     <tr>
                         <td class="px-6 py-4 border-b">{{ $loop->iteration }}</td>
                         <td class="px-6 py-4 border-b">{{ $a->nama }}</td>
-                        <td class="px-6 py-4 border-b">{{ $a->KegiatanPertandinganPeserta->kegiatan->nama }}</td>
+                        <td class="px-6 py-4 border-b">{{ $a->KegiatanPertandinganPeserta->list_kategori->kegiatan->nama }}</td>
                         <td class="px-6 py-4 border-b">
                             <ul>
                                 {{-- PertandinganPesertaUtama --}}
                                 {{-- <li>{{ $a->PertandinganPesertaUtama->Pertandingan->nama }}</li> --}}
 
                                 @foreach ($a->PertandinganPeserta as $b)
-                                    <li>{{ $b->Pertandingan->nama }}</li>
+                                    <li>{{ $b->list_kategori->pertandingan->nama }}</li>
                                 @endforeach
                             </ul>
 

@@ -9,16 +9,16 @@ class PertandinganPeserta extends Model
     //
     protected $guarded = ['id'];
 
-    public function Pertandingan() {
-        return $this->belongsTo(Pertandingan::class);
-    }
+    // public function Pertandingan() {
+    //     return $this->belongsTo(Pertandingan::class);
+    // }
 
     public function Peserta() {
         return $this->belongsTo(Peserta::class);
     }
 
-    public function kegiatan() {
-        return $this->belongsTo(Kegiatan::class);
+    public function list_kategori() {
+        return $this->belongsTo(ListKategori::class);
     }
 
 }
