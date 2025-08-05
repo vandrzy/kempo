@@ -202,12 +202,13 @@ class PertandinganController extends Controller
         // }] )->where('kegiatan_id',$_GET['kegiatan_id'])->whereHas('kategori', function($query) use ($tahun) {
         //     $query->where('kegiatan_id', $_GET['kegiatan_id'])->where('tahun_awal', '<=', Date('Y', strtotime($tahun)))->where('tahun_akhir', '>=', Date('Y', strtotime($tahun)));
         // })->get();
-
+        // s
         $pertandingan = ListKategori::with(['kategori', 'pertandingan'])->whereHas('kategori', function($query) use ($tahun) {
-            $query->where('kegiatan_id', $_GET['kegiatan_id'])->where('tahun_awal', '<=', Date('Y', strtotime($tahun)))->where('tahun_akhir', '>=', Date('Y', strtotime($tahun)));
+            $query->where('tahun_awal', '<=', Date('Y', strtotime($tahun)))->where('tahun_akhir', '>=', Date('Y', strtotime($tahun)));
         })->whereHas('pertandingan', function($qw) use ($kelamin) {
             $qw->where('jenis_kelamin', $kelamin)->orWhereNull('jenis_kelamin');
         })->where('kegiatan_id', $_GET['kegiatan_id'])->get();
+
 
 
 
