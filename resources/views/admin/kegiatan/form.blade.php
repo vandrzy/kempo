@@ -21,8 +21,12 @@
         <div class="px-4" id="list_pertandingan_{{ $a->id }}">
             @if(in_array($a->id, $selected))
                 @php
-                    $selected_pertandingan_ids = $kegiatan->kategori_terpilih()->pluck('pertandingan_id')->toArray();
-                    $selected_old = old('list_pertandingan_id', $selected_pertandingan_ids ?? []);
+                        if(@$kegiatan) {
+                            $selected_pertandingan_ids = $kegiatan->kategori_terpilih()->pluck('pertandingan_id')->toArray();
+                            $selected_old = old('list_pertandingan_id', $selected_pertandingan_ids ?? []);
+                        } else {
+                            $selected_old = [];
+                        }
                 @endphp
                 @foreach ($a->pertandingan as $b)
                     <input type="checkbox" {{ in_array($b->id, $selected_old) ? 'checked' : '' }} value="{{ $b->id }}" name="list_pertandingan_id[{{ $a->id }}][]"> {{$b->nama}} <br>

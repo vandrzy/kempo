@@ -68,12 +68,14 @@ class KegiatanController extends Controller
             ]);
 
             foreach($request->list_kategori_id as $index => $a) {
-                foreach($request->list_pertandingan_id[$index] as $index2 => $b) {
-                    ListKategori::create([
-                        'kegiatan_id' => $kegiatan->id,
-                        'pertandingan_id' => $b,
-                        'kategori_id' => $a,
-                    ]);
+                if (!empty($request->list_pertandingan_id[$a])) {
+                    foreach($request->list_pertandingan_id[$a] as $index2 => $b) {
+                        ListKategori::create([
+                            'kegiatan_id' => $kegiatan->id,
+                            'pertandingan_id' => $b,
+                            'kategori_id' => $a,
+                        ]);
+                    }
                 }
             }
 
