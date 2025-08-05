@@ -14,10 +14,10 @@ return new class extends Migration
         Schema::create('kategoris', function (Blueprint $table) {
             $table->id();
             $table->string('nama');
-            $table->integer('usia_awal');
-            $table->integer('usia_akhir');
-            $table->integer('tahun_awal');
-            $table->integer('tahun_akhir');
+            $table->integer('usia_awal')->nullable();
+            $table->integer('usia_akhir')->nullable();
+            $table->integer('tahun_awal')->nullable();
+            $table->integer('tahun_akhir')->nullable();
             $table->unsignedBigInteger('user_id');
             $table->timestamps();
         });

@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('peserta_id');
             $table->string('sudah_terpilih')->default('false');
-            $table->unsignedBigInteger('pertandingan_id');
+            $table->unsignedBigInteger('list_kategori_id');
 
             $table->timestamps();
         });

@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::table('pertandingans', function (Blueprint $table) {
             //
-            $table->integer('emas');
-            $table->integer('perak');
-            $table->integer('perunggu');
+            $table->integer('emas')->nullable();
+            $table->integer('perak')->nullable();
+            $table->integer('perunggu')->nullable();
         });
     }
 

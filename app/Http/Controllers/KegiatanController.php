@@ -2,9 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Kategori;
 use App\Models\Kegiatan;
+use App\Models\ListKategori;
+use App\Models\MainKategori;
+use App\Models\Pertandingan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class KegiatanController extends Controller
@@ -30,7 +35,10 @@ class KegiatanController extends Controller
     public function create()
     {
         //
-        return view('admin.kegiatan.tambah');
+
+        $data['main_kategori'] = Kategori::get();
+
+        return view('admin.kegiatan.tambah', $data);
     }
 
     /**
@@ -54,10 +62,23 @@ class KegiatanController extends Controller
         }
 
         try {
-            Kegiatan::create([
+            $kegiatan = Kegiatan::create([
                 'nama' => $request->nama,
                 'user_id' => Auth::user()->id,
             ]);
+
+            foreach($request->list_kategori_id as $index => $a) {
+                foreach($request->list_pertandingan_id[$index] as $index2 => $b) {
+                    ListKategori::create([
+                        'kegiatan_id' => $kegiatan->id,
+                        'pertandingan_id' => $b,
+                        'kategori_id' => $a,
+                    ]);
+                }
+            }
+
+
+
 
             return redirect('kegiatan')->with('success', 'Data Berhasil Disimpan');
         } catch (\Throwable $th) {
@@ -72,7 +93,17 @@ class KegiatanController extends Controller
      */
     public function show(string $id)
     {
-        //
+
+
+        $data['kegiatan'] = Kegiatan::find($id);
+
+        $data['kategori'] = ListKategori::select('kategori_id', DB::raw('count(*) as total'))->where('kegiatan_id', $id)->groupBy('kategori_id')->get();
+        $data['pertandingan'] = ListKategori::where('kegiatan_id', $id)->orderBy('kategori_id','ASC')->paginate(10);
+
+        // dd($data['kategori']);
+        // dd($data['kategori']);
+        // dd(count($data['kategori']));
+        return view('admin.kegiatan.detail', $data);
     }
 
     /**
@@ -82,6 +113,7 @@ class KegiatanController extends Controller
     {
         //
         $data['kegiatan'] = Kegiatan::find($id);
+        $data['main_kategori'] = Kategori::get();
         return view('admin.kegiatan.edit', $data);
 
     }
@@ -106,10 +138,26 @@ class KegiatanController extends Controller
         }
 
 
+            // dd($idLah);
+
         try {
             $kegiatan = Kegiatan::find($id);
             $kegiatan->nama = $request->nama;
             $kegiatan->user_id = Auth::user()->id;
+
+
+            ListKategori::where('kegiatan_id', $kegiatan->id)->delete();
+            foreach($request->list_kategori_id as $index => $a) {
+                if (!empty($request->list_pertandingan_id[$a])) {
+                    foreach($request->list_pertandingan_id[$a] as $index2 => $b) {
+                        ListKategori::create([
+                            'kegiatan_id' => $kegiatan->id,
+                            'pertandingan_id' => $b,
+                            'kategori_id' => $a,
+                        ]);
+                    }
+                }
+            }
 
             $kegiatan->save();
 

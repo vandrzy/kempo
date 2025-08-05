@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Kategori;
 use App\Models\Kegiatan;
+use App\Models\ListKategori;
 use App\Models\Pertandingan;
 use App\Models\PertandinganPeserta;
 use App\Models\PesertaTerpilih;
@@ -20,21 +21,25 @@ class PertandinganController extends Controller
     public function index()
     {
         $data['pertandingan'] = Pertandingan::whereNotNull('created_at');
-        if(isset($_GET['kegiatan_id'])  && $_GET['kegiatan_id'] != "") {
-            $kegiatan = Kegiatan::find($_GET['kegiatan_id']);
-            $data['kategori'] = Kategori::where('kegiatan_id', $kegiatan->id)->get();
+        // if(isset($_GET['kegiatan_id'])  && $_GET['kegiatan_id'] != "") {
+        //     $kegiatan = Kegiatan::find($_GET['kegiatan_id']);
+        //     $data['kategori'] = Kategori::where('kegiatan_id', $kegiatan->id)->get();
 
-            $kegiatan_id = $kegiatan->id;
-            $data['pertandingan'] = $data['pertandingan']->WhereHas('kategori', function ($q3) use ($kegiatan_id) {
-                $q3->where('kegiatan_id', $kegiatan_id);
-            });
-        } else {
-            $data['kegiatan_get'] = Kegiatan::orderBy('created_at', 'DESC')->first();
-            $kegiatan_id = $data['kegiatan_get']->id;
-            $data['pertandingan'] = $data['pertandingan']->WhereHas('kategori', function ($q3) use ($kegiatan_id) {
-                $q3->where('kegiatan_id', $kegiatan_id);
-            });
+        //     $kegiatan_id = $kegiatan->id;
+        //     $data['pertandingan'] = $data['pertandingan']->WhereHas('kategori', function ($q3) use ($kegiatan_id) {
+        //         $q3->where('kegiatan_id', $kegiatan_id);
+        //     });
+        // } else {
+        //     $data['kegiatan_get'] = Kegiatan::orderBy('created_at', 'DESC')->first();
+        //     $kegiatan_id = $data['kegiatan_get']->id;
+        //     $data['pertandingan'] = $data['pertandingan']->WhereHas('kategori', function ($q3) use ($kegiatan_id) {
+        //         $q3->where('kegiatan_id', $kegiatan_id);
+        //     });
 
+        // }
+
+        if(isset($_GET['kategori_id'])  && $_GET['kategori_id'] != "") {
+            $data['pertandingan'] = $data['pertandingan']->where('kategori_id', $_GET['kategori_id']);
         }
 
         if(isset($_GET['cari'])) {
@@ -42,7 +47,7 @@ class PertandinganController extends Controller
         }
 
         $data['pertandingan'] = $data['pertandingan']->orderBy('kategori_id', 'ASC')->orderBy('jenis_kelamin','DESC')->paginate(10);
-        $data['kegiatan'] = Kegiatan::get();
+        $data['kategori'] = Kategori::get();
         // dd(count($data['kategori']));
         return view('admin.pertandingan.index', $data);
     }
@@ -52,8 +57,8 @@ class PertandinganController extends Controller
      */
     public function create()
     {
-        $data['kegiatan'] = Kegiatan::find($_GET['kegiatan_id']);
-        $data['kategori'] = Kategori::where('kegiatan_id', $_GET['kegiatan_id'])->get();
+        // $data['kegiatan'] = Kegiatan::find($_GET['kegiatan_id']);
+        $data['kategori'] = Kategori::get();
         return view('admin.pertandingan.tambah', $data);
 
     }
@@ -107,16 +112,21 @@ class PertandinganController extends Controller
      */
     public function show(string $id)
     {
-        $data['peserta_ready'] = PertandinganPeserta::where('sudah_terpilih', 'false')->where('pertandingan_id', $id)->count();
-        $data['peserta_lawan'] = PesertaTerpilih::where('pertandingan_id', $id)->paginate(10);
-        $data['pertandingan'] = Pertandingan::find($id);
+
+        $data['peserta_ready'] = PertandinganPeserta::where('sudah_terpilih', 'false')->where('kegiatan_id', $_GET['kegiatan_id'])->where('list_kategori_id', $id)->count();
+        $data['peserta_lawan'] = PesertaTerpilih::where('list_kategori_id', $id)->where('kegiatan_id', $_GET['kegiatan_id'])->paginate(10);
+        // $data['pertandingan'] = Pertandingan::find($id);
+        // $data['kegiatan'] = Kegiatan::find($_GET['kegiatan_id']);
+
+        $data['pertandingan'] = ListKategori::where('id', $id)->first();
         return view('admin.pertandingan.tanding', $data);
     }
 
     public function tanding($id) {
         while (true) {
             $terpilih = 0;
-            $pertandinganPertama = PertandinganPeserta::where('sudah_terpilih', 'false')->where('pertandingan_id', $id)->inRandomOrder()->first();
+            $listKategori = ListKategori::find($id);
+            $pertandinganPertama = PertandinganPeserta::where('sudah_terpilih', 'false')->where('list_kategori_id', $id)->inRandomOrder()->first();
             if ($pertandinganPertama) {
                 $pertandinganPertama->update(['sudah_terpilih' => 'true']);
                 $terpilih += 1;
@@ -127,47 +137,84 @@ class PertandinganController extends Controller
                 break;
             }
 
-            $pertandinganKedua = PertandinganPeserta::where('sudah_terpilih', 'false')->where('pertandingan_id', $id)->inRandomOrder()->first();
+            $pertandinganKedua = PertandinganPeserta::where('sudah_terpilih', 'false')->where('list_kategori_id', $id)->inRandomOrder()->first();
             if ($pertandinganKedua) {
                 $pertandinganKedua->update(['sudah_terpilih' => 'true']);
                 $terpilih += 1;
             } else {
                 PesertaTerpilih::create([
-                    'pertandingan_id' => $id,
+                    'list_kategori_id' => $id,
                     'pertandingan_peserta_kiri_id' => $pertandinganPertama->id,
+                    'kegiatan_id' => $listKategori->kegiatan_id,
                 ]);
             }
             if($terpilih > 1) {
                 PesertaTerpilih::create([
-                    'pertandingan_id' => $id,
+                    'list_kategori_id' => $id,
                     'pertandingan_peserta_kiri_id' => $pertandinganPertama->id,
                     'pertandingan_peserta_kanan_id' => $pertandinganKedua->id,
+                    'kegiatan_id' => $listKategori->kegiatan_id,
                 ]);
             }
         }
     }
 
-    public function batal_tanding($id) {
-        $pesertaTerpilih = PesertaTerpilih::find($id);
-        PertandinganPeserta::where('id', $pesertaTerpilih->pertandingan_peserta_kiri_id)->update(['sudah_terpilih' => 'false']);
-        PertandinganPeserta::where('id', $pesertaTerpilih->pertandingan_peserta_kanan_id)->update(['sudah_terpilih' => 'false']);
-        $pesertaTerpilih->delete();
+    public function batal_tanding(Request $request) {
+        $pesertaTerpilih = PesertaTerpilih::where('list_kategori_id', $request->list_kategori_id)->first();
+
+        if ($pesertaTerpilih) {
+            PertandinganPeserta::where('id', $pesertaTerpilih->pertandingan_peserta_kiri_id)
+                ->update(['sudah_terpilih' => 'false']);
+
+            PertandinganPeserta::where('id', $pesertaTerpilih->pertandingan_peserta_kanan_id)
+                ->update(['sudah_terpilih' => 'false']);
+
+            $pesertaTerpilih->delete();
+        }
         return redirect()->back()
             ->with('success', 'Peserta telah dibatalkan bertanding')
             ->withInput();
     }
 
-    public function get_pertandingan(string $tahun, string $kelamin) {
-        $data['pertandingan'] = Pertandingan::whereHas('kategori', function($query) use ($tahun) {
-            $query->where('kegiatan_id', $_GET['kegiatan_id'])->where('tahun_awal', '<=', Date('Y', strtotime($tahun)))->where('tahun_akhir', '>=', Date('Y', strtotime($tahun)));
-        })->where(function($query) use ($kelamin) {
-            $query->where('jenis_kelamin', $kelamin)
-                ->orWhereNull('jenis_kelamin');
-        })->get();
+    public function kategori_select($kategori_id) {
+        $pertandingan = Pertandingan::where('kategori_id', $kategori_id)->get();
 
         return response()->json([
             'status' => 'true',
-            'data' => $data['pertandingan'],
+            'data' => $pertandingan,
+            // 'data' => $data['pertandingan'],
+        ]);
+    }
+
+    public function get_pertandingan(string $tahun, string $kelamin) {
+        // $data['pertandingan'] = Pertandingan::whereHas('kategori', function($query) use ($tahun) {
+        //     $query->where('kegiatan_id', $_GET['kegiatan_id'])->where('tahun_awal', '<=', Date('Y', strtotime($tahun)))->where('tahun_akhir', '>=', Date('Y', strtotime($tahun)));
+        // })->where(function($query) use ($kelamin) {
+        //     $query->where('jenis_kelamin', $kelamin)
+        //         ->orWhereNull('jenis_kelamin');
+        // })->get();
+
+
+        // $kegiatan = ListKategori::with([ 'kategori' => function ($q) use ($tahun, $kelamin) {
+        //         $q->with(['pertandingan' => function ($q2) use ($tahun, $kelamin) {
+        //             $q2->where('jenis_kelamin', $kelamin)->orWhereNull('jenis_kelamin');
+        //     }]);
+        // }] )->where('kegiatan_id',$_GET['kegiatan_id'])->whereHas('kategori', function($query) use ($tahun) {
+        //     $query->where('kegiatan_id', $_GET['kegiatan_id'])->where('tahun_awal', '<=', Date('Y', strtotime($tahun)))->where('tahun_akhir', '>=', Date('Y', strtotime($tahun)));
+        // })->get();
+
+        $pertandingan = ListKategori::with(['kategori', 'pertandingan'])->whereHas('kategori', function($query) use ($tahun) {
+            $query->where('kegiatan_id', $_GET['kegiatan_id'])->where('tahun_awal', '<=', Date('Y', strtotime($tahun)))->where('tahun_akhir', '>=', Date('Y', strtotime($tahun)));
+        })->whereHas('pertandingan', function($qw) use ($kelamin) {
+            $qw->where('jenis_kelamin', $kelamin)->orWhereNull('jenis_kelamin');
+        })->where('kegiatan_id', $_GET['kegiatan_id'])->get();
+
+
+
+        return response()->json([
+            'status' => 'true',
+            'data' => $pertandingan,
+            // 'data' => $data['pertandingan'],
         ]);
     }
     /**
@@ -175,8 +222,8 @@ class PertandinganController extends Controller
      */
     public function edit(string $id)
     {
-        $data['kegiatan'] = Kegiatan::find($_GET['kegiatan_id']);
-        $data['kategori'] = Kategori::where('kegiatan_id', $_GET['kegiatan_id'])->get();
+        // $data['kegiatan'] = Kegiatan::find($_GET['kegiatan_id']);
+        $data['kategori'] = Kategori::get();
         $data['pertandingan'] = Pertandingan::find($id);
 
         return view('admin.pertandingan.edit', $data);

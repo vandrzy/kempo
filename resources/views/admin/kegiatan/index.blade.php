@@ -40,6 +40,7 @@
                             <td class="px-6 py-4 border-b">{{ $a->nama }}</td>
                             <td class="px-6 py-4 border-b">
                                 <a href="{{ url('pendaftaran/'.base64_encode($a->nama).'-'.base64_encode($a->id).'/daftar') }}" target="_blank" class="text-green-500 hover:underline">Link Pendaftaran</a> <br>
+                                <a href="{{ url('kegiatan/'.$a->id) }}" target="_blank" class="text-green-500 hover:underline">Detail</a> <br>
                                 <a href="{{ url('kegiatan/'.$a->id.'/edit') }}" class="text-blue-500 hover:underline">Edit</a> <br>
                                 <form action="{{ url('kegiatan/'.$a->id) }}" method="post" class="delete-form">
                                     @csrf

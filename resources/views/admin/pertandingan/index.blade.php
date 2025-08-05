@@ -13,9 +13,9 @@
         <div>
             <form action="" method="get">
                 <div class="flex items-center gap-2">
-                    <select name="kegiatan_id" class="pilihan px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500" id="kegiatan_id">
-                        @foreach ($kegiatan as $a)
-                            <option value="{{ $a->id }}" {{ Request('kegiatan_id') == $a->id ? 'selected' : (@$kegiatan_get->id == $a->id ? 'selected' : '') }} >{{ $a->nama }}</option>
+                    <select name="kategori_id" class="pilihan px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500" id="kategori_id">
+                        @foreach ($kategori as $a)
+                            <option value="{{ $a->id }}" {{ Request('kategori_id') == $a->id ? 'selected' : (@$kegiatan_get->id == $a->id ? 'selected' : '') }} >{{ $a->nama }}</option>
 
                             {{-- <option value="{{ $a->id }}" {{ Request('kegiatan_id') == $a->id ? 'selected' : ''}}>{{ $a->nama }}</option> --}}
                         @endforeach
@@ -41,14 +41,14 @@
                     <th class="text-left px-6 py-3 border-b text-gray-600" rowspan="2">No</th>
                     <th class="text-left px-6 py-3 border-b text-gray-600" rowspan="2">Nama Pertandingan</th>
                     {{-- <th class="text-left px-6 py-3 border-b text-gray-600" rowspan="2">Jenis Kelamin</th> --}}
-                    <th class="text-center px-6 py-3 border-b text-gray-600" colspan="3">Medali</th>
+                    {{-- <th class="text-center px-6 py-3 border-b text-gray-600" colspan="3">Medali</th> --}}
                     <th class="text-center px-6 py-3 border-b text-gray-600" rowspan="2">Aksi</th>
                 </tr>
-                <tr>
+                {{-- <tr>
                     <th class="text-center px-6 py-3 border-b text-gray-600">Emas</th>
                     <th class="text-center px-6 py-3 border-b text-gray-600">Perak</th>
                     <th class="text-center px-6 py-3 border-b text-gray-600">Perunggu</th>
-                </tr>
+                </tr> --}}
             </thead>
             <tbody>
             @php
@@ -63,30 +63,30 @@
                         $kategori_id = $a->kategori_id;
                     @endphp
                     <tr>
-                        <th class="px-6 py-4 border-b" style="text-align: left;" colspan="7">{{ $a->kategori->nama }}</th>
+                        <th class="px-6 py-4 border-b" style="text-align: left;" colspan="3">{{ $a->kategori->nama }}</th>
                     </tr>
                     @if ($a->jenis_kelamin != $jenis_kelamin)
                         @php
                             $jenis_kelamin = $a->jenis_kelamin;
                         @endphp
                         <tr>
-                            <th class="px-6 py-4 border-b" style="text-align: left;" colspan="2">{{ $jenis_kelamin ?? "Campuran" }}</th>
-                            <th class="px-6 py-4 border-b" style="text-align: center;">{{ $a->totalEmasPerJenisKelamin($kategori_id, $jenis_kelamin)->total_emas }}</th>
+                            <th class="px-6 py-4 border-b" style="text-align: left;" colspan="3">- {{ $jenis_kelamin ?? "Campuran" }}</th>
+                            {{-- <th class="px-6 py-4 border-b" style="text-align: center;">{{ $a->totalEmasPerJenisKelamin($kategori_id, $jenis_kelamin)->total_emas }}</th>
                             <th class="px-6 py-4 border-b" style="text-align: center;">{{ $a->totalEmasPerJenisKelamin($kategori_id, $jenis_kelamin)->total_perak }}</th>
                             <th class="px-6 py-4 border-b" style="text-align: center;">{{ $a->totalEmasPerJenisKelamin($kategori_id, $jenis_kelamin)->total_perunggu }}</th>
-                            <th class="px-6 py-4 border-b" style="text-align: left;"></th>
+                            <th class="px-6 py-4 border-b" style="text-align: left;"></th> --}}
                         </tr>
                     @endif
                     <tr>
                         <td class="px-6 py-4 border-b">{{ $loop->iteration }}</td>
                         <td class="px-6 py-4 border-b">{{ $a->nama }}</td>
                         {{-- <td class="px-6 py-4 border-b">{{ $jenis_kelamin }}</td> --}}
-                        <td class="text-center px-6 py-4 border-b">{{ $a->emas }}</td>
+                        {{-- <td class="text-center px-6 py-4 border-b">{{ $a->emas }}</td>
                         <td class="text-center px-6 py-4 border-b">{{ $a->perak }}</td>
-                        <td class="text-center px-6 py-4 border-b">{{ $a->perunggu }}</td>
+                        <td class="text-center px-6 py-4 border-b">{{ $a->perunggu }}</td> --}}
 
                         <td class="px-6 py-4 border-b">
-                            <a href="{{ url('pertandingan/'.$a->id) }}?kegiatan_id={{ (@$kegiatan_get->id ? $kegiatan_get->id : Request('kegiatan_id')) }}" target="_blank" class="text-green-500 hover:underline">Nomor Tanding</a><br>
+                            {{-- <a href="{{ url('pertandingan/'.$a->id) }}?kegiatan_id={{ (@$kegiatan_get->id ? $kegiatan_get->id : Request('kegiatan_id')) }}" target="_blank" class="text-green-500 hover:underline">Nomor Tanding</a><br> --}}
                             <a href="{{ url('pertandingan/'.$a->id.'/edit') }}?kegiatan_id={{ (@$kegiatan_get->id ? $kegiatan_get->id : Request('kegiatan_id')) }}" target="_blank" class="text-blue-500 hover:underline">Edit</a>
                             <form action="{{ url('pertandingan/'.$a->id) }}?kegiatan_id={{ (@$kegiatan_get->id ? $kegiatan_get->id : Request('kegiatan_id')) }}" method="post" class="delete-form">
                                 @csrf
@@ -102,23 +102,23 @@
                             // dd($a->totalEmasPerJenisKelamin($kategori_id, $jenis_kelamin)->total_emas );
                         @endphp
                         <tr>
-                            <th class="px-6 py-4 border-b" style="text-align: left;" colspan="2">{{ $jenis_kelamin ?? "Campuran" }}</th>
-                            <th class="px-6 py-4 border-b" style="text-align: center;">{{ $a->totalEmasPerJenisKelamin($kategori_id, $jenis_kelamin)->total_emas ?? '0' }}</th>
+                            <th class="px-6 py-4 border-b" style="text-align: left;" colspan="3">- {{ $jenis_kelamin ?? "Campuran" }}</th>
+                            {{-- <th class="px-6 py-4 border-b" style="text-align: center;">{{ $a->totalEmasPerJenisKelamin($kategori_id, $jenis_kelamin)->total_emas ?? '0' }}</th>
                             <th class="px-6 py-4 border-b" style="text-align: center;">{{ $a->totalEmasPerJenisKelamin($kategori_id, $jenis_kelamin)->total_perak ?? '0' }}</th>
                             <th class="px-6 py-4 border-b" style="text-align: center;">{{ $a->totalEmasPerJenisKelamin($kategori_id, $jenis_kelamin)->total_perunggu ?? '0' }}</th>
-                            <th class="px-6 py-4 border-b" style="text-align: left;"></th>
+                            <th class="px-6 py-4 border-b" style="text-align: left;"></th> --}}
                         </tr>
                     @endif
                     <tr>
                         <td class="px-6 py-4 border-b">{{ $loop->iteration }}</td>
                         <td class="px-6 py-4 border-b">{{ $a->nama }}</td>
                         {{-- <td class="px-6 py-4 border-b">{{ $jenis_kelamin }}</td> --}}
-                        <td class="text-center px-6 py-4 border-b">{{ $a->emas }}</td>
+                        {{-- <td class="text-center px-6 py-4 border-b">{{ $a->emas }}</td>
                         <td class="text-center px-6 py-4 border-b">{{ $a->perak }}</td>
-                        <td class="text-center px-6 py-4 border-b">{{ $a->perunggu }}</td>
+                        <td class="text-center px-6 py-4 border-b">{{ $a->perunggu }}</td> --}}
 
                         <td class="px-6 py-4 border-b">
-                            <a href="{{ url('pertandingan/'.$a->id) }}?kegiatan_id={{ (@$kegiatan_get->id ? $kegiatan_get->id : Request('kegiatan_id')) }}" class="text-green-500 hover:underline">Nomor Tanding</a><br>
+                            {{-- <a href="{{ url('pertandingan/'.$a->id) }}?kegiatan_id={{ (@$kegiatan_get->id ? $kegiatan_get->id : Request('kegiatan_id')) }}" class="text-green-500 hover:underline">Nomor Tanding</a><br> --}}
                             <a href="{{ url('pertandingan/'.$a->id.'/edit') }}?kegiatan_id={{ (@$kegiatan_get->id ? $kegiatan_get->id : Request('kegiatan_id')) }}" class="text-blue-500 hover:underline">Edit</a><br>
                             <form action="{{ url('pertandingan/'.$a->id) }}?kegiatan_id={{ (@$kegiatan_get->id ? $kegiatan_get->id : Request('kegiatan_id')) }}" method="post" class="delete-form">
                                 @csrf

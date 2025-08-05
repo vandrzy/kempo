@@ -17,4 +17,8 @@ class PertandinganPeserta extends Model
         return $this->belongsTo(Peserta::class);
     }
 
+    public function kegiatan() {
+        return $this->belongsTo(Kegiatan::class);
+    }
+
 }

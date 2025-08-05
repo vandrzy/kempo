@@ -1,0 +1,26 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class ListKategori extends Model
+{
+    //
+    protected $guarded = ['id'];
+
+    public function kegiatan()
+    {
+        return $this->belongsTo(Kegiatan::class);
+    }
+
+    public function kategori()
+    {
+        return $this->belongsTo(Kategori::class);
+    }
+
+    public function pertandingan()
+    {
+        return $this->belongsTo(Pertandingan::class);
+    }
+}

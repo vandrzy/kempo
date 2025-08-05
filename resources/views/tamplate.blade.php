@@ -49,24 +49,23 @@
                         class="block px-4 py-2 rounded {{ request()->is('users*') ? 'bg-blue-100 text-blue-700 font-semibold' : 'hover:bg-blue-100' }}">
                         Users
                         </a>
-                        <a href="{{ url('kegiatan') }}"
-                        class="block px-4 py-2 rounded {{ request()->is('kegiatan*') ? 'bg-blue-100 text-blue-700 font-semibold' : 'hover:bg-blue-100' }}">
-                        Kegiatan
-                        </a>
                         <a href="{{ url('kategori') }}"
                         class="block px-4 py-2 rounded {{ request()->is('kategori*') ? 'bg-blue-100 text-blue-700 font-semibold' : 'hover:bg-blue-100' }}">
                         Kategori
                         </a>
-                        <a class="block px-4 py-2 rounded {{ request()->is('peserta*') ? 'bg-blue-100 text-blue-700 font-semibold' : 'hover:bg-blue-100' }}" href="{{ url('peserta') }}">Peserta</a>
-
+                        <a href="{{ url('pertandingan') }}"
+                        class="block px-4 py-2 rounded {{ request()->is('pertandingan*') ? 'bg-blue-100 text-blue-700 font-semibold' : 'hover:bg-blue-100' }}">
+                        Pertandingan
+                        </a>
                     </div>
 
                     <!-- Elemen di bawah dropdown -->
                     <div class=" rounded">
-                        <a href="{{ url('pertandingan') }}"
-                        class="block px-2 py-2 rounded {{ request()->is('pertandingan*') ? 'bg-blue-100 text-blue-700 font-semibold' : 'hover:bg-blue-100' }}">
-                        Pertandingan
+                        <a href="{{ url('kegiatan') }}"
+                        class="block px-2 py-2 rounded {{ request()->is('kegiatan*') ? 'bg-blue-100 text-blue-700 font-semibold' : 'hover:bg-blue-100' }}">
+                        Kegiatan
                         </a>
+                        <a class="block px-2 py-2 rounded {{ request()->is('peserta*') ? 'bg-blue-100 text-blue-700 font-semibold' : 'hover:bg-blue-100' }}" href="{{ url('peserta') }}">Peserta</a>
                         <hr>
                         <a class="block p-2 rounded text-red-800 hover:bg-blue-100" href="{{ url('logout') }}">Log Out</a>
                     </div>

@@ -1,7 +1,7 @@
 @extends('tamplate')
 @section('title', 'Tambah Pertandingan')
 @section('content')
-    <h1>Tambah Data Pertandingan | {{ $kegiatan->nama }}</h1><br>
+    <h1>Tambah Data Pertandingan </h1><br>
     <hr>
     <form action="{{ url('pertandingan') }}" method="post">
         <div class="flex justify-between items-center p-3">

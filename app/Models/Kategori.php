@@ -20,6 +20,10 @@ class Kategori extends Model
         return $this->hasMany(Pertandingan::class);
     }
 
+    public function list_kategori()  {
+        return $this->hasMany(ListKategori::class);
+    }
+
     public function totalEmasPerJenisKelamin()
     {
         return $this->pertandingan()

@@ -47,7 +47,7 @@ class HomePageController extends Controller
             'nama' => 'required',
             'jenis_kelamin'=> 'required',
             'golongan_darah'=> 'required',
-            'nik'=> 'required|numeric|digits_between:1,16|unique:pesertas,nik',
+            'nik'=> 'required|numeric|digits_between:1,16',
             'tingkat'=> 'required',
             'status'=> 'required',
             'tempat'=> 'required',
@@ -105,7 +105,7 @@ class HomePageController extends Controller
             ]);
 
             foreach($request->pertandingan_id as $a) {
-                $existing = PertandinganPeserta::where('pertandingan_id', $a)
+                $existing = PertandinganPeserta::where('list_kategori_id', $a)
                 ->orderBy('urutan')
                 ->pluck('urutan')
                 ->toArray();
@@ -122,8 +122,9 @@ class HomePageController extends Controller
 
                 PertandinganPeserta::create([
                     'peserta_id' => $peserta->id,
-                    'pertandingan_id' => $a,
+                    'list_kategori_id' => $a,
                     'urutan' => $urutanBaru,
+                    'kegiatan_id' => $request->kegiatan_id
                 ]);
             }
 

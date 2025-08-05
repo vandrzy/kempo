@@ -1,4 +1,4 @@
-<input type="hidden" name="kegiatan_id" value="{{ $kegiatan->id }}">
+{{-- <input type="hidden" name="kegiatan_id" value="{{ $kegiatan->id }}"> --}}
 <div class="mb-4">
     <label for="">Kategori <span style="color: red;">*</span></label>
     <select name="kategori_id"  class="form-control pilihan" id="">
@@ -32,7 +32,7 @@
         <span class="text-red" style="color: red;">{{ $message }}</span>
     @enderror
 </div>
-<div class="mb-4">
+{{-- <div class="mb-4">
     <label for="">Medali <span style="color: red;">*</span></label>
     <div class="flex flex-wrap -mx-2">
         <div class="w-full md:w-1/3 px-2">
@@ -54,5 +54,5 @@
     @error('jenis_kelamin')
         <span class="text-red" style="color: red;">{{ $message }}</span>
     @enderror
-</div>
+</div> --}}
 

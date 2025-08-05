@@ -49,13 +49,6 @@
             @enderror
         </div>
         <div class="mb-4">
-            <label for="">Tingkat <span style="color: red;">*</span></label>
-            <input type="text" name="tingkat" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" value="{{ old('tingkat') }}" placeholder="Tingkat" id="">
-            @error('tingkat')
-                <span class="text-red" style="color: red;">{{ $message }}</span>
-            @enderror
-        </div>
-        <div class="mb-4">
             <label for="">Status <span style="color: red;">*</span></label>
             <input type="text" name="status" value=" {{ old('status') }}" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" id="" >
             @error('status')
@@ -107,6 +100,13 @@
             @enderror
         </div>
         <div class="mb-4">
+            <label for="">Tingkat <span style="color: red;">*</span></label>
+            <input type="text" name="tingkat" readonly class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" value="{{ old('tingkat') }}" placeholder="Tingkat" id="tingkat">
+            @error('tingkat')
+                <span class="text-red" style="color: red;">{{ $message }}</span>
+            @enderror
+        </div>
+        <div class="mb-4">
             <label for="">Nomor dan Kelas Pertandingan yang akan diikuti : <span style="color: red;">*</span></label>
             <select name="pertandingan_id[]" class="form-control pilihan" multiple="multiple" status="{{ (is_array(old('pertandingan_id')) && count(old('pertandingan_id'))) > 0 ? 'true' : 'false' }}" id="pertandingan_id">
                 {{-- <option value="" disabled>Pilih Pertandingan</option> --}}
@@ -153,13 +153,15 @@
                 success: function(response) {
                     let data = "";
 
+                    // console.log(response.data);
+
                     if(response.data.length > 0) {
                         $.each(response.data, function(index, value) {
-                            data += `<option value="${value.id}">${value.nama}</option>`;
+                            $('#tingkat').val(value.kategori.nama);
+                            data += `<option value="${value.id}">${value.pertandingan.nama}</option>`;
                         });
                     } else {
                         data += `<option value="" disabled>Pertandingan Tidak Tersedia!</option>`;
-
                     }
 
                     // data += `<option value="" disabled>Pilih Pertandingan</option>`;

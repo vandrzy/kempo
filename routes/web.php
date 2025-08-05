@@ -34,8 +34,9 @@ Route::middleware('auth')->group(function () {
     Route::resource('kegiatan', KegiatanController::class);
     Route::resource('kategori', KategoriController::class);
     Route::resource('pertandingan', PertandinganController::class);
-    Route::post('pertandingans/tanding/{kategori}', [PertandinganController::class, 'tanding']);
-    Route::delete('pertandingans/tanding-delete/{kategori}', [PertandinganController::class, 'batal_tanding']);
+    Route::get('pertandingan_list/{kategori_id}', [PertandinganController::class, 'kategori_select']);
+    Route::post('pertandingans/tanding/{id}', [PertandinganController::class, 'tanding']);
+    Route::delete('pertandingans/tanding-delete', [PertandinganController::class, 'batal_tanding']);
 
     Route::get('pertandingans/{kategori}', [PesertaController::class, 'get_pertandingan']);
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Exports\PesertaExport;
 use App\Models\Kategori;
 use App\Models\Kegiatan;
+use App\Models\ListKategori;
 use App\Models\Pertandingan;
 use App\Models\Peserta;
 use Illuminate\Http\Request;
@@ -35,22 +36,28 @@ class PesertaController extends Controller
 
                 $kegiatan_id = $kegiatan->id;
                 $data['peserta'] = $data['peserta']->WhereHas('PertandinganPesertaUtama', function ($q1) use ($kegiatan_id) {
-                    $q1->WhereHas('Pertandingan', function ($q2) use ($kegiatan_id) {
-                        $q2->WhereHas('kategori', function ($q3) use ($kegiatan_id) {
-                            $q3->where('kegiatan_id', $kegiatan_id);
-                        });
-                    });
+                    // $q1->WhereHas('Pertandingan', function ($q2) use ($kegiatan_id) {
+                    //     $q2->WhereHas('kategori', function ($q3) use ($kegiatan_id) {
+                    //         $q3->where('kegiatan_id', $kegiatan_id);
+                    //     });
+                    // });
+
+                    $q1->where('kegiatan_id', $kegiatan_id);
                 });
             } else {
                 $data['kegiatan_get'] = Kegiatan::orderBy('created_at', 'DESC')->first();
                 $kegiatan_id = $data['kegiatan_get']->id;
+
                 $data['peserta'] = $data['peserta']->WhereHas('PertandinganPesertaUtama', function ($q1) use ($kegiatan_id) {
-                    $q1->WhereHas('Pertandingan', function ($q2) use ($kegiatan_id) {
-                        $q2->WhereHas('kategori', function ($q3) use ($kegiatan_id) {
-                            $q3->where('kegiatan_id', $kegiatan_id);
-                        });
-                    });
+                    // $q1->WhereHas('Pertandingan', function ($q2) use ($kegiatan_id) {
+                    //     $q2->WhereHas('kategori', function ($q3) use ($kegiatan_id) {
+                    //         $q3->where('kegiatan_id', $kegiatan_id);
+                    //     });
+                    // });
+
+                    $q1->where('kegiatan_id', $kegiatan_id);
                 });
+
                 // dd($data['kegiatan']->id);
             }
 
@@ -88,7 +95,8 @@ class PesertaController extends Controller
         if(isset($_GET['type'])) {
             $data = [];
             if($_GET['type'] == 'kategori_id') {
-                $data = Kategori::where('kegiatan_id', $id)->get();
+                $data = ListKategori::with('kategori')->where('kegiatan_id', $id)->get();
+                // $data = Kategori::where('kegiatan_id', $id)->get();
             } else {
                 $data = Pertandingan::where('kategori_id', $id)->get();
             }
@@ -152,7 +160,7 @@ class PesertaController extends Controller
             $peserta->PertandinganPeserta()->delete();
             $peserta->delete();
 
-            return redirect('peserta')->with('success', 'Data Berhasil Dihapus');
+            return back()->with('success', 'Data Berhasil Dihapus');
         } catch (\Throwable $th) {
             //throw $th;
         }

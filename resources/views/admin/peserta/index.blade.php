@@ -56,6 +56,7 @@
                 <tr>
                     <th class="text-left px-6 py-3 border-b text-gray-600">No</th>
                     <th class="text-left px-6 py-3 border-b text-gray-600">Nama</th>
+                    <th class="text-left px-6 py-3 border-b text-gray-600">Kegiatan</th>
                     <th class="text-left px-6 py-3 border-b text-gray-600">Pertandingan</th>
                     <th class="text-left px-6 py-3 border-b text-gray-600">Aksi</th>
                 </tr>
@@ -70,6 +71,7 @@
                     <tr>
                         <td class="px-6 py-4 border-b">{{ $loop->iteration }}</td>
                         <td class="px-6 py-4 border-b">{{ $a->nama }}</td>
+                        <td class="px-6 py-4 border-b">{{ $a->KegiatanPertandinganPeserta->kegiatan->nama }}</td>
                         <td class="px-6 py-4 border-b">
                             <ul>
                                 {{-- PertandinganPesertaUtama --}}
@@ -116,12 +118,14 @@
                 dataType: 'json', // bisa 'html', 'text', dll tergantung respon
                 success: function(response) {
                     $('#kategori_id').html('');
+
                     let data = "";
+                    // console.log(response);
                     // alert(response.data.length);
                     if(response.data.length > 0) {
                         data += `<option value="">Cari Kategori</option>`;
                         $.each(response.data, function(index, value) {
-                            data += `<option value="${value.id}">${value.nama}</option>`;
+                            data += `<option value="${value.kategori.id}">${value.kategori.nama}</option>`;
                         });
                     } else {
                         data += `<option value="">Kategori Tidak Tersedia!</option>`;
