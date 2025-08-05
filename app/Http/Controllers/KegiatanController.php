@@ -20,9 +20,9 @@ class KegiatanController extends Controller
     public function index()
     {
         if(isset($_GET['cari'])) {
-            $data['kegiatan'] = Kegiatan::where('nama','like','%'.$_GET['cari'].'%')->paginate(10);
+            $data['kegiatan'] = Kegiatan::where('nama','like','%'.$_GET['cari'].'%')->orderBy('created_at', 'DESC')->paginate(10);
         } else {
-            $data['kegiatan'] = Kegiatan::paginate(10);
+            $data['kegiatan'] = Kegiatan::orderBy('created_at', 'DESC')->paginate(10);
         }
 
         // dd(count($data['kategori']));
