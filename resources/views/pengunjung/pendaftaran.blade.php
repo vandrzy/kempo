@@ -118,9 +118,9 @@
                     // }
                     // $selectedpertandingan = (is_array(old('pertandingan_id')) && in_array($a->id, old('pertandingan_id'))) ? 'selected' : '' ;
                 @endphp
-                @foreach ($pertandingan as $a)
+                {{-- @foreach ($pertandingan as $a)
                     <option value="{{ $a->id }}" {{ (is_array(old('pertandingan_id')) && in_array($a->id, old('pertandingan_id'))) ? 'selected' : '' }}>{{ $a->nama }}</option>
-                @endforeach
+                @endforeach --}}
             </select>
             @error('pertandingan_id')
                 <span class="text-red" style="color: red;">{{ $message }}</span>
