@@ -55,7 +55,7 @@
                         </tr>
                         <tr>
                             <th class="px-6 py-4 border-b" style="text-align: left">Alamat Rumah</td>
-                            <td class="px-6 py-4 border-b">{{ $peserta->alamat }} <br> {{ $peserta->kabupaten->name.", " ?? "" }}{{ $peserta->kecamatan->name.", " ?? "" }}{{ $peserta->kelurahan->name ?? "" }}</td>
+                            <td class="px-6 py-4 border-b">{{ $peserta->alamat }} <br> {{ $peserta->kabupaten->name ?? "" }},{{ $peserta->kecamatan->name ?? "" }},{{ $peserta->kelurahan->name ?? "" }}</td>
                         </tr>
                         <tr>
                             <th class="px-6 py-4 border-b" style="text-align: left">Telepon</td>
