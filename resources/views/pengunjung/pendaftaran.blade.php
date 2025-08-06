@@ -76,7 +76,35 @@
         </div>
         <div class="mb-4">
             <label for="">Alamat Rumah <span style="color: red;">*</span></label>
-            <textarea name="alamat" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" id="" cols="30" rows="10">
+            {{-- <div class="flex flex-wrap gap-4">
+                <div class="w-full md:w-1/4">
+                    <label for="kabupaten_id" class="block text-sm font-medium text-gray-700">Kabupaten</label>
+                    <select name="kabupaten_id" id="kabupaten_id" class="w-full border rounded px-3 py-2">
+                        <option selected disabled>Pilih Kabupaten</option>
+                        @foreach($kabupatens as $a)
+                            <option value="{{ $a->id }}">{{ $a->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="w-full md:w-1/3">
+                    <label for="kecamatan_id" class="block text-sm font-medium text-gray-700">Kecamatan</label>
+                    <select name="kecamatan_id" id="kecamatan_id" class="w-full border rounded px-3 py-2">
+                        <option selected disabled>Pilih Kecamatan</option>
+                    </select>
+                </div>
+
+                <div class="w-full md:w-1/3">
+                    <label for="kelurahan_id" class="block text-sm font-medium text-gray-700">Kelurahan</label>
+                    <select name="kelurahan_id" id="kelurahan_id" class="w-full border rounded px-3 py-2">
+                        <option selected disabled>Pilih Kelurahan</option>
+                    </select>
+                </div>
+            </div><br> --}}
+
+
+
+            <textarea name="alamat" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" id="" rows="10">
                 {{ old('alamat') }}
             </textarea>
             @error('alamat')
@@ -143,6 +171,51 @@
 </div>
 <script>
     @section('script')
+        function getWilayah(type, spawning) {
+            let urls = "";
+            let value = $(`#${type}`).val();
+            if(type == "kabupaten_id") {
+                urls = `{{ url("getWilayah") }}/${type}/{value}`;
+            }
+            $.ajax({
+                url: urls, // URL API
+                type: 'GET',
+                dataType: 'json', // bisa 'html', 'text', dll tergantung respon
+                success: function(response) {
+                    let data = "";
+
+                    console.log(response);
+
+                    if(response.data.length > 0) {
+                        data += `<option value="" disabled>Data Tidak Tersedia!</option>`;
+
+                        $.each(response.data, function(index, value) {
+                            // data += `<option value="${value.id}">${value.pertandingan.nama}</option>`;
+                        });
+                    } else {
+                        data += `<option value="" disabled>Data Tidak Tersedia!</option>`;
+                    }
+
+                    // data += `<option value="" disabled>Pilih Pertandingan</option>`;
+
+                    $(`#${spawning}`).html(data);
+
+
+                    // alert('Judul: ' + response.title);
+                },
+                error: function(xhr, status, error) {
+                    console.error('Gagal:', error);
+                    alert('Gagal mengambil data!');
+                }
+            });
+        }
+
+        $('#kabupaten_id').on('change', function() {
+            getWilayah('kabupaten_id', 'kecamatan_id');
+        });
+
+
+
         function AmbilDataPertandingan(tanggal_lahir, jenis_kelamin, kegiatan_id) {
             $('#pertandingan_id').attr('status', 'true');
             $('#pertandingan_id').html('');

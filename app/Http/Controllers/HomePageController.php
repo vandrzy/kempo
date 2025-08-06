@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Buku;
+use App\Models\Kabupaten;
 use App\Models\Kategori;
+use App\Models\Kecamatan;
 use App\Models\Kegiatan;
 use App\Models\Penulis;
 use App\Models\Pertandingan;
@@ -22,6 +24,7 @@ class HomePageController extends Controller
 
         $kegiatan_id = explode('-', $id);
 
+        $data['kabupatens'] = Kabupaten::get();
         $data['kegiatan'] = Kegiatan::find(base64_decode($kegiatan_id[1]));
 
         $tahun = old('tanggal_lahir');
@@ -41,6 +44,18 @@ class HomePageController extends Controller
 
 
         return view('pengunjung.dashboard', $data);
+    }
+
+    public function getWilayah($type, $id) {
+
+        if($type == "kabupaten_id") {
+            $data = Kecamatan::find($id);
+        }
+        return response()->json([
+            'status' => 'true',
+            'data' => $data,
+            // 'data' => $data['pertandingan'],
+        ]);
     }
 
     public function daftarProcess(Request $request) {

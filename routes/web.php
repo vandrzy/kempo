@@ -17,11 +17,12 @@ Route::middleware('guest')->group(function () {
 
     // Route::get('/detail/{id}', [HomePageController::class, 'detail']);
 
-    Route::get('/', [HomePageController::class, 'login']);
+    Route::get('/', [HomePageController::class, 'login'])->name('login');
     Route::post('/login', [HomePageController::class, 'loginPost']);
 });
 
 
+Route::get('/getWilayah/{wilayah}/{id}', [HomePageController::class, 'getWilayah']);
 Route::get('/pendaftaran/{id}/daftar', [HomePageController::class, 'index']);
 Route::get('pendaftarans/{tanggal_lahir}/{jenis_kelamin}', [PertandinganController::class, 'get_pertandingan']);
 
