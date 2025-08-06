@@ -7,6 +7,7 @@ use App\Models\Kabupaten;
 use App\Models\Kategori;
 use App\Models\Kecamatan;
 use App\Models\Kegiatan;
+use App\Models\Kelurahan;
 use App\Models\Penulis;
 use App\Models\Pertandingan;
 use App\Models\PertandinganPeserta;
@@ -24,7 +25,7 @@ class HomePageController extends Controller
 
         $kegiatan_id = explode('-', $id);
 
-        // $data['kabupatens'] = Kabupaten::get();
+        $data['kabupatens'] = Kabupaten::get();
         $data['kegiatan'] = Kegiatan::find(base64_decode($kegiatan_id[1]));
 
         $tahun = old('tanggal_lahir');
@@ -51,6 +52,10 @@ class HomePageController extends Controller
         if($type == "kabupaten_id") {
             $data = Kecamatan::where('kabupaten_id',$id)->get();
         }
+
+        if($type == "kecamatan_id") {
+            $data = Kelurahan::where('kecamatan_id',$id)->get();
+        }
         return response()->json([
             'status' => 'true',
             'data' => $data,
@@ -59,7 +64,6 @@ class HomePageController extends Controller
     }
 
     public function daftarProcess(Request $request) {
-
         $validator = Validator::make($request->all(), [
             'nama' => 'required',
             'jenis_kelamin'=> 'required',
@@ -72,6 +76,10 @@ class HomePageController extends Controller
             'alamat'=> 'required',
             'telepon'=> 'required|numeric|digits_between:1,13',
             'keterangan'=> 'required',
+            'kabupaten_id'=> 'required',
+            'kecamatan_id'=> 'required',
+            'kelurahan_id'=> 'required',
+
             'pertandingan_id'=> 'required',
             'foto'=> 'required',
         ], [
@@ -123,6 +131,10 @@ class HomePageController extends Controller
                 'telepon'=> $request->telepon,
                 'keterangan'=> $request->keterangan,
                 'foto' => 'lol',
+                'kabupaten_id' => $request->kabupaten_id,
+                'kecamatan_id' => $request->kecamatan_id,
+                'kelurahan_id' => $request->kelurahan_id,
+                'disabilitas' => $request->disabilitas,
             ]);
 
             $image = $request->file('foto');

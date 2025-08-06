@@ -66,7 +66,7 @@
                     class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-1/2"
                     value="{{ old('tanggal_lahir', date('Y-m-d')) }}" id="">
             </div>
-
+{{--  --}}
             @error('tempat')
                 <span class="text-red" style="color: red;">{{ $message }}</span><br>
             @enderror
@@ -76,8 +76,8 @@
         </div>
         <div class="mb-4">
             <label for="">Alamat Rumah <span style="color: red;">*</span></label>
-            {{-- <div class="flex flex-wrap gap-4">
-                <div class="w-full md:w-1/4">
+            <div class="flex flex-wrap gap-4">
+                <div class="w-full md:w-1/3">
                     <label for="kabupaten_id" class="block text-sm font-medium text-gray-700">Kabupaten</label>
                     <select name="kabupaten_id" id="kabupaten_id" class="w-full border rounded px-3 py-2">
                         <option selected disabled>Pilih Kabupaten</option>
@@ -87,7 +87,7 @@
                     </select>
                 </div>
 
-                <div class="w-full md:w-1/3">
+                <div class="w-full md:w-1/2">
                     <label for="kecamatan_id" class="block text-sm font-medium text-gray-700">Kecamatan</label>
                     <select name="kecamatan_id" id="kecamatan_id" class="w-full border rounded px-3 py-2">
                         <option selected disabled>Pilih Kecamatan</option>
@@ -100,7 +100,17 @@
                         <option selected disabled>Pilih Kelurahan</option>
                     </select>
                 </div>
-            </div><br> --}}
+                <div class="w-full md:w-1/2">
+                    <br>
+                    <label for="disabilitas" class="flex items-center space-x-3">
+                        <span class="text-gray-700">Apakah anda penyandang disabilitas?</span>
+                        <input type="checkbox" id="disabilitas" value="1" name="disabilitas" class="sr-only peer">
+                        <div class="w-11 h-6 bg-gray-300 rounded-full peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-500 transition duration-300 peer-checked:bg-blue-600 relative peer">
+                            <div class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-300 peer-checked:translate-x-5"></div>
+                        </div>
+                    </label>
+                </div>
+            </div><br>
 
 
 
@@ -210,6 +220,8 @@
 
         $('#kabupaten_id').on('change', function() {
             getWilayah('kabupaten_id', 'kecamatan_id');
+            $(`#kelurahan_id`).html("");
+
         });
 
         $('#kecamatan_id').on('change', function() {
