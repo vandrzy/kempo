@@ -77,7 +77,7 @@
         <div class="mb-4">
             <label for="">Alamat Rumah <span style="color: red;">*</span></label>
             <div class="flex flex-wrap gap-4">
-                <div class="w-full md:w-1/3">
+                <div class="w-full md:w-1/4">
                     <label for="kabupaten_id" class="block text-sm font-medium text-gray-700">Kabupaten</label>
                     <select name="kabupaten_id" id="kabupaten_id" class="w-full border rounded px-3 py-2">
                         <option selected disabled>Pilih Kabupaten</option>
@@ -87,7 +87,7 @@
                     </select>
                 </div>
 
-                <div class="w-full md:w-1/2">
+                <div class="w-full md:w-1/3">
                     <label for="kecamatan_id" class="block text-sm font-medium text-gray-700">Kecamatan</label>
                     <select name="kecamatan_id" id="kecamatan_id" class="w-full border rounded px-3 py-2">
                         <option selected disabled>Pilih Kecamatan</option>
@@ -100,7 +100,7 @@
                         <option selected disabled>Pilih Kelurahan</option>
                     </select>
                 </div>
-                <div class="w-full md:w-1/2">
+                {{-- <div class="w-full md:w-1/2">
                     <br>
                     <label for="disabilitas" class="flex items-center space-x-3">
                         <span class="text-gray-700">Apakah anda penyandang disabilitas?</span>
@@ -109,7 +109,7 @@
                             <div class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-300 peer-checked:translate-x-5"></div>
                         </div>
                     </label>
-                </div>
+                </div> --}}
             </div><br>
 
 

@@ -33,10 +33,10 @@
                             <th class="px-6 py-4 border-b" style="text-align: left">Golongan Darah</td>
                             <td class="px-6 py-4 border-b">{{ $peserta->golongan_darah }}</td>
                         </tr>
-                        <tr>
+                        {{-- <tr>
                             <th class="px-6 py-4 border-b" style="text-align: left">Disabilitas</td>
                             <td class="px-6 py-4 border-b">{{ $peserta->disabilitas == "1" ? "Ya" : "Tidak" }}</td>
-                        </tr>
+                        </tr> --}}
                         <tr>
                             <th class="px-6 py-4 border-b" style="text-align: left">NIK</td>
                             <td class="px-6 py-4 border-b">{{ $peserta->nik }}</td>
