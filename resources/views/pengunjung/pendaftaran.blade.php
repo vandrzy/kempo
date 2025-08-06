@@ -172,11 +172,9 @@
 <script>
     @section('script')
         function getWilayah(type, spawning) {
-            let urls = "";
             let value = $(`#${type}`).val();
-            if(type == "kabupaten_id") {
-                urls = `{{ url("getWilayah") }}/${type}/{value}`;
-            }
+            let urls = `{{ url("getWilayah") }}/${type}/${value}`;
+
             $.ajax({
                 url: urls, // URL API
                 type: 'GET',
@@ -184,13 +182,13 @@
                 success: function(response) {
                     let data = "";
 
-                    console.log(response);
+                    // console.log(response);
 
                     if(response.data.length > 0) {
-                        data += `<option value="" disabled>Data Tidak Tersedia!</option>`;
+                        // data += `<option value="" disabled>Data Tidak Tersedia!</option>`;
 
                         $.each(response.data, function(index, value) {
-                            // data += `<option value="${value.id}">${value.pertandingan.nama}</option>`;
+                            data += `<option value="${value.id}">${value.name}</option>`;
                         });
                     } else {
                         data += `<option value="" disabled>Data Tidak Tersedia!</option>`;
@@ -212,6 +210,10 @@
 
         $('#kabupaten_id').on('change', function() {
             getWilayah('kabupaten_id', 'kecamatan_id');
+        });
+
+        $('#kecamatan_id').on('change', function() {
+            getWilayah('kecamatan_id', 'kelurahan_id');
         });
 
 

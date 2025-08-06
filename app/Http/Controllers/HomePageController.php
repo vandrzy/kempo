@@ -24,7 +24,7 @@ class HomePageController extends Controller
 
         $kegiatan_id = explode('-', $id);
 
-        $data['kabupatens'] = Kabupaten::get();
+        // $data['kabupatens'] = Kabupaten::get();
         $data['kegiatan'] = Kegiatan::find(base64_decode($kegiatan_id[1]));
 
         $tahun = old('tanggal_lahir');
@@ -49,7 +49,7 @@ class HomePageController extends Controller
     public function getWilayah($type, $id) {
 
         if($type == "kabupaten_id") {
-            $data = Kecamatan::find($id);
+            $data = Kecamatan::where('kabupaten_id',$id)->get();
         }
         return response()->json([
             'status' => 'true',
