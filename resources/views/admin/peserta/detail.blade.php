@@ -73,7 +73,7 @@
                         @foreach ($peserta->PertandinganPeserta as $a)
                             <tr>
                                 <td class="px-6 py-4 border-b">{{ $a->urutan }}</td>
-                                <td class="px-6 py-4 border-b">{{ $a->list_kategori->pertandingan->nama }}</td>
+                                <td class="px-6 py-4 border-b">{{ $a->list_kategori->pertandingan->nama ?? "" }}</td>
                             </tr>
                         @endforeach
 

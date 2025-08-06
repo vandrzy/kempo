@@ -17,11 +17,17 @@ class PesertaExport implements FromView, WithStyles, WithColumnWidths
     */
 
     protected $kegiatan;
+    protected $kategori;
+    protected $pertandingan;
 
 
-    public function __construct($kegiatan = null)
+
+    public function __construct($kegiatan = null, $kategori = null, $pertandingan = null)
     {
         $this->kegiatan = $kegiatan;
+        $this->kategori = $kategori;
+        $this->pertandingan = $pertandingan;
+
     }
 
 
@@ -32,12 +38,22 @@ class PesertaExport implements FromView, WithStyles, WithColumnWidths
 
         $kegiatan = Kegiatan::find($this->kegiatan);
 
-        $kegiatan_id = $kegiatan->id;
-        $data['peserta'] = $data['peserta']->WhereHas('PertandinganPesertaUtama', function ($q1) use ($kegiatan_id) {
-            $q1->WhereHas('Pertandingan', function ($q2) use ($kegiatan_id) {
-                $q2->WhereHas('kategori', function ($q3) use ($kegiatan_id) {
-                    $q3->where('kegiatan_id', $kegiatan_id);
-                });
+        $kegiatan_id = $this->kegiatan;
+        $kategori_id = $this->kategori;
+        $pertandingan_id = $this->pertandingan;
+
+        // $kegiatan_id = $kegiatan->id;
+        $data['peserta'] = $data['peserta']->whereHas('PertandinganPesertaUtama', function ($q1) use ($kegiatan_id, $kategori_id, $pertandingan_id) {
+            $q1->WhereHas('list_kategori', function ($q2) use ($kegiatan_id, $kategori_id, $pertandingan_id) {
+                $q2 = $q2->where('kegiatan_id', $kegiatan_id);
+
+                if(isset($kategori_id)  && $kategori_id != "") {
+                    $q2 = $q2->where('kategori_id', $kategori_id);
+                }
+
+                if(isset($pertandingan_id)  && $pertandingan_id != "") {
+                    $q2 = $q2->where('pertandingan_id', $pertandingan_id);
+                }
             });
         });
 
@@ -53,12 +69,22 @@ class PesertaExport implements FromView, WithStyles, WithColumnWidths
 
         $kegiatan = Kegiatan::find($this->kegiatan);
 
-        $kegiatan_id = $kegiatan->id;
-        $data['peserta'] = $data['peserta']->WhereHas('PertandinganPesertaUtama', function ($q1) use ($kegiatan_id) {
-            $q1->WhereHas('Pertandingan', function ($q2) use ($kegiatan_id) {
-                $q2->WhereHas('kategori', function ($q3) use ($kegiatan_id) {
-                    $q3->where('kegiatan_id', $kegiatan_id);
-                });
+        $kegiatan_id = $this->kegiatan;
+        $kategori_id = $this->kategori;
+        $pertandingan_id = $this->pertandingan;
+
+        // $kegiatan_id = $kegiatan->id;
+        $data['peserta'] = $data['peserta']->whereHas('PertandinganPesertaUtama', function ($q1) use ($kegiatan_id, $kategori_id, $pertandingan_id) {
+            $q1->WhereHas('list_kategori', function ($q2) use ($kegiatan_id, $kategori_id, $pertandingan_id) {
+                $q2 = $q2->where('kegiatan_id', $kegiatan_id);
+
+                if(isset($kategori_id)  && $kategori_id != "") {
+                    $q2 = $q2->where('kategori_id', $kategori_id);
+                }
+
+                if(isset($pertandingan_id)  && $pertandingan_id != "") {
+                    $q2 = $q2->where('pertandingan_id', $pertandingan_id);
+                }
             });
         });
 

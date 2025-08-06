@@ -19,7 +19,7 @@
                     @if(isset($_GET['kategori_id']) && $_GET['kategori_id'] != "")
                         <option value="">Pilih Kategori</option>
                         @foreach ($kategori as $a)
-                            <option value="{{ $a->id }}" {{ Request('kategori_id') == $a->id ? 'selected' : '' }} >{{ $a->nama }}</option>
+                            <option value="{{ $a->kategori->id }}" {{ Request('kategori_id') == $a->kategori->id ? 'selected' : '' }} >{{ $a->kategori->nama }}</option>
                         @endforeach
                     @else
                         <option value="">Pilih Kegiatan Dulu</option>
@@ -31,7 +31,7 @@
                     @if(isset($_GET['pertandingan_id']) && $_GET['pertandingan_id'] != "")
                         <option value="">Pilih Pertandingan</option>
                         @foreach ($pertandingan as $a)
-                            <option value="{{ $a->id }}" {{ Request('pertandingan_id') == $a->id ? 'selected' : '' }}>{{ $a->nama }}</option>
+                            <option value="{{ $a->pertandingan->id }}" {{ Request('pertandingan_id') == $a->pertandingan->id ? 'selected' : '' }}>{{ $a->pertandingan->nama }}</option>
                         @endforeach
                     @else
                         <option value="">Pilih Kategori Dulu</option>
@@ -71,15 +71,17 @@
                     <tr>
                         <td class="px-6 py-4 border-b">{{ $loop->iteration }}</td>
                         <td class="px-6 py-4 border-b">{{ $a->nama }}</td>
-                        <td class="px-6 py-4 border-b">{{ $a->KegiatanPertandinganPeserta->list_kategori->kegiatan->nama }}</td>
+                        <td class="px-6 py-4 border-b">{{ $a->KegiatanPertandinganPeserta->list_kategori->kegiatan->nama ?? "" }}</td>
                         <td class="px-6 py-4 border-b">
                             <ul>
                                 {{-- PertandinganPesertaUtama --}}
                                 {{-- <li>{{ $a->PertandinganPesertaUtama->Pertandingan->nama }}</li> --}}
 
-                                @foreach ($a->PertandinganPeserta as $b)
-                                    <li>{{ $b->list_kategori->pertandingan->nama }}</li>
-                                @endforeach
+                                @isset($a->PertandinganPeserta)
+                                    @foreach ($a->PertandinganPeserta as $b)
+                                        <li>{{ $b->list_kategori->pertandingan->nama ?? "" }}</li>
+                                    @endforeach
+                                @endisset
                             </ul>
 
                         </td>
@@ -140,11 +142,11 @@
             });
         }
 
-        function kategori_id(id) {
+        function kategori_id(kegiatan_id,id) {
             $('#pertandingan_id').attr('status', 'true');
             $('#pertandingan_id').html('');
             $.ajax({
-                url: `{{url("pertandingans")}}/${id}?type=pertandingan_id`, // URL API
+                url: `{{url("pertandingans")}}/${id}?type=pertandingan_id&kegiatan_id=${kegiatan_id}`, // URL API
                 type: 'GET',
                 dataType: 'json', // bisa 'html', 'text', dll tergantung respon
                 success: function(response) {
@@ -154,7 +156,7 @@
                     if(response.data.length > 0) {
                         data += `<option value="">Cari Pertandingan</option>`;
                         $.each(response.data, function(index, value) {
-                            data += `<option value="${value.id}">${value.nama}</option>`;
+                            data += `<option value="${value.pertandingan.id}">${value.pertandingan.nama}</option>`;
                         });
                     } else {
                         data += `<option value="">Pertandingan Tidak Tersedia!</option>`;
@@ -176,7 +178,7 @@
         @endif
 
         @if (Request('pertandingan_id') == "")
-            kategori_id($('#kategori_id').val());
+            kategori_id($("#kegiatan_id").val(),$("#kategori_id").val());
         @endif
 
         $('#kegiatan_id').on('change', function (e) {
@@ -185,7 +187,7 @@
 
 
         $('#kategori_id').on('change', function (e) {
-            kategori_id($(this).val());
+            kategori_id($("#kegiatan_id").val(),$(this).val());
         });
     @endsection
 </script>

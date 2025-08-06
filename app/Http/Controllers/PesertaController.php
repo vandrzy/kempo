@@ -24,7 +24,7 @@ class PesertaController extends Controller
         $data['peserta'] = Peserta::whereNotNull('created_at');
 
         if(isset($_GET['submit']) && $_GET['submit'] == 'export') {
-            return Excel::download(new PesertaExport($_GET['kegiatan_id']), 'rekap_peserta.xlsx');
+            return Excel::download(new PesertaExport($_GET['kegiatan_id'], $_GET['kategori_id'],  $_GET['pertandingan_id']), 'rekap_peserta.xlsx');
         } else {
             if(isset($_GET['nama'])  && $_GET['nama'] != "") {
                 $data['peserta'] = $data['peserta']->where('nama','like','%'.$_GET['nama'].'%');
@@ -32,57 +32,45 @@ class PesertaController extends Controller
 
             if(isset($_GET['kegiatan_id'])  && $_GET['kegiatan_id'] != "") {
                 $kegiatan = Kegiatan::find($_GET['kegiatan_id']);
-                $data['kategori'] = Kategori::where('kegiatan_id', $kegiatan->id)->get();
+                $data['kategori'] = ListKategori::with('kategori')->where('kegiatan_id', $kegiatan->id)->get()->unique('kategori_id')->values();
 
                 $kegiatan_id = $kegiatan->id;
-                $data['peserta'] = $data['peserta']->WhereHas('PertandinganPesertaUtama', function ($q1) use ($kegiatan_id) {
-                    // $q1->WhereHas('Pertandingan', function ($q2) use ($kegiatan_id) {
-                    //     $q2->WhereHas('kategori', function ($q3) use ($kegiatan_id) {
-                    //         $q3->where('kegiatan_id', $kegiatan_id);
-                    //     });
-                    // });
+                $kategori_id = $_GET['kategori_id'] ?? "";
+                $pertandingan_id = $_GET['pertandingan_id'] ?? "";
 
-                    $q1->where('kegiatan_id', $kegiatan_id);
+
+                $data['peserta'] = $data['peserta']->WhereHas('PertandinganPesertaUtama', function ($q1) use ($kegiatan_id, $kategori_id, $pertandingan_id) {
+                    $q1->WhereHas('list_kategori', function ($q2) use ($kegiatan_id, $kategori_id, $pertandingan_id) {
+                        $q2 = $q2->where('kegiatan_id', $kegiatan_id);
+
+                        if(isset($kategori_id)  && $kategori_id != "") {
+                            $q2 = $q2->where('kategori_id', $kategori_id);
+                        }
+
+                        if(isset($pertandingan_id)  && $pertandingan_id != "") {
+                            $q2 = $q2->where('pertandingan_id', $pertandingan_id);
+                        }
+                    });
                 });
             } else {
                 $data['kegiatan_get'] = Kegiatan::orderBy('created_at', 'DESC')->first();
                 $kegiatan_id = $data['kegiatan_get']->id;
+                $kategori_id = $_GET['kategori_id'] ?? "";
 
-                $data['peserta'] = $data['peserta']->WhereHas('PertandinganPesertaUtama', function ($q1) use ($kegiatan_id) {
-                    // $q1->WhereHas('Pertandingan', function ($q2) use ($kegiatan_id) {
-                    //     $q2->WhereHas('kategori', function ($q3) use ($kegiatan_id) {
-                    //         $q3->where('kegiatan_id', $kegiatan_id);
-                    //     });
-                    // });
-
-                    $q1->where('kegiatan_id', $kegiatan_id);
+                $data['peserta'] = $data['peserta']->WhereHas('PertandinganPesertaUtama', function ($q1) use ($kegiatan_id, $kategori_id) {
+                    $q1 = $q1->where('kegiatan_id', $kegiatan_id);
                 });
-
-                // dd($data['kegiatan']->id);
             }
 
             if(isset($_GET['kategori_id'])  && $_GET['kategori_id'] != "") {
-                $kategori = Kategori::find($_GET['kategori_id']);
-                $data['pertandingan'] = Pertandingan::where('kategori_id', $kategori->id)->get();
-
-                $data['peserta'] = $data['peserta']->whereYear('tanggal_lahir', '>=', $kategori->tahun_awal)->whereYear('tanggal_lahir', '<=', $kategori->tahun_akhir);
-
-            }
-
-            if(isset($_GET['pertandingan_id']) && $_GET['pertandingan_id'] != "") {
-                $pertandingan_id = $_GET['pertandingan_id'];
-
-
-                $data['peserta'] = $data['peserta']->whereHas('PertandinganPeserta', function ($query) use ($pertandingan_id) {
-                    $query->where('pertandingan_id', $pertandingan_id);
-                });
+                $data['pertandingan'] = ListKategori::with('pertandingan')->where('kegiatan_id', $kegiatan_id)->where('kategori_id', $kategori_id)->get();
             }
         }
 
 
-
         $data['peserta'] = $data['peserta']->paginate(10);
         $data['kegiatan'] = Kegiatan::orderBy('created_at', 'DESC')->get();
+        // dd($data);
         return view('admin.peserta.index', $data);
     }
 
@@ -95,11 +83,13 @@ class PesertaController extends Controller
         if(isset($_GET['type'])) {
             $data = [];
             if($_GET['type'] == 'kategori_id') {
-                $data = ListKategori::with('kategori')->where('kegiatan_id', $id)->get();
+                $data = ListKategori::with('kategori')->where('kegiatan_id', $id)->get()->unique('kategori_id')->values();
                 // $data = Kategori::where('kegiatan_id', $id)->get();
             } else {
-                $data = Pertandingan::where('kategori_id', $id)->get();
+                $data = ListKategori::with('pertandingan')->where('kegiatan_id', $_GET['kegiatan_id'])->where('kategori_id', $id)->get();
             }
+                // dd($data);
+
             return response()->json([
                 'status' => 'true',
                 'data' => $data,
