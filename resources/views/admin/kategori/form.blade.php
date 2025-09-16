@@ -13,7 +13,7 @@
 </div> --}}
 <div class="mb-4">
     <label for="">Nama Kategori <span style="color: red;">*</span></label>
-    <input type="text" name="nama" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" value="{{ old('nama', @$kategori->nama) }}" placeholder="Nama Kategori" id="">
+    <input type="text" name="nama" class="w-full pl-9 text-sm focus:shadow-primary-outline ease leading-5.6 relative -ml-px block min-w-0 flex-auto rounded-lg border border-solid border-gray-300 dark:bg-slate-850 dark:text-white bg-white bg-clip-padding py-2 pr-3 text-gray-700 transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:transition-shadow" value="{{ old('nama', @$kategori->nama) }}" placeholder="Nama Kategori" id="" />
     @error('nama')
         <span class="text-red" style="color: red;">{{ $message }}</span>
     @enderror
@@ -21,7 +21,7 @@
 
 <div class="mb-4">
     <label for="">Usia Awal </label>
-    <input type="integer" name="usia_awal" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" value="{{ old('usia_awal', @$kategori->usia_awal) }}" placeholder="Usia Awal" id="">
+    <input type="integer" name="usia_awal" class="w-full pl-9 text-sm focus:shadow-primary-outline ease leading-5.6 relative -ml-px block min-w-0 flex-auto rounded-lg border border-solid border-gray-300 dark:bg-slate-850 dark:text-white bg-white bg-clip-padding py-2 pr-3 text-gray-700 transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:transition-shadow" value="{{ old('usia_awal', @$kategori->usia_awal) }}" placeholder="Usia Awal" id="" />
     @error('usia_awal')
         <span class="text-red" style="color: red;">{{ $message }}</span>
     @enderror
@@ -29,7 +29,7 @@
 
 <div class="mb-4">
     <label for="">Usia Akhir </label>
-    <input type="integer" name="usia_akhir" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" value="{{ old('usia_akhir', @$kategori->usia_akhir) }}" placeholder="Usia Akhir" id="">
+    <input type="integer" name="usia_akhir" class="w-full pl-9 text-sm focus:shadow-primary-outline ease leading-5.6 relative -ml-px block min-w-0 flex-auto rounded-lg border border-solid border-gray-300 dark:bg-slate-850 dark:text-white bg-white bg-clip-padding py-2 pr-3 text-gray-700 transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:transition-shadow" value="{{ old('usia_akhir', @$kategori->usia_akhir) }}" placeholder="Usia Akhir" id="" />
     @error('usia_akhir')
         <span class="text-red" style="color: red;">{{ $message }}</span>
     @enderror
@@ -37,7 +37,7 @@
 
 <div class="mb-4">
     <label for="">Tahun Awal </label>
-    <input type="integer" name="tahun_awal" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" value="{{ old('tahun_awal', @$kategori->tahun_awal) }}" placeholder="Tahun Awal" id="">
+    <input type="integer" name="tahun_awal" class="w-full pl-9 text-sm focus:shadow-primary-outline ease leading-5.6 relative -ml-px block min-w-0 flex-auto rounded-lg border border-solid border-gray-300 dark:bg-slate-850 dark:text-white bg-white bg-clip-padding py-2 pr-3 text-gray-700 transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:transition-shadow" value="{{ old('tahun_awal', @$kategori->tahun_awal) }}" placeholder="Tahun Awal" id=""/>
     @error('usia_awal')
         <span class="text-red" style="color: red;">{{ $message }}</span>
     @enderror
@@ -45,7 +45,7 @@
 
 <div class="mb-4">
     <label for="">Tahun Akhir </label>
-    <input type="integer" name="tahun_akhir" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" value="{{ old('tahun_akhir', @$kategori->tahun_akhir) }}" placeholder="Tahun Akhir" id="">
+    <input type="integer" name="tahun_akhir" class="w-full pl-9 text-sm focus:shadow-primary-outline ease leading-5.6 relative -ml-px block min-w-0 flex-auto rounded-lg border border-solid border-gray-300 dark:bg-slate-850 dark:text-white bg-white bg-clip-padding py-2 pr-3 text-gray-700 transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:transition-shadow" value="{{ old('tahun_akhir', @$kategori->tahun_akhir) }}" placeholder="Tahun Akhir" id=""/>
     @error('usia_akhir')
         <span class="text-red" style="color: red;">{{ $message }}</span>
     @enderror

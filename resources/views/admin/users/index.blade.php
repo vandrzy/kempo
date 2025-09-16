@@ -51,11 +51,11 @@
                             </td>
                             <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
                                 <div class="flex justify-center items-center space-x-4">
-                                    <a href="{{ url('users/'.$a->id.'/edit') }}" class="text-blue-500 hover:underline">Edit</a>
-                                    <form action="{{ url('users/'.$a->id) }}" method="post" class="delete-form pl-4">
+                                    <a href="{{ url('users/'.$a->id.'/edit') }}" style="border: solid 2px blue; color: blue;"  class="inline-block px-5 py-2 mb-0 text-xs font-bold leading-normal text-center text-green-500 align-middle transition-all ease-in bg-transparent border  border-solid rounded-lg shadow-none cursor-pointer bg-150 active:opacity-85 hover:-translate-y-px tracking-tight-rem bg-x-25 hover:opacity-75">Edit</a>
+                                    <form action="{{ url('users/'.$a->id) }}" method="post" class="delete-form pl-2">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="text-red-500 hover:underline">Hapus</button>
+                                        <button style="border: solid 2px red; color: red;"  class="inline-block px-5 py-2 mb-0 text-xs font-bold leading-normal text-center text-green-500 align-middle transition-all ease-in bg-transparent border  border-solid rounded-lg shadow-none cursor-pointer bg-150 active:opacity-85 hover:-translate-y-px tracking-tight-rem bg-x-25 hover:opacity-75">Hapus</button>
                                     </form>
                                 </div>
                             </td>

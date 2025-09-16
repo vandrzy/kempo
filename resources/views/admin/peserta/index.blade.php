@@ -1,110 +1,125 @@
 @extends('tamplate')
 @section('title', 'Peserta')
 @section('content')
-    <h1>Data Peserta</h1>
-    <hr>
-    <br>
- {{-- <a href="{{ url('buku/create') }}" class="bg-green-500 text-white px-4 py-2 rounded">Tambah Data</a><br><br> --}}
-    <form action="" method="get">
-        <div class="flex flex-wrap">
-            <div class="w-full md:w-3/12">
-                <select name="kegiatan_id" class="pilihan" id="kegiatan_id">
-                    @foreach ($kegiatan as $a)
-                        <option value="{{ $a->id }}" {{ Request('kegiatan_id') == $a->id ? 'selected' : (@$kegiatan_get->id == $a->id ? 'selected' : '') }} >{{ $a->nama }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div class="w-full md:w-3/12">
-                <select name="kategori_id"  class="mx-2 pilihan"   id="kategori_id">
-                    @if(isset($_GET['kategori_id']) && $_GET['kategori_id'] != "")
-                        <option value="">Pilih Kategori</option>
-                        @foreach ($kategori as $a)
-                            <option value="{{ $a->kategori->id }}" {{ Request('kategori_id') == $a->kategori->id ? 'selected' : '' }} >{{ $a->kategori->nama }}</option>
-                        @endforeach
-                    @else
-                        <option value="">Pilih Kegiatan Dulu</option>
-                    @endif
-                </select>
-            </div>
-            <div class="w-full md:w-3/12">
-                <select name="pertandingan_id"  class="mx-2 pilihan"  id="pertandingan_id">
-                    @if(isset($_GET['pertandingan_id']) && $_GET['pertandingan_id'] != "")
-                        <option value="">Pilih Pertandingan</option>
-                        @foreach ($pertandingan as $a)
-                            <option value="{{ $a->pertandingan->id }}" {{ Request('pertandingan_id') == $a->pertandingan->id ? 'selected' : '' }}>{{ $a->pertandingan->nama }}</option>
-                        @endforeach
-                    @else
-                        <option value="">Pilih Kategori Dulu</option>
-                    @endif
+    <div class="flex flex-wrap -mx-3">
+        <div class="flex-none w-full max-w-full px-3">
+        <div class="relative flex flex-col min-w-0 mb-6 break-words bg-white border-0 border-transparent border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
+            <div class="p-6 pb-0 mb-0 border-b-0 border-b-solid rounded-t-2xl border-b-transparent">
+                <div class="flex items-center justify-between mb-4">
+                    <h4 class="dark:text-white">Data Peserta</h4>
+                </div>
 
-                </select>
-            </div>
-            <div class="w-full md:w-3/12">
-                <input type="text" name="nama" value="{{ Request('nama') }}" placeholder="Cari Nama Peserta" class="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" id="">
-            </div>
+                    {{-- <a href="{{ url('users/create') }}" style="border: solid 2px green; color: green;"  class="inline-block px-8 py-2 mb-0 text-xs font-bold leading-normal text-center text-green-500 align-middle transition-all ease-in bg-transparent border  border-solid rounded-lg shadow-none cursor-pointer bg-150 active:opacity-85 hover:-translate-y-px tracking-tight-rem bg-x-25 hover:opacity-75">Tambah Data</a>
+                    <form action="" method="get">
+                        <input type="text" name="cari"
+                            class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500"
+                            placeholder="Cari data...">
+                        <button type="submit"
+                            class="px-4 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition">
+                            Cari
+                        </button>
+                    </form> --}}
 
 
-        </div>
-        <button type="submit" name="submit" value="export" class="bg-green-500 text-white px-6 py-2 rounded">Export</button>
-        {{-- <a href="{{ url('pesertas/export') }}" target="_blank" class="bg-green-500 text-white px-6 mx-2 py-3 rounded">Export</a> --}}
-        <button type="submit" name="submit" value="cari" class="bg-blue-500 text-white px-6 py-2 rounded">Cari</button>
-    </form>
-    <br>
-   <div class="overflow-x-auto">
-        <table class="min-w-full bg-white border border-gray-200">
-            <thead class="bg-gray-100">
-                <tr>
-                    <th class="text-left px-6 py-3 border-b text-gray-600">No</th>
-                    <th class="text-left px-6 py-3 border-b text-gray-600">Nama</th>
-                    <th class="text-left px-6 py-3 border-b text-gray-600">Kegiatan</th>
-                    <th class="text-left px-6 py-3 border-b text-gray-600">Pertandingan</th>
-                    <th class="text-left px-6 py-3 border-b text-gray-600">Aksi</th>
-                </tr>
-            </thead>
-            <tbody>
-            @if(count($peserta) <= 0)
-                <tr>
-                    <td class="px-6 py-4 border-b" colspan="4">Data tidak Tersedia!</td>
-                </tr>
-            @else
-                @foreach ($peserta as $a)
-                    <tr>
-                        <td class="px-6 py-4 border-b">{{ $loop->iteration }}</td>
-                        <td class="px-6 py-4 border-b">{{ $a->nama }}</td>
-                        <td class="px-6 py-4 border-b">{{ $a->KegiatanPertandinganPeserta->list_kategori->kegiatan->nama ?? "" }}</td>
-                        <td class="px-6 py-4 border-b">
-                            <ul>
-                                {{-- PertandinganPesertaUtama --}}
-                                {{-- <li>{{ $a->PertandinganPesertaUtama->Pertandingan->nama }}</li> --}}
-
-                                @isset($a->PertandinganPeserta)
-                                    @foreach ($a->PertandinganPeserta as $b)
-                                        <li>{{ $b->list_kategori->pertandingan->nama ?? "" }}</li>
+                    <form action="" method="get">
+                        <div class="flex items-center justify-between mb-4">
+                            <select name="kegiatan_id" class="pl-9 text-sm focus:shadow-primary-outline ease leading-5.6 relative -ml-px block min-w-0 flex-auto rounded-lg border border-solid border-gray-300 dark:bg-slate-850 dark:text-white bg-white bg-clip-padding py-2 pr-3 text-gray-700 transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:transition-shadow" id="kegiatan_id">
+                                @foreach ($kegiatan as $a)
+                                    <option value="{{ $a->id }}" {{ Request('kegiatan_id') == $a->id ? 'selected' : (@$kegiatan_get->id == $a->id ? 'selected' : '') }} >{{ $a->nama }}</option>
+                                @endforeach
+                            </select>
+                            <select name="kategori_id"  class=" pl-9 text-sm focus:shadow-primary-outline ease leading-5.6 relative -ml-px block min-w-0 flex-auto rounded-lg border border-solid border-gray-300 dark:bg-slate-850 dark:text-white bg-white bg-clip-padding py-2 pr-3 text-gray-700 transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:transition-shadow"   id="kategori_id">
+                                @if(isset($_GET['kategori_id']) && $_GET['kategori_id'] != "")
+                                    <option value="">Pilih Kategori</option>
+                                    @foreach ($kategori as $a)
+                                        <option value="{{ $a->kategori->id }}" {{ Request('kategori_id') == $a->kategori->id ? 'selected' : '' }} >{{ $a->kategori->nama }}</option>
                                     @endforeach
-                                @endisset
-                            </ul>
+                                @else
+                                    <option value="">Pilih Kegiatan Dulu</option>
+                                @endif
+                            </select>
+                            <select name="pertandingan_id"  class="pl-9 text-sm focus:shadow-primary-outline ease leading-5.6 relative -ml-px block min-w-0 flex-auto rounded-lg border border-solid border-gray-300 dark:bg-slate-850 dark:text-white bg-white bg-clip-padding py-2 pr-3 text-gray-700 transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:transition-shadow"  id="pertandingan_id">
+                                @if(isset($_GET['pertandingan_id']) && $_GET['pertandingan_id'] != "")
+                                    <option value="">Pilih Pertandingan</option>
+                                    @foreach ($pertandingan as $a)
+                                        <option value="{{ $a->pertandingan->id }}" {{ Request('pertandingan_id') == $a->pertandingan->id ? 'selected' : '' }}>{{ $a->pertandingan->nama }}</option>
+                                    @endforeach
+                                @else
+                                    <option value="">Pilih Kategori Dulu</option>
+                                @endif
 
-                        </td>
-                        <td class="px-6 py-4 border-b">
-                            <a href="{{ url('peserta/'.$a->id) }}" class="text-green-500 hover:underline">Detail</a>
-                            {{-- <a href="{{ url('peserta/'.$a->id.'/edit') }}" class="text-blue-500 hover:underline">Edit</a> --}}
-                            <form action="{{ url('peserta/'.$a->id) }}" method="post" class="text-red-500 hover:underline delete-form">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn btn-danger btn-delete">Hapus</button>
-                            </form>
-                        </td>
+                            </select>
+                            <input type="text" name="nama" value="{{ Request('nama') }}" placeholder="Cari Nama Peserta" class="pl-9 text-sm focus:shadow-primary-outline ease leading-5.6 relative -ml-px block min-w-0 flex-auto rounded-lg border border-solid border-gray-300 dark:bg-slate-850 dark:text-white bg-white bg-clip-padding py-2 pr-3 text-gray-700 transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:transition-shadow" id="">
+                            <button type="submit" name="submit" value="export" class="bg-blue-500 text-white px-6 py-2 rounded">Export</button>
+                            {{-- <a href="{{ url('pesertas/export') }}" target="_blank" class="bg-green-500 text-white px-6 mx-2 py-3 rounded">Export</a> --}}
+                            <button type="submit" name="submit" value="cari" class="bg-blue-500 text-white px-6 py-2 rounded">Cari</button>
+                        </div>
+
+                    </form>
+            </div>
+            <br>
+            <div class="flex-auto px-0 pt-0 pb-2">
+            <div class="p-0 overflow-x-auto">
+                <table class="items-center w-full mb-0 align-top border-collapse dark:border-white/40 text-slate-500">
+                <thead class="align-bottom">
+                    <tr>
+                        <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-4xl border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">No</th>
+                        <th class="px-6 py-3 pl-2 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-3xl border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Nama</th>
+                        <th class="px-6 py-3 pl-2 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-3xl border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Kegiatan</th>
+                        <th class="px-6 py-3 pl-2 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-3xl border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Pertandingan</th>
+                        <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-3xl border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Aksi</th>
                     </tr>
-                @endforeach
-            @endif
-            <!-- Tambah data lainnya -->
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @foreach ($peserta as $a)
+                        <tr>
+                            <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
+                                <h6 class="mb-0 text-sm leading-normal pl-4 dark:text-white">{{ $loop->iteration }}</h6>
+                            </td>
+                            <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
+                                <p class="mb-0 text-3xl font-semibold leading-tight dark:text-white dark:opacity-80">{{ $a->nama }}</p>
+                            </td>
+                            <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
+                                <p class="mb-0 text-3xl font-semibold leading-tight dark:text-white dark:opacity-80">{{ $a->KegiatanPertandinganPeserta->list_kategori->kegiatan->nama ?? "" }}</p>
+                            </td>
+                            <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
+                                <ul>
+                                    @isset($a->PertandinganPeserta)
+                                        @foreach ($a->PertandinganPeserta as $b)
+                                            <li><p class="mb-0 text-3xl font-semibold leading-tight dark:text-white dark:opacity-80">{{ $b->list_kategori->pertandingan->nama ?? "" }}</p></li>
+                                        @endforeach
+                                    @endisset
+                                </ul>
+                            </td>
+                            <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
+                                <div class="flex justify-center items-center space-x-4">
+                                    <form action="{{ url('peserta/'.$a->id) }}" method="post" class="delete-form pl-2">
+                                        @csrf
+                                        @method('DELETE')
+                                        <a href="{{ url('peserta/'.$a->id) }}" style="border: solid 2px green; color: green;"  class="inline-block px-5 py-2 mb-0 text-xs font-bold leading-normal text-center text-green-500 align-middle transition-all ease-in bg-transparent border  border-solid rounded-lg shadow-none cursor-pointer bg-150 active:opacity-85 hover:-translate-y-px tracking-tight-rem bg-x-25 hover:opacity-75">Detail</a>
+                                        <button style="border: solid 2px red; color: red;"  class="inline-block px-5 py-2 mb-0 text-xs font-bold leading-normal text-center text-green-500 align-middle transition-all ease-in bg-transparent border  border-solid rounded-lg shadow-none cursor-pointer bg-150 active:opacity-85 hover:-translate-y-px tracking-tight-rem bg-x-25 hover:opacity-75">Hapus</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+                </table>
+                <div class="d-flex justify-content-center">
+                    {{ $peserta->withQueryString()->links('vendor.pagination.tailwind') }}
+                </div>
+            </div>
+            </div>
+        </div>
+        </div>
     </div>
-    <div class="d-flex justify-content-center">
-        {{ $peserta->withQueryString()->links('vendor.pagination.tailwind') }}
-    </div>
+
+
+
 @endsection
+
+
+
 <script>
     @section('script')
 
