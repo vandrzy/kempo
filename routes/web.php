@@ -19,6 +19,10 @@ Route::middleware('guest')->group(function () {
 
     Route::get('/', [HomePageController::class, 'login'])->name('login');
     Route::post('/login', [HomePageController::class, 'loginPost']);
+
+    Route::get('/test', function() {
+        return view('coba');
+    });
 });
 
 
