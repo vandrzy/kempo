@@ -12,6 +12,7 @@
                   <i class="fa fa-arrow-up text-emerald-500"></i>
                   Selamat Datang <span class="font-semibold text-blue-600">{{ Auth::user()->name }}</span> di Aplikasi Pendaftaran Kempo
                 </p>
+                <br><br>
               </div>
               <div class="flex-auto p-4"></div>
               {{-- <div class="flex-auto p-4">

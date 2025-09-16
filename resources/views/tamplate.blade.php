@@ -49,7 +49,7 @@
     <div class="absolute w-full bg-blue-500 dark:hidden min-h-75" style="background-color:  {{ request()->is('pendaftaran*') ? 'rgb(17, 129, 17)' : 'rgb(97, 97, 248)' }} "></div>
     <!-- sidenav  -->
     @if (Auth::user())
-        <aside class="fixed inset-y-0 flex-wrap items-center justify-between block w-full p-0 my-4 overflow-y-auto antialiased transition-transform duration-200 -translate-x-full bg-white border-0 shadow-xl dark:shadow-none dark:bg-slate-850 max-w-64 ease-nav-brand z-990 xl:ml-6 rounded-2xl xl:left-0 xl:translate-x-0" aria-expanded="false">
+    <aside class="fixed inset-y-0 flex-wrap items-center justify-between block w-full p-0 my-4 overflow-y-auto antialiased transition-transform duration-200 -translate-x-full bg-white border-0 shadow-xl dark:shadow-none dark:bg-slate-850 max-w-64 ease-nav-brand z-990 xl:ml-6 rounded-2xl xl:left-0 xl:translate-x-0" aria-expanded="false">
         <div class="h-19">
             <i class="absolute top-0 right-0 p-4 opacity-50 cursor-pointer fas fa-times dark:text-white text-slate-400 xl:hidden" sidenav-close></i>
             <a class="block px-8 py-6 m-0 text-sm whitespace-nowrap dark:text-white text-slate-700" href="https://demos.creative-tim.com/argon-dashboard-tailwind/pages/dashboard.html" target="_blank">
@@ -158,7 +158,7 @@
     @endif
     <!-- end sidenav -->
 
-    <main class="relative h-full max-h-screen transition-all duration-200 ease-in-out xl:ml-68 rounded-xl">
+    <main class="relative h-full max-h-screen transition-all duration-200 ease-in-out {{ (Auth::user()) ? 'xl:ml-68' : '' }} rounded-xl">
       <!-- Navbar -->
       <nav class="relative flex flex-wrap items-center justify-between px-0 py-2 mx-6 transition-all ease-in shadow-none duration-250 rounded-2xl lg:flex-nowrap lg:justify-start" navbar-main navbar-scroll="false">
         <div class="flex items-center justify-between w-full px-4 py-1 mx-auto flex-wrap-inherit">
@@ -702,12 +702,10 @@
                   <script>
                     document.write(new Date().getFullYear() + ",");
                   </script>
-                  made with <i class="fa fa-heart"></i> by
-                  <a href="https://www.creative-tim.com" class="font-semibold text-slate-700 dark:text-white" target="_blank">Creative Tim</a>
-                  for a better web.
+                  GreenNusa
                 </div>
               </div>
-              <div class="w-full max-w-full px-3 mt-0 shrink-0 lg:w-1/2 lg:flex-none">
+              {{-- <div class="w-full max-w-full px-3 mt-0 shrink-0 lg:w-1/2 lg:flex-none">
                 <ul class="flex flex-wrap justify-center pl-0 mb-0 list-none lg:justify-end">
                   <li class="nav-item">
                     <a href="https://www.creative-tim.com" class="block px-4 pt-0 pb-1 text-sm font-normal transition-colors ease-in-out text-slate-500" target="_blank">Creative Tim</a>
@@ -722,7 +720,7 @@
                     <a href="https://www.creative-tim.com/license" class="block px-4 pt-0 pb-1 pr-0 text-sm font-normal transition-colors ease-in-out text-slate-500" target="_blank">License</a>
                   </li>
                 </ul>
-              </div>
+              </div> --}}
             </div>
           </div>
         </footer>
