@@ -110,6 +110,7 @@
                         <label class="ml-2 font-normal cursor-pointer select-none text-sm text-slate-700" for="rememberMe">Remember me</label>
                         </div> --}}
                         <div class="text-center">
+                        <span>Anda tidak memiliki akun? <a href="{{ url('register') }}" style="color: blue;">Registrasi dulu!</a></span>
                         <button type="submit" class="inline-block w-full px-16 py-3.5 mt-6 mb-0 font-bold leading-normal text-center text-white align-middle transition-all bg-blue-500 border-0 rounded-lg cursor-pointer hover:-translate-y-px active:opacity-85 hover:shadow-xs text-sm ease-in tracking-tight-rem shadow-md bg-150 bg-x-25">Log In</button>
                         </div>
                     </form>
@@ -130,6 +131,25 @@
         </div>
     </div>
     </section>
+    <script src="{{ asset('js/sweetalert2.js') }}"></script>
+    <script>
+        @if(session('success'))
+            Swal.fire({
+                icon: "success",
+                title: "Horee...",
+                text: "{{ session('success') }}",
+            });
+        @endif
+    </script>
+    <script>
+        @if(session('error'))
+            Swal.fire({
+                icon: "error",
+                title: "Maaf...",
+                text: "{{ session('error') }}",
+            });
+        @endif
+    </script>
 </main>
 
 </body>

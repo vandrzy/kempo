@@ -20,7 +20,7 @@
 </div>
 
 <div class="mb-4">
-    <label for="">Usia Awal </label>
+    <label for="">Usia Awal  <span style="color: red;">*</span></label>
     <input type="integer" name="usia_awal" class="w-full pl-9 text-sm focus:shadow-primary-outline ease leading-5.6 relative -ml-px block min-w-0 flex-auto rounded-lg border border-solid border-gray-300 dark:bg-slate-850 dark:text-white bg-white bg-clip-padding py-2 pr-3 text-gray-700 transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:transition-shadow" value="{{ old('usia_awal', @$kategori->usia_awal) }}" placeholder="Usia Awal" id="" />
     @error('usia_awal')
         <span class="text-red" style="color: red;">{{ $message }}</span>
@@ -28,7 +28,7 @@
 </div>
 
 <div class="mb-4">
-    <label for="">Usia Akhir </label>
+    <label for="">Usia Akhir  <span style="color: red;">*</span></label>
     <input type="integer" name="usia_akhir" class="w-full pl-9 text-sm focus:shadow-primary-outline ease leading-5.6 relative -ml-px block min-w-0 flex-auto rounded-lg border border-solid border-gray-300 dark:bg-slate-850 dark:text-white bg-white bg-clip-padding py-2 pr-3 text-gray-700 transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:transition-shadow" value="{{ old('usia_akhir', @$kategori->usia_akhir) }}" placeholder="Usia Akhir" id="" />
     @error('usia_akhir')
         <span class="text-red" style="color: red;">{{ $message }}</span>
@@ -36,7 +36,7 @@
 </div>
 
 <div class="mb-4">
-    <label for="">Tahun Awal </label>
+    <label for="">Tahun Awal  <span style="color: red;">*</span></label>
     <input type="integer" name="tahun_awal" class="w-full pl-9 text-sm focus:shadow-primary-outline ease leading-5.6 relative -ml-px block min-w-0 flex-auto rounded-lg border border-solid border-gray-300 dark:bg-slate-850 dark:text-white bg-white bg-clip-padding py-2 pr-3 text-gray-700 transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:transition-shadow" value="{{ old('tahun_awal', @$kategori->tahun_awal) }}" placeholder="Tahun Awal" id=""/>
     @error('usia_awal')
         <span class="text-red" style="color: red;">{{ $message }}</span>
@@ -44,7 +44,7 @@
 </div>
 
 <div class="mb-4">
-    <label for="">Tahun Akhir </label>
+    <label for="">Tahun Akhir  <span style="color: red;">*</span></label>
     <input type="integer" name="tahun_akhir" class="w-full pl-9 text-sm focus:shadow-primary-outline ease leading-5.6 relative -ml-px block min-w-0 flex-auto rounded-lg border border-solid border-gray-300 dark:bg-slate-850 dark:text-white bg-white bg-clip-padding py-2 pr-3 text-gray-700 transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:transition-shadow" value="{{ old('tahun_akhir', @$kategori->tahun_akhir) }}" placeholder="Tahun Akhir" id=""/>
     @error('usia_akhir')
         <span class="text-red" style="color: red;">{{ $message }}</span>

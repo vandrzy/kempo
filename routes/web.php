@@ -1,5 +1,6 @@
 <?php
 
+use App\Helpers\WaHelpers;
 use App\Http\Controllers\BukuController;
 use App\Http\Controllers\HomePageController;
 use App\Http\Controllers\KategoriController;
@@ -20,8 +21,16 @@ Route::middleware('guest')->group(function () {
     Route::get('/', [HomePageController::class, 'login'])->name('login');
     Route::post('/login', [HomePageController::class, 'loginPost']);
 
-    Route::get('/test', function() {
-        return view('coba');
+    Route::get('/register', [HomePageController::class, 'register']);
+    Route::post('/register', [HomePageController::class, 'register_proses']);
+
+
+
+    Route::get('/test/', function($email) {
+        // WaHelpers::sendWa('081212379429', 'Coba WaHelpers');
+        WaHelpers::sendEmail($email, 'Akun Registrasi anda telah diterima!');
+        dd("Did it!");
+        // return view('coba');
     });
 });
 
@@ -38,12 +47,14 @@ Route::middleware('auth')->group(function () {
     Route::resource('users', UsersController::class);
     Route::resource('kegiatan', KegiatanController::class);
     Route::resource('kategori', KategoriController::class);
+
     Route::resource('pertandingan', PertandinganController::class);
+    Route::get('pertandingans/{id}/print', [PertandinganController::class,'print']);
     Route::get('pertandingan_list/{kategori_id}', [PertandinganController::class, 'kategori_select']);
     Route::post('pertandingans/tanding/{id}', [PertandinganController::class, 'tanding']);
     Route::delete('pertandingans/tanding-delete', [PertandinganController::class, 'batal_tanding']);
-
     Route::get('pertandingans/{kategori}', [PesertaController::class, 'get_pertandingan']);
+    // Route::get('pertandingans/{id}/print', [PertandinganController::class, 'print_no_tanding']);
 
 
 

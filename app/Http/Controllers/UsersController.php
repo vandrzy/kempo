@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\WaHelpers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -98,13 +99,19 @@ class UsersController extends Controller
     {
         //
         $validator = Validator::make($request->all(), [
-            'name' => 'required',
-            'email' => 'required',
-        ], [
-            'name.required' => 'Nama Pengguna Wajib Diisi!',
-            'email.required' => 'Email Pengguna Wajib Diisi!',
-            'password.required' => 'Password Pengguna Wajib Diisi!',
-        ]);
+            'name' => ['required'],
+            'email' => ['required', 'email'],
+            'no_wa' => ['required', 'numeric'],
+        ],[
+            'name.required' => 'Nama Lengkap wajib diisi!',
+            'email.required' => 'Email wajib diisi!',
+            'email.email' => 'Email harus diisi dengan format email diisi!',
+
+            'no_wa.required' => 'Nomor Whatsapp wajib diisi!',
+            'no_wa.numeric' => 'Nomor Whatsapp harus pake angka!',
+        ]);;
+
+
 
         if ($validator->fails()) {
             return redirect()->back()
@@ -115,16 +122,41 @@ class UsersController extends Controller
 
 
 
-        try {
+
+            $checkValidasi = null;
             $user = User::find($id);
+
+
             $user->name = $request->name;
             $user->email = $request->email;
+            $user->no_wa = $request->no_wa;
+
+            if($user->email_verified_at != null) {
+                $checkValidasi = 1;
+            } else {
+                $checkValidasi = 0;
+
+            }
+
+            $user->email_verified_at = $request->verifikasi == 1 ? date('Y-m-d h:i:s') : null;
+
             if($request->password) {
                 $user->password = $request->password;
             }
             $user->save();
 
+            if($request->verifikasi != $checkValidasi) {
+                if($request->verifikasi == 0) {
+                    // WaHelpers::sendEmail($request->email, 'Akun registrasi anda telah ditolak!');
+                    WaHelpers::sendWa($request->no_wa, 'Akun registrasi anda telah ditolak!');
+                } else {
+                    // WaHelpers::sendEmail($request->email, 'Akun Registrasi anda telah diterima!');
+                    WaHelpers::sendWa($request->no_wa, 'Akun Registrasi anda telah diterima!');
+                }
+            }
+
             return redirect('users')->with('success', 'Data Berhasil Diubah');
+                    try {
         } catch (\Throwable $th) {
             return redirect()->back()
                 ->with('gagal', 'Terjadi kesalahan saat menyimpan data!')

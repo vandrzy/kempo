@@ -13,7 +13,7 @@
                     <div class="p-0 overflow-x-auto">
                         <form action="{{ url('kategori') }}" method="post">
                             <div class="flex items-center justify-between mb-4 p-3">
-                                <a href="{{ url('kategori') }}" class="bg-black text-white px-4 py-3 rounded">Kembali</a>
+                                <a href="{{ url('kategori') }}" style="background-color: rgb(91, 184, 91);" class="bg-green-500 text-white px-4 py-2 rounded">Kembali</a>
                                 <button type="submit" style="background-color: rgb(91, 184, 91);" class="bg-green-500 text-white px-4 py-2 rounded">Simpan</button>
                             </div>
                             @csrf

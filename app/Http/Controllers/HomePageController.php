@@ -12,8 +12,10 @@ use App\Models\Penulis;
 use App\Models\Pertandingan;
 use App\Models\PertandinganPeserta;
 use App\Models\Peserta;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Intervention\Image\Drivers\Gd\Driver as GdDriver;
 use Intervention\Image\ImageManager;
@@ -209,13 +211,81 @@ class HomePageController extends Controller
         ]);
 
         if (Auth::attempt($credentials)) {
+            // Ambil user yang sedang login
+            $user = Auth::user();
+
+            // Cek apakah email sudah diverifikasi
+            if (is_null($user->email_verified_at) && $user->role != 0) {
+                Auth::logout(); // langsung logout
+                return back()->withErrors([
+                    'error' => 'Email Anda belum diverifikasi. Mohon bersabar untuk menerima konfirmasi Whatsapp yang akan diberikan kepada anda!.',
+                ]);
+            }
+
+            // Kalau verified, lanjut
             $request->session()->regenerate();
-            return redirect()->intended('/dashboard'); // ganti dengan halaman tujuan
+            return redirect()->intended('/dashboard');
         }
 
         return back()->withErrors([
             'email' => 'Email atau password salah.',
         ]);
+    }
+
+    public function register() {
+        return view('admin.register');
+    }
+
+    public function register_proses(Request $request) {
+        $credentials = $request->validate([
+            'name' => ['required'],
+            'email' => ['required', 'email'],
+            'no_wa' => ['required', 'numeric'],
+            'password' => [
+                'required',
+                'same:konfirmasi_password',
+                'min:8',                 // minimal 8 karakter
+                'max:20',                // maksimal 20 karakter (opsional)
+                'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).+$/' // regex: harus ada huruf kecil, huruf besar, angka, dan simbol
+            ],
+            'konfirmasi_password' => ['required', 'same:password'],
+        ],[
+            'name.required' => 'Nama Lengkap wajib diisi!',
+            'email.required' => 'Email wajib diisi!',
+            'email.email' => 'Email harus diisi dengan format email diisi!',
+
+            'no_wa.required' => 'Nomor Whatsapp wajib diisi!',
+            'no_wa.numeric' => 'Nomor Whatsapp harus pake angka!',
+
+            'password.required' => 'Password wajib diisi!',
+            'password.same' => 'Password harus sama dengan Konfirmasi Password!',
+            'password.regex' => 'Password harus mengandung huruf besar, huruf kecil, angka, dan simbol.',
+            'password.min'   => 'Password minimal 8 karakter.',
+            'password.max'   => 'Password maksimal 20 karakter.',
+
+            'konfirmasi_password.required' => 'Konfirmasi Password wajib diisi!',
+            'konfirmasi_password.same' => 'Konfirmasi Password harus sama dengan Password!',
+
+        ]);
+
+
+        try {
+
+            User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'no_wa' => $request->no_wa,
+                'password' => Hash::make($request->password),
+                'role' => 0,
+            ]);
+            return redirect('/')->with('success', 'Registrasi telah Berhasil mohon tunggu akan dikonfirmasi ke Whatsapp anda!!');
+        } catch (\Throwable $th) {
+            //throw $th;
+            return back()->with('error', 'Terjadi Kesalahan!');
+
+        }
+
+
     }
 
     public function logout(Request $request)

@@ -5,6 +5,9 @@
                 <div class="p-6 pb-0 mb-0 border-b-0 border-b-solid rounded-t-2xl border-b-transparent">
                     <div class="flex items-center justify-between mb-4">
                         <h4 class="dark:text-white">Pendaftaran Peserta {{ $kegiatan->nama }}</h4>
+                        @if(Auth::user())
+                            <button style="background-color: rgb(53, 53, 53);" class="text-white px-4 py-2 rounded" id="copy_link">Salin Link Pendaftaran</button>
+                        @endif
                     </div>
                 </div>
                 <div class="flex-auto px-0 pt-0 pb-2">
@@ -180,8 +183,28 @@
 
 
 </div>
+@php
+    $url_saatini =  url()->current();
+@endphp
 <script>
     @section('script')
+        function copyText(texts) {
+            let text = texts;
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(() => {
+                    alert("Teks berhasil disalin: " + text);
+                });
+            } else {
+                // fallback execCommand
+                let $temp = $("<textarea>");
+                $("body").append($temp);
+                $temp.val(text).select();
+                document.execCommand("copy");
+                $temp.remove();
+                alert("Url berhasil disalin!");
+            }
+        }
+
         function getWilayah(type, spawning) {
             let value = $(`#${type}`).val();
             let urls = `{{ url("getWilayah") }}/${type}/${value}`;
@@ -227,6 +250,10 @@
 
         $('#kecamatan_id').on('change', function() {
             getWilayah('kecamatan_id', 'kelurahan_id');
+        });
+
+        $('#copy_link').on('click', function() {
+            copyText("{{ url()->current() }}")
         });
 
 

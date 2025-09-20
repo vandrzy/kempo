@@ -8,6 +8,7 @@ use App\Models\ListKategori;
 use App\Models\Pertandingan;
 use App\Models\PertandinganPeserta;
 use App\Models\PesertaTerpilih;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Dotenv\Util\Str;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -122,6 +123,21 @@ class PertandinganController extends Controller
         return view('admin.pertandingan.tanding', $data);
     }
 
+    public function print(string $id) {
+        $data['peserta_ready'] = PertandinganPeserta::where('sudah_terpilih', 'false')->where('kegiatan_id', $_GET['kegiatan_id'])->where('list_kategori_id', $id)->count();
+        $data['peserta_lawan'] = PesertaTerpilih::where('list_kategori_id', $id)->where('kegiatan_id', $_GET['kegiatan_id'])->paginate(10);
+        // $data['pertandingan'] = Pertandingan::find($id);
+        // $data['kegiatan'] = Kegiatan::find($_GET['kegiatan_id']);
+
+        $data['pertandingan'] = ListKategori::where('id', $id)->first();
+        // return view('admin.pertandingan.peserta_tanding', $data);
+
+
+        $pdf = Pdf::loadView('admin.pertandingan.peserta_tanding', $data)->setPaper('a4', 'landscape');
+
+        return $pdf->stream("nomor_tanding.pdf"); // atau ->download()
+    }
+
     public function tanding($id) {
         while (true) {
             $terpilih = 0;
@@ -160,16 +176,19 @@ class PertandinganController extends Controller
     }
 
     public function batal_tanding(Request $request) {
-        $pesertaTerpilih = PesertaTerpilih::where('list_kategori_id', $request->list_kategori_id)->first();
+        $pesertaTerpilih = PesertaTerpilih::where('list_kategori_id', $request->list_kategori_id)->get();
 
         if ($pesertaTerpilih) {
-            PertandinganPeserta::where('id', $pesertaTerpilih->pertandingan_peserta_kiri_id)
-                ->update(['sudah_terpilih' => 'false']);
+            foreach($pesertaTerpilih as $a) {
+                PertandinganPeserta::where('id', $a->pertandingan_peserta_kiri_id)
+                    ->update(['sudah_terpilih' => 'false']);
 
-            PertandinganPeserta::where('id', $pesertaTerpilih->pertandingan_peserta_kanan_id)
-                ->update(['sudah_terpilih' => 'false']);
+                PertandinganPeserta::where('id', $a->pertandingan_peserta_kanan_id)
+                    ->update(['sudah_terpilih' => 'false']);
 
-            $pesertaTerpilih->delete();
+                $a->delete();
+            }
+            // $pesertaTerpilih->delete();
         }
         return redirect()->back()
             ->with('success', 'Peserta telah dibatalkan bertanding')
