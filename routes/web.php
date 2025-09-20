@@ -26,7 +26,7 @@ Route::middleware('guest')->group(function () {
 
 
 
-    Route::get('/test/', function($email) {
+    Route::get('/test/{email}', function($email) {
         // WaHelpers::sendWa('081212379429', 'Coba WaHelpers');
         WaHelpers::sendEmail($email, 'Akun Registrasi anda telah diterima!');
         dd("Did it!");
