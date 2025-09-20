@@ -6,7 +6,7 @@
 </head>
 <body>
     <p>Halo,</p>
-    <p>Kode OTP Anda adalah: <b>{{ $otp }}</b></p>
-    <p>Berlaku selama 5 menit.</p>
+    <p>Pesan : <b>{{ $otp }}</b></p>
+    {{-- <p>Berlaku selama 5 menit.</p> --}}
 </body>
 </html>

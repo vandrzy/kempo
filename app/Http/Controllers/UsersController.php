@@ -154,10 +154,10 @@ class UsersController extends Controller
 
             if($request->verifikasi != $checkValidasi) {
                 if($request->verifikasi == 0) {
-                    // WaHelpers::sendEmail($request->email, 'Akun registrasi anda telah ditolak!');
+                    WaHelpers::sendEmail($request->email, 'Akun registrasi anda telah ditolak!');
                     WaHelpers::sendWa($request->no_wa, 'Akun registrasi anda telah ditolak!');
                 } else {
-                    // WaHelpers::sendEmail($request->email, 'Akun Registrasi anda telah diterima!');
+                    WaHelpers::sendEmail($request->email, 'Akun Registrasi anda telah diterima!');
                     WaHelpers::sendWa($request->no_wa, 'Akun Registrasi anda telah diterima!');
                 }
             }
