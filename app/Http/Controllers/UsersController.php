@@ -41,13 +41,16 @@ class UsersController extends Controller
     {
         //
         $validator = Validator::make($request->all(), [
-            'name' => 'required',
-            'email' => 'required',
-            'password' => 'required',
-        ], [
-            'name.required' => 'Nama Pengguna Wajib Diisi!',
-            'email.required' => 'Email Pengguna Wajib Diisi!',
-            'password.required' => 'Password Pengguna Wajib Diisi!',
+            'name' => ['required'],
+            'email' => ['required', 'email'],
+            'no_wa' => ['required', 'numeric'],
+        ],[
+            'name.required' => 'Nama Lengkap wajib diisi!',
+            'email.required' => 'Email wajib diisi!',
+            'email.email' => 'Email harus diisi dengan format email diisi!',
+
+            'no_wa.required' => 'Nomor Whatsapp wajib diisi!',
+            'no_wa.numeric' => 'Nomor Whatsapp harus pake angka!',
         ]);
 
         if ($validator->fails()) {
@@ -61,6 +64,8 @@ class UsersController extends Controller
             User::create([
                 'name' => $request->name,
                 'email' => $request->email,
+                'no_wa' => $request->no_wa,
+                'email_verified_at' => $request->verifikasi == 1 ? date('Y-m-d h:i:s') : null,
                 'password' => Hash::make($request->password),
             ]);
 
@@ -109,7 +114,7 @@ class UsersController extends Controller
 
             'no_wa.required' => 'Nomor Whatsapp wajib diisi!',
             'no_wa.numeric' => 'Nomor Whatsapp harus pake angka!',
-        ]);;
+        ]);
 
 
 
@@ -130,6 +135,8 @@ class UsersController extends Controller
             $user->name = $request->name;
             $user->email = $request->email;
             $user->no_wa = $request->no_wa;
+            $user->role = $request->role;
+
 
             if($user->email_verified_at != null) {
                 $checkValidasi = 1;
