@@ -89,49 +89,51 @@
 
                                     </tbody>
                                 </table>
-                                <br><br>
-                                <table class="min-w-full bg-white border border-gray-200">
-                                    <thead>
-                                        <tr>
-                                            <th class="px-6 py-4 border-b" style="text-align: left" colspan="2">Nomor dan Kelas Pertandingan yang akan diikuti</td>
-                                        </tr>
-                                        <tr>
-                                            <th class="px-6 py-4 border-b" align="left">Nomor Peserta</th>
-                                            <th class="px-6 py-4 border-b" colspan="2" align="left">Tanding</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach ($peserta->PertandinganPeserta as $a)
-                                            <tr>
-                                                <th class="px-6 py-4 border-b">{{ $a->urutan }}</th>
-                                                <th class="px-6 py-4 border-b" colspan="2" align="left">{{ $a->list_kategori->pertandingan->nama ?? "" }}</th>
-                                            </tr>
-                                            <tr>
-                                                <th class="px-6 py-4 border-b" align="left">Nama</th>
-                                                <th class="px-6 py-4 border-b" align="left">Tingkat</th>
-                                                <th class="px-6 py-4 border-b" align="left">Urutan Komposisi yang dimainkan : </th>
-
-                                            </tr>
-                                            @php
-                                                $uk_list = explode(",", $a->UrutanKomposisiPeserta->urutan_komposisi);
-
-                                                // dd($uk_list);
-                                            @endphp
-                                            @foreach ($uk_list as $b)
-                                                @if($b != "")
-                                                    <tr>
-                                                        <td class="px-6 py-4 border-b">{{ $a->UrutanKomposisiPeserta->nama }}</td>
-                                                        <td class="px-6 py-4 border-b">{{ $a->UrutanKomposisiPeserta->tingkat ?? "" }}</td>
-                                                        <td class="px-6 py-4 border-b">{{ $b ?? "" }}</td>
-                                                    </tr>
-                                                @endif
-                                            @endforeach
-                                        @endforeach
-                                    </tbody>
-                                </table>
                             </div>
                         </div>
                     </div>
+                </div>
+                <div class="border-black/12.5 shadow-xl dark:bg-slate-850 dark:shadow-dark-xl relative flex min-w-0 flex-col break-words rounded-2xl border-0 border-solid bg-white bg-clip-border">
+                    <table class="min-w-full bg-white border border-gray-200">
+                        <thead>
+                            <tr>
+                                <th class="px-6 py-4 border-b" style="text-align: left" colspan="2">Nomor dan Kelas Pertandingan yang akan diikuti</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($peserta->PertandinganPeserta as $a)
+                                <tr>
+                                    <th class="px-6 py-4 border-b" align="left">Nomor Peserta : {{ $a->urutan }}</th>
+                                    <th class="px-6 py-4 border-b" colspan="2" align="left">Tanding : {{ $a->list_kategori->pertandingan->nama ?? "" }}</th>
+                                </tr>
+                                <tr>
+                                    <th class="px-6 py-4 border-b" align="left">Nama</th>
+                                    <th class="px-6 py-4 border-b" align="left">Tingkat</th>
+                                    <th class="px-6 py-4 border-b" align="left">Urutan Komposisi yang dimainkan : </th>
+
+                                </tr>
+                                @php
+                                    $uk_list = explode(",", $a->UrutanKomposisiPeserta->urutan_komposisi);
+
+                                    // dd($uk_list);
+                                @endphp
+                                @foreach ($uk_list as $index => $b)
+                                    @if($b != "")
+                                        <tr>
+                                            @if ($index == 0)
+                                                <td class="px-6 py-4 border-b">{{ $a->UrutanKomposisiPeserta->nama }}</td>
+                                                <td class="px-6 py-4 border-b">{{ $a->UrutanKomposisiPeserta->tingkat ?? "" }}</td>
+                                            @else
+                                                <td class="px-6 py-4 border-b"></td>
+                                                <td class="px-6 py-4 border-b"></td>
+                                            @endif
+                                            <td class="px-6 py-4 border-b">{{ $b ?? "" }}</td>
+                                        </tr>
+                                    @endif
+                                @endforeach
+                            @endforeach
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
