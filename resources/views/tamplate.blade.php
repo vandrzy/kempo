@@ -43,6 +43,9 @@
     </style>
     <!-- Main Styling -->
     <link href="{{ asset('assets/css/argon-dashboard-tailwind.css?v=1.0.1') }}" rel="stylesheet" />
+    <link href="{{ asset('css/select2.min.css') }}" rel="stylesheet" />
+    <link href="{{ asset('css/select2-mytheme.css') }}" rel="stylesheet" />
+
   </head>
 
   <body class="m-0 font-sans text-base antialiased font-normal dark:bg-slate-900 leading-default bg-gray-50 text-slate-500">
@@ -814,9 +817,10 @@
 
 
             $('.pilihan').select2({
-                theme: 'bootstrap4', // atau 'bootstrap5' jika pakai tema lain
+                theme: 'mytheme', // atau 'bootstrap5' jika pakai tema lain
                 allowClear: true,
-                width: '100%', // biar full lebar // Biar serasi dengan Bootstrap form-control
+                width: '100%',
+                minimumResultsForSearch: 0 // biar full lebar // Biar serasi dengan Bootstrap form-control
             });
         });
     </script>

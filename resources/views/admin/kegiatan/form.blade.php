@@ -58,7 +58,7 @@
                 if(response.data.length > 0) {
                     $.each(response.data, function(index, value) {
                         ids = value.kategori_id;
-                        data += `<input type="checkbox" value="${value.id}" name="list_pertandingan_id[${array}][]"> <span style="color: black; font-size: 20px;">${value.nama}</span>  <br>`;
+                        data += `<input type="checkbox" value="${value.id}" checked name="list_pertandingan_id[${array}][]"> <span style="color: black; font-size: 20px;">${value.nama}</span>  <br>`;
                     });
                 } else {
                     data += `Tidak tersedia pertandingan!`;

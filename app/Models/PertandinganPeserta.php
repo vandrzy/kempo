@@ -21,4 +21,8 @@ class PertandinganPeserta extends Model
         return $this->belongsTo(ListKategori::class);
     }
 
+    public function UrutanKomposisiPeserta() {
+        return $this->hasOne(UrutanKomposisiPeserta::class);
+    }
+
 }

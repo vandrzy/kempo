@@ -54,9 +54,9 @@
                 <td>{{ $a->nama }}</td>
                 <td>"{{ $a->nik }}"</td>
                 <td>{{ (Date('Y')) - (Date('Y', strtotime($a->tanggal_lahir))) }} Tahun</td>
-                <td colspan="2" style="text-align: center">{{ $a->jenis_kelamin }}</td>
-                <td colspan="2" style="text-align: center">{{ $a->tingkat }}</td>
-                <td colspan="2" style="text-align: center">{{ $a->status }}</td>
+                <td colspan="2" style="text-align: center">{{ strtoupper(substr($a->jenis_kelamin, 0, 1)) }} </td>
+                <td colspan="2" style="text-align: center">{{ strtoupper(substr($a->tingkat, 0, 1)) }} </td>
+                <td colspan="2" style="text-align: center">{{ strtoupper(substr($a->status, 0, 1)) }}  </td>
             </tr>
         @endforeach
     </tbody>

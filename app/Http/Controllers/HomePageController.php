@@ -12,6 +12,7 @@ use App\Models\Penulis;
 use App\Models\Pertandingan;
 use App\Models\PertandinganPeserta;
 use App\Models\Peserta;
+use App\Models\UrutanKomposisiPeserta;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -117,6 +118,12 @@ class HomePageController extends Controller
                 ->with('gagal', 'Lengkapi Form yang tidak terisi!');
         }
 
+        if(!$request->nama_tanding) {
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput()
+                ->with('gagal', 'Uratan Komposisi tidak boleh kosong!');
+        }
 
 
 
@@ -159,7 +166,7 @@ class HomePageController extends Controller
             $peserta_image->foto = 'storage/foto_peserta/' . $filename;
             $peserta_image->save();
 
-            foreach($request->pertandingan_id as $a) {
+            foreach($request->pertandingan_id as $index => $a) {
                 $existing = PertandinganPeserta::where('list_kategori_id', $a)
                 ->orderBy('urutan')
                 ->pluck('urutan')
@@ -175,13 +182,25 @@ class HomePageController extends Controller
                     }
                 }
 
-                PertandinganPeserta::create([
+                $PPA = PertandinganPeserta::create([
                     'peserta_id' => $peserta->id,
                     'list_kategori_id' => $a,
                     'urutan' => $urutanBaru,
                     'kegiatan_id' => $request->kegiatan_id
                 ]);
+
+                $UKP = new UrutanKomposisiPeserta();
+                $UKP->pertandingan_peserta_id = $PPA->id;
+                $UKP->nama = $request->nama_tanding[$index];
+                $UKP->tingkat = $request->tingkat_tanding[$index];
+                $deskripsiUKP = "";
+                foreach($request->urutan_tanding[$index] as $b) {
+                    $deskripsiUKP .= $b.",";
+                }
+                $UKP->urutan_komposisi = $deskripsiUKP;
+                $UKP->save();
             }
+
 
             return back()->with('success', 'Peserta telah terdaftar, mohon tunggu konfirmasi berikutnya!');
 
