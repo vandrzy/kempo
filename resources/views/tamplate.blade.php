@@ -820,7 +820,7 @@
                 theme: 'mytheme', // atau 'bootstrap5' jika pakai tema lain
                 allowClear: true,
                 width: '100%',
-                minimumResultsForSearch: 0 // biar full lebar // Biar serasi dengan Bootstrap form-control
+                minimumResultsForSearch: 0 /// biar full lebar // Biar serasi dengan Bootstrap form-control
             });
         });
     </script>
