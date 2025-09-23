@@ -57,6 +57,9 @@
                                                     <option value="{{ $a->id }}">{{ $a->name }}</option>
                                                 @endforeach
                                             </select>
+                                            @error('kabupaten_id')
+                                                <span class="text-red" style="color: red;">{{ $message }}</span>
+                                            @enderror
                                         </div>
 
                                         <div class="mb-4">
@@ -64,6 +67,9 @@
                                             <select name="kecamatan_id" id="kecamatan_id" class="w-full border rounded px-3 py-2">
                                                 <option selected disabled>Pilih Kecamatan</option>
                                             </select>
+                                            @error('kecamatan_id')
+                                                <span class="text-red" style="color: red;">{{ $message }}</span>
+                                            @enderror
                                         </div>
 
                                         <div class="mb-4">
@@ -71,6 +77,9 @@
                                             <select name="kelurahan_id" id="kelurahan_id" class="w-full border rounded px-3 py-2">
                                                 <option selected disabled>Pilih Kelurahan</option>
                                             </select>
+                                            @error('kelurahan_id')
+                                                <span class="text-red" style="color: red;">{{ $message }}</span>
+                                            @enderror
                                         </div>
 
                                         <div class="mb-4">

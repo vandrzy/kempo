@@ -84,7 +84,7 @@ class HomePageController extends Controller
             'kelurahan_id'=> 'required',
 
             'pertandingan_id'=> 'required',
-            'foto'=> 'required',
+            'foto'=> 'required|image|mimes:jpeg,png,jpg,svg',
         ], [
             'nama.required' => 'Nama Peserta Wajib Diisi!',
             'jenis_kelamin.required' => 'Jenis Kelamin Wajib Diisi!',
