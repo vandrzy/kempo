@@ -213,7 +213,7 @@
             }
         }
 
-        function getWilayah(type, spawning) {
+        function getWilayah(type, spawning, callback) {
             let value = $(`#${type}`).val();
             let urls = `{{ url("getWilayah") }}/${type}/${value}`;
 
@@ -239,6 +239,7 @@
                     // data += `<option value="" disabled>Pilih Pertandingan</option>`;
 
                     $(`#${spawning}`).html(data);
+                    if (callback) callback(); // panggil callback setelah selesai
 
 
                     // alert('Judul: ' + response.title);
@@ -251,9 +252,10 @@
         }
 
         $('#kabupaten_id').on('change', function() {
-            getWilayah('kabupaten_id', 'kecamatan_id');
-            $(`#kelurahan_id`).html("");
-
+            getWilayah('kabupaten_id', 'kecamatan_id', function() {
+                $(`#kelurahan_id`).html("");
+                getWilayah('kecamatan_id', 'kelurahan_id');
+            });
         });
 
         $('#kecamatan_id').on('change', function() {
@@ -322,7 +324,7 @@
                                 <div class="relative flex flex-col min-w-0 break-words bg-white border-0 border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl dark:bg-gray-950 border-black-125 rounded-2xl bg-clip-border">
                                     <div class="mb-4">
                                         <label for="">Nama <span style="color: red;">*</span></label>
-                                        <input type="text" name="nama_tanding[]" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" value="{{ old('nama_tanding') }}" required placeholder="Nama" id="">
+                                        <input type="text" name="nama_tanding[]" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" required placeholder="Nama" id="">
                                     </div>
                                 </div>
                             </div>
@@ -330,7 +332,7 @@
                                 <div class="relative flex flex-col min-w-0 break-words bg-white border-0 border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl dark:bg-gray-950 border-black-125 rounded-2xl bg-clip-border">
                                     <div class="mb-4">
                                         <label for="">Tingkat <span style="color: red;">*</span></label>
-                                        <input type="text"  name="tingkat_tanding[]" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" value="{{ old('tingkat_tanding') }}" required placeholder="Nama" id="">
+                                        <input type="text"  name="tingkat_tanding[]" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" required placeholder="Nama" id="">
                                     </div>
                                 </div>
                             </div>
