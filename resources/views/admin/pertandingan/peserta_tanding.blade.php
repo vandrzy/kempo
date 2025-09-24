@@ -44,6 +44,7 @@
 
 </head>
 <body>
+    <h3 class="dark:text-white">{{ $pertandingan->pertandingan->kategori->nama }} </h3>
     <h4 class="dark:text-white">{{ $pertandingan->kegiatan->nama }} / {{ $pertandingan->pertandingan->nama }} / Tanding</h4>
     <table class="table">
         <thead>

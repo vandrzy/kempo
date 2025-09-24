@@ -71,7 +71,7 @@
 
                                         <label for="">Alamat Rumah <span style="color: red;">*</span></label>
                                         <div class="mb-4">
-                                            <label for="kabupaten_id" class="block text-sm font-medium text-gray-700">Kabupaten</label>
+                                            <label for="kabupaten_id" class="block text-sm font-medium text-gray-700">Kabupaten <span style="color: red;">*</span></label>
                                             <select name="kabupaten_id" id="kabupaten_id" class="w-full border rounded px-3 py-2">
                                                 <option selected disabled>Pilih Kabupaten</option>
                                                 @foreach($kabupatens as $a)
@@ -84,7 +84,7 @@
                                         </div>
 
                                         <div class="mb-4">
-                                            <label for="kecamatan_id" class="block text-sm font-medium text-gray-700">Kecamatan</label>
+                                            <label for="kecamatan_id" class="block text-sm font-medium text-gray-700">Kecamatan <span style="color: red;">*</span></label>
                                             <select name="kecamatan_id" id="kecamatan_id" class="w-full border rounded px-3 py-2">
                                                 <option selected disabled>Pilih Kecamatan</option>
                                             </select>
@@ -94,7 +94,7 @@
                                         </div>
 
                                         <div class="mb-4">
-                                            <label for="kelurahan_id" class="block text-sm font-medium text-gray-700">Kelurahan</label>
+                                            <label for="kelurahan_id" class="block text-sm font-medium text-gray-700">Kelurahan <span style="color: red;">*</span></label>
                                             <select name="kelurahan_id" id="kelurahan_id" class="w-full border rounded px-3 py-2">
                                                 <option selected disabled>Pilih Kelurahan</option>
                                             </select>
@@ -203,7 +203,7 @@
                         </div>
                         <div class="p-3 overflow-x-auto">
                             <div class="mb-4">
-                                <label for="">Foto Berwarna 4 x 6</label>
+                                <label for="">Foto Berwarna 4 x 6 <span style="color: red;">*</span></label>
                                 <input type="file" name="foto" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" id="imageInput">
                                 <img src="" style="width: 50%;" id="preview" alt=""><br>
                                 @error('foto')
