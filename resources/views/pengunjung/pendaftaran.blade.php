@@ -42,8 +42,29 @@
 
                                         <div class="mb-4">
                                             <label for="">Status <span style="color: red;">*</span></label>
-                                            <input type="text" name="status" value=" {{ old('status') }}" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" id="" >
+                                            {{-- <input type="text" name="status" value=" {{ old('status') }}" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" id="" > --}}
+                                            <select name="status"  class="w-full pl-9 text-sm focus:shadow-primary-outline ease leading-5.6 relative -ml-px block min-w-0 flex-auto rounded-lg border border-solid border-gray-300 dark:bg-slate-850 dark:text-white bg-white bg-clip-padding py-2 pr-3 text-gray-700 transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:transition-shadow" id="">
+                                                <option value="P" {{ old('status', @$peserta->status) == 'P' ? 'selected' : '' }} >Peserta / Atlet</option>
+                                                <option value="O" {{ old('status', @$peserta->status) == 'O' ? 'selected' : '' }} >Official</option>
+                                            </select>
                                             @error('status')
+                                                <span class="text-red" style="color: red;">{{ $message }}</span>
+                                            @enderror
+                                        </div>
+                                        <div class="mb-4">
+                                            <label for="">Tingkat <span style="color: red;">*</span></label>
+                                            {{-- <input type="text" name="status" value=" {{ old('status') }}" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" id="" > --}}
+                                            <div class="flex gap-2">
+                                                <select name="tingkatan_sabuk_a"  class="w-1/2 pl-9 text-sm focus:shadow-primary-outline ease leading-5.6 relative -ml-px block min-w-0 flex-auto rounded-lg border border-solid border-gray-300 dark:bg-slate-850 dark:text-white bg-white bg-clip-padding py-2 pr-3 text-gray-700 transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:transition-shadow" id="">
+                                                    <option value="KYU" {{ old('tingkatan_sabuk_a') == 'KYU' ? 'selected' : '' }} >KYU</option>
+                                                    <option value="DAN" {{ old('tingkatan_sabuk_a') == 'DAN' ? 'selected' : '' }} >DAN</option>
+                                                </select>
+                                                <input type="number" name="tingkatan_sabuk_b" class="w-1/2 px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500" value="{{ old('nama') }}" placeholder="Jumlah Tingkatan" id="">
+                                            </div>
+                                            @error('tingkatan_sabuk_a')
+                                                <span class="text-red" style="color: red;">{{ $message }}</span>
+                                            @enderror
+                                            @error('tingkatan_sabuk_b')
                                                 <span class="text-red" style="color: red;">{{ $message }}</span>
                                             @enderror
                                         </div>
@@ -118,8 +139,15 @@
 
                                         <div class="mb-4">
                                             <label for="">Telepon <span style="color: red;">*</span></label>
-                                            <input type="text" name="telepon" value=" {{ old('telepon') }}" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" id="" >
+                                            <input type="text" name="telepon" value=" {{ old('telepon') }}" placeholder="Nomor Telepon" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" id="" >
                                             @error('telepon')
+                                                <span class="text-red" style="color: red;">{{ $message }}</span>
+                                            @enderror
+                                        </div>
+                                        <div class="mb-4">
+                                            <label for="">Berat Badan <span style="color: red;">*</span></label>
+                                            <input type="number" min="0" max="1000" name="berat_badan" placeholder="Berat Badan (Kg)" value=" {{ old('berat_badan') }}" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" id="" >
+                                            @error('berat_badan')
                                                 <span class="text-red" style="color: red;">{{ $message }}</span>
                                             @enderror
                                         </div>
@@ -155,8 +183,8 @@
 
 
                                         <div class="mb-4">
-                                            <label for="">Tingkat <span style="color: red;">*</span></label>
-                                            <input type="text" name="tingkat" readonly class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" value="{{ old('tingkat') }}" placeholder="Tingkat" id="tingkat">
+                                            <label for="">Kategori <span style="color: red;">*</span></label>
+                                            <input type="text" name="tingkat" readonly class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" value="{{ old('tingkat') }}" placeholder="Kategori" id="tingkat">
                                             @error('tingkat')
                                                 <span class="text-red" style="color: red;">{{ $message }}</span>
                                             @enderror

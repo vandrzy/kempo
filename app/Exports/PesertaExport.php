@@ -2,7 +2,9 @@
 
 namespace App\Exports;
 
+use App\Models\Kategori;
 use App\Models\Kegiatan;
+use App\Models\Pertandingan;
 use App\Models\Peserta;
 use Illuminate\Contracts\View\View;
 use Maatwebsite\Excel\Concerns\FromView;
@@ -41,6 +43,14 @@ class PesertaExport implements FromView, WithStyles, WithColumnWidths
         $kegiatan_id = $this->kegiatan;
         $kategori_id = $this->kategori;
         $pertandingan_id = $this->pertandingan;
+
+        if($kategori_id != "") {
+            $data['kategori_id'] = Kategori::find($kategori_id);
+        }
+
+        if($pertandingan_id != "") {
+            $data['pertandingan_id'] = Pertandingan::find($pertandingan_id);
+        }
 
         // $kegiatan_id = $kegiatan->id;
         $data['peserta'] = $data['peserta']->whereHas('PertandinganPesertaUtama', function ($q1) use ($kegiatan_id, $kategori_id, $pertandingan_id) {
@@ -88,10 +98,10 @@ class PesertaExport implements FromView, WithStyles, WithColumnWidths
             });
         });
 
-        $lastRow = $data['peserta']->count() + 4;
+        $lastRow = $data['peserta']->count() + 6;
 
         return [
-            'A3:J' . $lastRow => [
+            'A5:J' . $lastRow => [
                 'borders' => [
                     'allBorders' => [
                         'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,

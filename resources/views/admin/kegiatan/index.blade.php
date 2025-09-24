@@ -43,7 +43,8 @@
                             </td>
                             <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
                                 <div class="flex justify-center items-center space-x-4">
-                                    <a href="{{ url('pendaftaran/'.base64_encode($a->nama).'-'.base64_encode($a->id).'/daftar') }}" target="_blank" style="border: solid 2px green; color: green;"  class="inline-block px-5 py-2 mb-0 text-xs font-bold leading-normal text-center text-green-500 align-middle transition-all ease-in bg-transparent border  border-solid rounded-lg shadow-none cursor-pointer bg-150 active:opacity-85 hover:-translate-y-px tracking-tight-rem bg-x-25 hover:opacity-75">Link Pendaftaran</a>
+                                    <button onclick="copyText('{{ url('pendaftaran/'.base64_encode($a->nama).'-'.base64_encode($a->id).'/daftar') }}')" style="border: solid 2px green; color: green;"  class="inline-block px-5 py-2 mb-0 text-xs font-bold leading-normal text-center text-green-500 align-middle transition-all ease-in bg-transparent border  border-solid rounded-lg shadow-none cursor-pointer bg-150 active:opacity-85 hover:-translate-y-px tracking-tight-rem bg-x-25 hover:opacity-75">Salin Link Pendaftaran</button>
+                                    {{-- <a id="copy_link" href="{{ url('pendaftaran/'.base64_encode($a->nama).'-'.base64_encode($a->id).'/daftar') }}" target="_blank" style="border: solid 2px green; color: green;"  class="inline-block px-5 py-2 mb-0 text-xs font-bold leading-normal text-center text-green-500 align-middle transition-all ease-in bg-transparent border  border-solid rounded-lg shadow-none cursor-pointer bg-150 active:opacity-85 hover:-translate-y-px tracking-tight-rem bg-x-25 hover:opacity-75">Link Pendaftaran</a> --}}
                                     <a href="{{ url('kegiatan/'.$a->id) }}" style="border: solid 2px green; color: green;"  class="inline-block px-5 py-2 mb-0 text-xs font-bold leading-normal text-center text-green-500 align-middle transition-all ease-in bg-transparent border  border-solid rounded-lg shadow-none cursor-pointer bg-150 active:opacity-85 hover:-translate-y-px tracking-tight-rem bg-x-25 hover:opacity-75">Detail</a>
                                     <a href="{{ url('kegiatan/'.$a->id.'/edit') }}" style="border: solid 2px blue; color: blue;"  class="inline-block px-5 py-2 mb-0 text-xs font-bold leading-normal text-center text-green-500 align-middle transition-all ease-in bg-transparent border  border-solid rounded-lg shadow-none cursor-pointer bg-150 active:opacity-85 hover:-translate-y-px tracking-tight-rem bg-x-25 hover:opacity-75">Edit</a>
                                     <form action="{{ url('kegiatan/'.$a->id) }}" method="post" class="delete-form pl-2">
@@ -65,5 +66,22 @@
         </div>
         </div>
     </div>
-
+<script>
+    function copyText(texts) {
+        let text = texts;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert("Teks berhasil disalin: " + text);
+            });
+        } else {
+            // fallback execCommand
+            let $temp = $("<textarea>");
+            $("body").append($temp);
+            $temp.val(text).select();
+            document.execCommand("copy");
+            $temp.remove();
+            alert("Url berhasil disalin!");
+        }
+    }
+</script>
 @endsection

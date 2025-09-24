@@ -25,6 +25,8 @@ return new class extends Migration
             $table->string('telepon');
             $table->text('keterangan');
             $table->string('foto');
+            $table->string('tingkatan_sabuk');
+            $table->bigInteger('berat_badan');
             $table->timestamps();
         });
     }

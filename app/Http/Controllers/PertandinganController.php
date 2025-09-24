@@ -71,10 +71,12 @@ class PertandinganController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'nama' => 'required',
+            'kelas' => 'required',
             'kategori_id' => 'required',
-            // 'jenis_kelamin' => 'required',
+            'jenis_kelamin' => 'required',
         ], [
-            'nama.required' => 'Nama Pertandingan Wajib Diisi!',
+            'nama.required' => 'Nama Tanding Wajib Diisi!',
+            'kelas.required' => 'Kelas Tanding Wajib Diisi!',
             'kategori_id.required' => 'Kategori Wajib Diisi!',
             'jenis_kelamin.required' => 'Jenis Kelamin Wajib Diisi!',
         ]);
@@ -89,17 +91,18 @@ class PertandinganController extends Controller
         }
 
         try {
+
+
             Pertandingan::create([
                 'nama' => $request->nama,
+                'kelas' => $request->kelas,
                 'kategori_id' => $request->kategori_id,
-                'jenis_kelamin' => $request->jenis_kelamin,
-                'emas' => $request->emas,
-                'perak' => $request->perak,
-                'perunggu' => $request->perunggu,
+                'jenis_kelamin' => $request->jenis_kelamin == "-" ? null : $request->jenis_kelamin,
+                'emas' => $request->emas ?? 1,
+                'perak' => $request->perak ?? 1,
+                'perunggu' => $request->perunggu ?? 1,
                 'user_id' => Auth::user()->id,
             ]);
-
-
             return redirect('pertandingan?kegiatan_id='.$request->kegiatan_id)->with('success', 'Data Berhasil Disimpan');
         } catch (\Throwable $th) {
             return redirect()->back()
@@ -256,10 +259,12 @@ class PertandinganController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'nama' => 'required',
+            'kelas' => 'required',
             'kategori_id' => 'required',
             // 'jenis_kelamin' => 'required',
         ], [
-            'nama.required' => 'Nama Pertandingan Wajib Diisi!',
+            'nama.required' => 'Nama Tanding Wajib Diisi!',
+            'kelas.required' => 'Kelas Tanding Wajib Diisi!',
             'kategori_id.required' => 'Kategori Wajib Diisi!',
             'jenis_kelamin.required' => 'Jenis Kelamin Wajib Diisi!',
         ]);
@@ -276,7 +281,8 @@ class PertandinganController extends Controller
             $pertandingan = Pertandingan::find($id);
             $pertandingan->kategori_id = $request->kategori_id;
             $pertandingan->nama = $request->nama;
-            $pertandingan->jenis_kelamin = $request->jenis_kelamin;
+            $pertandingan->kelas = $request->kelas;
+            $pertandingan->jenis_kelamin = $request->jenis_kelamin == "-" ? null : $request->jenis_kelamin;
             $pertandingan->emas = $request->emas;
             $pertandingan->perak = $request->perak;
             $pertandingan->perunggu = $request->perunggu;

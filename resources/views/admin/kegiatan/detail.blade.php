@@ -13,7 +13,7 @@
                 </div>
                 <div class="flex items-center justify-between mb-4">
                     {{-- <a href="{{ url('pertandingan/create') }}?kegiatan_id={{ (@$kegiatan_get->id ? $kegiatan_get->id : Request('kegiatan_id')) }}" style="border: solid 2px green; color: green;"  class="inline-block px-8 py-2 mb-0 text-xs font-bold leading-normal text-center text-green-500 align-middle transition-all ease-in bg-transparent border  border-solid rounded-lg shadow-none cursor-pointer bg-150 active:opacity-85 hover:-translate-y-px tracking-tight-rem bg-x-25 hover:opacity-75">Tambah Data</a> --}}
-                    <a href="{{ url('kegiatan') }}" style="border: solid 2px black; color: black; font-size: 16px;"  class="inline-block px-8 py-2 mb-0 text-xs font-bold leading-normal text-center text-green-500 align-middle transition-all ease-in bg-transparent border  border-solid rounded-lg shadow-none cursor-pointer bg-150 active:opacity-85 hover:-translate-y-px tracking-tight-rem bg-x-25 hover:opacity-75">Kembali</a>
+                    <a href="{{ url('kegiatan') }}" style="border: solid 2px green; color: green;"  class="inline-block px-5 py-2 mb-0 text-xs font-bold leading-normal text-center text-green-500 align-middle transition-all ease-in bg-transparent border  border-solid rounded-lg shadow-none cursor-pointer bg-150 active:opacity-85 hover:-translate-y-px tracking-tight-rem bg-x-25 hover:opacity-75">Kembali</a>
                     <form action="" method="get">
                         <div class="flex items-center gap-2">
                             <select name="kategori_id" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500" id="kategori_id">

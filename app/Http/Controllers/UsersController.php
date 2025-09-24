@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Helpers\WaHelpers;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
@@ -15,6 +16,9 @@ class UsersController extends Controller
      */
     public function index()
     {
+        if(Auth::user()->role != 1) {
+            return redirect('/');
+        }
         if(isset($_GET['cari'])) {
             $data['users'] = User::where('name','like','%'.$_GET['cari'].'%')->orWhere('email','like','%'.$_GET['cari'].'%')->paginate(10);
 
@@ -31,6 +35,9 @@ class UsersController extends Controller
     public function create()
     {
         //
+       if(Auth::user()->role != 1) {
+            return redirect('/');
+        }
         return view('admin.users.tambah');
     }
 
@@ -40,6 +47,9 @@ class UsersController extends Controller
     public function store(Request $request)
     {
         //
+        if(Auth::user()->role != 1) {
+            return redirect('/');
+        }
         $validator = Validator::make($request->all(), [
             'name' => ['required'],
             'email' => ['required', 'email'],
@@ -92,6 +102,9 @@ class UsersController extends Controller
     public function edit(string $id)
     {
         //
+        if(Auth::user()->role != 1) {
+            return redirect('/');
+        }
         $data['user'] = User::find($id);
         return view('admin.users.edit', $data);
 
@@ -103,6 +116,9 @@ class UsersController extends Controller
     public function update(Request $request, string $id)
     {
         //
+        if(Auth::user()->role != 1) {
+            return redirect('/');
+        }
         $validator = Validator::make($request->all(), [
             'name' => ['required'],
             'email' => ['required', 'email'],
@@ -176,6 +192,9 @@ class UsersController extends Controller
      */
     public function destroy(string $id)
     {
+        if(Auth::user()->role != 1) {
+            return redirect('/');
+        }
         try {
             $user = User::find($id);
             $user->delete();

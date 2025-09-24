@@ -74,10 +74,14 @@ class HomePageController extends Controller
             'nik'=> 'required|numeric|digits_between:1,16',
             'tingkat'=> 'required',
             'status'=> 'required',
+            'tingkatan_sabuk_a'=> 'required',
+            'tingkatan_sabuk_b'=> 'required',
+
             'tempat'=> 'required',
             'tanggal_lahir'=> 'required',
             'alamat'=> 'required',
             'telepon'=> 'required|numeric|digits_between:1,13',
+            'berat_badan'=> 'required',
             'keterangan'=> 'required',
             'kabupaten_id'=> 'required',
             'kecamatan_id'=> 'required',
@@ -93,7 +97,9 @@ class HomePageController extends Controller
             'nik.numeric' => 'NIK Wajib Diisi dengan Angka!',
             'nik.digits_between' => 'NIK Maksimal 16 digit!',
 
-            'tingkat.required' => 'Tingkat Wajib Diisi!',
+            'tingkat.required' => 'Kategori Wajib Diisi!',
+            'tingkatan_sabuk_a.required' => 'Tingkat Wajib Diisi!',
+            'tingkatan_sabuk_b.required' => 'Tingkat Wajib Diisi!',
             'status.required' => 'Status Wajib Diisi!',
             'tempat.required' => 'Tempat Lahir Wajib Diisi!',
             'tanggal_lahir.required' => 'Tanggal Lahir Wajib Diisi!',
@@ -102,6 +108,7 @@ class HomePageController extends Controller
             'telepon.required' => 'Nomor Telepon Peserta Wajib Diisi!',
             'telepon.numeric' => 'Nomor Telepon Peserta Wajib Diisi! dengan Angka',
             'telepon.digits_between' => 'Nomor Telepon Peserta Tidak boleh melebihi 13 digit!',
+            'berat_badan.required' => 'Berat Badan Peserta Wajib Diisi!',
 
             'keterangan.required' => 'Keterangan Wajib Diisi!',
             'pertandingan_id.required' => 'Pertandingan Wajib Diisi!',
@@ -125,8 +132,6 @@ class HomePageController extends Controller
                 ->with('gagal', 'Uratan Komposisi tidak boleh kosong!');
         }
 
-
-
             $peserta = Peserta::create([
                 'nama' => $request->nama,
                 'jenis_kelamin'=> $request->jenis_kelamin,
@@ -138,12 +143,14 @@ class HomePageController extends Controller
                 'tanggal_lahir'=> $request->tanggal_lahir,
                 'alamat'=> $request->alamat,
                 'telepon'=> $request->telepon,
+                'berat_badan'=> $request->berat_badan,
                 'keterangan'=> $request->keterangan,
                 'foto' => 'lol',
                 'kabupaten_id' => $request->kabupaten_id,
                 'kecamatan_id' => $request->kecamatan_id,
                 'kelurahan_id' => $request->kelurahan_id,
                 'disabilitas' => $request->disabilitas,
+                'tingkatan_sabuk' => $request->tingkatan_sabuk_a."-".$request->tingkatan_sabuk_b,
             ]);
 
             $image = $request->file('foto');

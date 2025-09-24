@@ -17,7 +17,7 @@ return new class extends Migration
             $table->unsignedBigInteger('kategori_id');
             $table->unsignedBigInteger('user_id');
             $table->enum('jenis_kelamin',['Laki-Laki', 'Perempuan'])->nullable();
-
+            $table->string('kelas');
             $table->timestamps();
         });
     }

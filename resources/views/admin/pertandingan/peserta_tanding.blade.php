@@ -3,68 +3,87 @@
 <head>
   <meta charset="UTF-8">
   <title>Cetak Nomor Tanding</title>
-  <style>
-    body { font-family: sans-serif; font-size: 12pt; }
-    .container { width: 100%; }
-    .pair { width: 100%; margin-bottom: 20px; }
-    .card {
-        display: inline-block;
-        vertical-align: top;
-        border: 3px solid black;
-        border-radius: 12px;
-        width: 280px;
-        height: 380px;
-        margin-right: 20px;
-        text-align: center;
-        padding: 20px;
-        page-break-inside: avoid;
-    }
-    .title { font-size: 24px; font-weight: bold; margin-bottom: 10px; }
-    .number { font-size: 80px; font-weight: bold; margin: 40px 0; }
-    .category { font-size: 16px; }
-  </style>
-  <style>
-  h4 {
-    font-size: 14px;
-    margin-bottom: 10px;
-  }
-  .peserta-wrapper {
-    margin-top: 10px;
-  }
-  .peserta {
-    width: 150px;
-    padding: 6px;
-    margin-bottom: 6px;
-    text-align: center;
-    border-radius: 6px;
-    font-size: 12px;
-  }
-  .peserta.merah {
-    background-color: rgb(237, 162, 162);
-    color: black;
-  }
-  .peserta.biru {
-    background-color: rgb(116, 202, 234);
-    color: black;
-  }
-  hr {
-    border: 0;
-    border-top: 1px solid #ccc;
-    margin: 8px 0;
-  }
-  .pagination {
-    margin-top: 20px;
-    text-align: center;
-  }
-      .page-break {
-        page-break-after: always;
-    }
+<style>
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  border-spacing: 0;
+  font-size: 12px;
+  margin-bottom: 1rem;
+}
 
+.table thead {
+  display: table-header-group; /* penting: header tabel muncul di setiap halaman */
+}
+
+.table tfoot {
+  display: table-footer-group;
+}
+
+.table th,
+.table td {
+  padding: 8px 10px;
+  border: 1px solid #444;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.table thead th {
+  background: #f3f4f6;
+  font-weight: bold;
+}
+
+.table tbody tr:nth-child(even) td {
+  background: #fbfbfb;
+}
+
+.table tr {
+  page-break-inside: avoid; /* jangan pecah row */
+}
 </style>
 
 </head>
 <body>
-    <div class="page_pertama">
+    <h4 class="dark:text-white">{{ $pertandingan->kegiatan->nama }} / {{ $pertandingan->pertandingan->nama }} / Tanding</h4>
+    <table class="table">
+        <thead>
+            <tr>
+                <th rowspan="2" style="text-align: center">No</th>
+                <th rowspan="2" style="text-align: center">Nama</th>
+                <th colspan="2" style="text-align: center">Tingkat</th>
+                <th rowspan="2" style="text-align: center">Kelas</th>
+                <th rowspan="2" style="text-align: center">Berat Badan</th>
+            </tr>
+            <tr>
+                <th style="text-align: center">KYU</th>
+                <th style="text-align: center">DAN</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach ($peserta_lawan as $a)
+                <tr>
+                    <td>{{ $a->PertandinganPesertaPertama->urutan }}</td>
+                    <td style="text-align: center">{{ $a->PertandinganPesertaPertama->Peserta->nama }}</td>
+                    <td style="text-align: center">{{ strtoupper(substr($a->PertandinganPesertaPertama->Peserta->tingkatan_sabuk , 0, 1)) == "K" ? "V" : ''}}</td>
+                    <td style="text-align: center">{{ strtoupper(substr($a->PertandinganPesertaPertama->Peserta->tingkatan_sabuk , 0, 1)) == "D" ? 'V' : ''}}</td>
+                    <td style="text-align: center">{{ $a->PertandinganPesertaPertama->Peserta->PertandinganPesertaUtama->list_kategori->pertandingan->kelas }}</td>
+                    <td style="text-align: center">{{ $a->PertandinganPesertaPertama->Peserta->berat_badan }} Kg</td>
+                </tr>
+                <tr>
+                    <td>{{ @$a->PertandinganPesertaKedua->urutan ?? 0 }}</td>
+                    <td style="text-align: center">{{ @$a->PertandinganPesertaKedua->Peserta->nama ?? "WO" }}</td>
+                    <td style="text-align: center">{{ strtoupper(substr(@$a->PertandinganPesertaKedua->Peserta->tingkatan_sabuk , 0, 1)) == "K" ? "V" : ''}}</td>
+                    <td style="text-align: center">{{ strtoupper(substr(@$a->PertandinganPesertaKedua->Peserta->tingkatan_sabuk , 0, 1)) == "D" ? 'V' : ''}}</td>
+                    <td style="text-align: center">{{ @$a->PertandinganPesertaKedua->Peserta->PertandinganPesertaUtama->list_kategori->pertandingan->kelas ?? ""}}</td>
+                    <td style="text-align: center">{{ @$a->PertandinganPesertaKedua->Peserta->berat_badan ?? ""}} Kg</td>
+                </tr>
+                {{-- <div style="background-color: rgb(237, 162, 162); color: black;" class="bg-red-100 p-2 rounded shadow w-40 text-center">{{ $a->PertandinganPesertaPertama->urutan }} | {{ $a->PertandinganPesertaPertama->Peserta->nama }}</div>
+                <div style="background-color: rgb(116, 202, 234); color: black;" class="bg-blue-100 p-2 rounded shadow w-40 text-center">{{ $a->PertandinganPesertaKedua->urutan ?? '0' }} | {{ $a->PertandinganPesertaKedua->Peserta->nama ?? 'WO' }}</div> --}}
+
+            @endforeach
+        </tbody>
+    </table>
+    {{-- <div class="page_pertama">
         <h4>Peserta tersedia : {{ $peserta_ready }}</h4>
         <div class="peserta-wrapper">
             @foreach ($peserta_lawan as $a)
@@ -85,11 +104,11 @@
         <div class="pagination">
             {{ $peserta_lawan->withQueryString()->links('vendor.pagination.tailwind') }}
         </div>
-    </div>
+    </div> --}}
 
       <!-- Pindah halaman -->
-  <div class="page-break"></div>
-  <div class="container">
+  {{-- <div class="page-break"></div> --}}
+  {{-- <div class="container">
     @foreach ($peserta_lawan as $a)
       <div class="pair">
         <div class="card">
@@ -105,6 +124,6 @@
         </div>
       </div>
     @endforeach
-  </div>
+  </div> --}}
 </body>
 </html>
