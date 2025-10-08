@@ -40,7 +40,7 @@
                                         @endphp
                                         <tr>
                                         <th class="p-3 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent text-left" colspan="3">
-                                            <h6 class="mb-0 text-sm leading-normal dark:text-white">{{ $a->kategori->nama }}</h6>
+                                            <h6 class="mb-0 text-sm leading-normal dark:text-white">{{ $a->kategori->nama ?? "" }}</h6>
                                         </th>
                                         </tr>
                                         @if ($a->jenis_kelamin != $jenis_kelamin)
