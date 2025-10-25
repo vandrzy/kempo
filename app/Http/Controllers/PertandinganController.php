@@ -231,12 +231,33 @@ class PertandinganController extends Controller
             $qw->where('jenis_kelamin', $kelamin)->orWhereNull('jenis_kelamin');
         })->where('kegiatan_id', $_GET['kegiatan_id'])->get();
 
+        $urutan_number = [];
+        foreach($pertandingan as $index => $a) {
+            $existing = PertandinganPeserta::where('list_kategori_id', $a->id)
+            ->orderBy('urutan')
+            ->pluck('urutan')
+            ->toArray();
+
+            // Cari urutan kosong
+            $urutanBaru = 1;
+            foreach ($existing as $num) {
+                if ($num == $urutanBaru) {
+                    $urutanBaru++;
+                } else {
+                    break; // lubang ditemukan
+                }
+            }
+
+            $urutan_number[] = $urutanBaru;
+        }
+
 
 
 
         return response()->json([
             'status' => 'true',
             'data' => $pertandingan,
+            'urutan' => $urutan_number,
             // 'data' => $data['pertandingan'],
         ]);
     }

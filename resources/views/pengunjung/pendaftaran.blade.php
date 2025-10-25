@@ -315,12 +315,12 @@
                 success: function(response) {
                     let data = "";
 
-                    // console.log(response.data);
+                    console.log(response);
 
                     if(response.data.length > 0) {
                         $.each(response.data, function(index, value) {
                             $('#tingkat').val(value.kategori.nama);
-                            data += `<option value="${value.id}">${value.pertandingan.nama}</option>`;
+                            data += `<option value="${value.id}">${value.pertandingan.nama} | Urutan ${response.urutan[index]}</option>`;
                         });
                     } else {
                         data += `<option value="" disabled>Pertandingan Tidak Tersedia!</option>`;
@@ -340,9 +340,25 @@
             });
         }
 
+        let lastValid = [];
         $('#pertandingan_id').on('change', function () {
             // let selected = $(this).val();
             // console.log("Dipilih:", selected);
+
+                const selected = $(this).val();
+                lastValid = selected;
+
+
+                if (selected && selected.length > 3) {
+                    lastValid.splice(3, 1);
+                    alert('Maksimal hanya bisa memilih 3 pertandingan!');
+                    // $('#pertandingan_id').val(null).trigger('change');
+                    $('#pertandingan_id').val(lastValid).trigger('change');
+                    return; // stop function
+                }
+
+                // simpan pilihan terakhir yang valid
+                lastValid = selected;
 
                 let data = $(this).select2('data'); // ambil semua data select2
                 let hasil = data.map(item => {
@@ -352,12 +368,14 @@
                     };
                 });
 
+
                 let data_urutan_list = "";
                 for(var i = 0; i < hasil.length; i++) {
+                    let arr = hasil[i].text.split("|");
                     data_urutan_list += `
-                        <h3>${hasil[i].text}</h3>
+                        <h3>${arr[0]}</h3>
                         <div class="flex flex-wrap mt-4 -mx-3">
-                            <div class="w-full max-w-full px-3 mt-0 mb-6 lg:mb-0 lg:w-7/12 lg:flex-none">
+                            <div class="w-full max-w-full px-3 mt-0 mb-6 lg:mb-0 lg:w-4/12 lg:flex-none">
                                 <div class="relative flex flex-col min-w-0 break-words bg-white border-0 border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl dark:bg-gray-950 border-black-125 rounded-2xl bg-clip-border">
                                     <div class="mb-4">
                                         <label for="">Nama <span style="color: red;">*</span></label>
@@ -365,11 +383,19 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="w-full max-w-full px-3 mt-0 lg:w-5/12 lg:flex-none">
+                            <div class="w-full max-w-full px-3 mt-0 lg:w-4/12 lg:flex-none">
                                 <div class="relative flex flex-col min-w-0 break-words bg-white border-0 border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl dark:bg-gray-950 border-black-125 rounded-2xl bg-clip-border">
                                     <div class="mb-4">
                                         <label for="">Tingkat <span style="color: red;">*</span></label>
-                                        <input type="text"  name="tingkat_tanding[]" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" required placeholder="Nama" id="">
+                                        <input type="text"  name="tingkat_tanding[]" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" required placeholder="Tingkat" id="">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="w-full max-w-full px-3 mt-0 lg:w-4/12 lg:flex-none">
+                                <div class="relative flex flex-col min-w-0 break-words bg-white border-0 border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl dark:bg-gray-950 border-black-125 rounded-2xl bg-clip-border">
+                                    <div class="mb-4">
+                                        <label for="">No. Tanding <span style="color: red;">*</span></label>
+                                        <input type="text" readonly  class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full"  value="${arr[1]}" placeholder="No Tanding" id="">
                                     </div>
                                 </div>
                             </div>

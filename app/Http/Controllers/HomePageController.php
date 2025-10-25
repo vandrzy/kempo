@@ -34,6 +34,7 @@ class HomePageController extends Controller
         $tahun = old('tanggal_lahir');
         $kelamin = old('jenis_kelamin');
 
+
         if ($tahun && $kelamin) {
             $data['pertandingan'] = Pertandingan::whereHas('kategori', function($query) use ($tahun) {
                 $query->where('tahun_awal', '<=', Date('Y', strtotime($tahun)))->where('tahun_akhir', '>=', Date('Y', strtotime($tahun)));
