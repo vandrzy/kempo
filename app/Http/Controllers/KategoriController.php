@@ -65,7 +65,6 @@ class KategoriController extends Controller
 
 
 
-        try {
 
             Kategori::create([
                 // 'kegiatan_id' => $request->kegiatan_id,
@@ -77,6 +76,7 @@ class KategoriController extends Controller
                 'user_id' => Auth::user()->id,
             ]);
 
+        try {
             return redirect('kategori')->with('success', 'Data Berhasil Disimpan');
         } catch (\Throwable $th) {
             return redirect()->back()

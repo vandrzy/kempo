@@ -166,7 +166,7 @@ class HomePageController extends Controller
             $manager = new ImageManager(new GdDriver());
 
             $manager->read($image->getRealPath())
-                ->scale(width: 1200) // gunakan scale() di v3, bukan resize()
+                ->scale(width: 1200) // gunakan scale() di v3, bukan resize() sds
                 ->save($path, quality: 50);
 
 
