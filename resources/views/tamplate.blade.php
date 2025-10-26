@@ -817,8 +817,6 @@
     <script src="{{ asset('js/select2.min.js') }}"></script>
     <script>
         $(document).ready(function() {
-
-
             $('.pilihan').select2({
                 theme: 'mytheme', // atau 'bootstrap5' jika pakai tema lain
                 allowClear: true,

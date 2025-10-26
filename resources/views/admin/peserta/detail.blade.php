@@ -53,10 +53,10 @@
                                             <th class="px-6 py-4 border-b" style="text-align: left">NIK</td>
                                             <td class="px-6 py-4 border-b">{{ $peserta->nik }}</td>
                                         </tr>
-                                        <tr>
+                                        {{-- <tr>
                                             <th class="px-6 py-4 border-b" style="text-align: left">Kategori</td>
                                             <td class="px-6 py-4 border-b">{{ $peserta->tingkat }}</td>
-                                        </tr>
+                                        </tr> --}}
                                         <tr>
                                             <th class="px-6 py-4 border-b" style="text-align: left">Berat Badan (Kg)</td>
                                             <td class="px-6 py-4 border-b">{{ $peserta->berat_badan }} Kg</td>
@@ -109,7 +109,18 @@
                             </tr>
                         </thead>
                         <tbody>
+                            @php
+                                $kategori_id = 0;
+                            @endphp
                             @foreach ($peserta->PertandinganPeserta as $a)
+                                @if($kategori_id != $a->list_kategori->kategori_id)
+                                    @php
+                                        $kategori_id = $a->list_kategori->kategori_id;
+                                    @endphp
+                                    <tr>
+                                        <th class="px-6 py-4 border-b" colspan="3" align="left">Kategori : {{ $a->list_kategori->kategori->nama ?? "" }}</th>
+                                    </tr>
+                                @endif
                                 <tr>
                                     <th class="px-6 py-4 border-b" align="left">Nomor Peserta : {{ $a->urutan }}</th>
                                     <th class="px-6 py-4 border-b" colspan="2" align="left">Tanding : {{ $a->list_kategori->pertandingan->nama ?? "" }}</th>

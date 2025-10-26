@@ -139,14 +139,14 @@
 
                                         <div class="mb-4">
                                             <label for="">Telepon <span style="color: red;">*</span></label>
-                                            <input type="text" name="telepon" value=" {{ old('telepon') }}" placeholder="Nomor Telepon" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" id="" >
+                                            <input type="text" name="telepon" value="{{ old('telepon') }}" placeholder="Nomor Telepon" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" id="" >
                                             @error('telepon')
                                                 <span class="text-red" style="color: red;">{{ $message }}</span>
                                             @enderror
                                         </div>
                                         <div class="mb-4">
                                             <label for="">Berat Badan <span style="color: red;">*</span></label>
-                                            <input type="number" min="0" max="1000" name="berat_badan" placeholder="Berat Badan (Kg)" value=" {{ old('berat_badan') }}" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" id="" >
+                                            <input type="number" min="0" max="1000" name="berat_badan" placeholder="Berat Badan (Kg)" value="{{ old('berat_badan') }}" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" id="" >
                                             @error('berat_badan')
                                                 <span class="text-red" style="color: red;">{{ $message }}</span>
                                             @enderror
@@ -181,8 +181,23 @@
                                         </div>
 
 
-
-                                        <div class="mb-4">
+                                    <div class="mb-4">
+                                        <label for="">Kategori <span style="color: red;">*</span></label>
+                                        <select name="kategori_id[]" class="pilihan w-full pl-9 text-sm focus:shadow-primary-outline ease leading-5.6 relative -ml-px block min-w-0 flex-auto rounded-lg border border-solid border-gray-300 dark:bg-slate-850 dark:text-white bg-white bg-clip-padding py-2 pr-3 text-gray-700 transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:transition-shadow" multiple="multiple" status="{{ (is_array(old('kategori_id')) && count(old('kategori_id'))) > 0 ? 'true' : 'false' }}" id="kategori_id">
+                                            @foreach ($kategori as $a)
+                                                <option value="{{ $a->kategori_id }}">{{ $a->kategori->nama }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="mb-4">
+                                        <label for="">Foto Berwarna 4 x 6 <span style="color: red;">*</span></label>
+                                        <input type="file" name="foto" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" id="imageInput">
+                                        <img src="" style="width: 50%;" id="preview" alt=""><br>
+                                        @error('foto')
+                                            <span class="text-red"  style="color: red;" >{{ $message }}</span>
+                                        @enderror
+                                    </div>
+                                        {{-- <div class="mb-4">
                                             <label for="">Kategori <span style="color: red;">*</span></label>
                                             <input type="text" name="tingkat" readonly class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" value="{{ old('tingkat') }}" placeholder="Kategori" id="tingkat">
                                             @error('tingkat')
@@ -196,26 +211,34 @@
                                             @error('pertandingan_id')
                                                 <span class="text-red" style="color: red;">{{ $message }}</span>
                                             @enderror
-                                        </div>
+                                        </div> --}}
                                     </div>
                                 </div>
                             </div>
                         </div>
                         <div class="p-3 overflow-x-auto">
-                            <div class="mb-4">
-                                <label for="">Foto Berwarna 4 x 6 <span style="color: red;">*</span></label>
-                                <input type="file" name="foto" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" id="imageInput">
-                                <img src="" style="width: 50%;" id="preview" alt=""><br>
-                                @error('foto')
-                                    <span class="text-red"  style="color: red;" >{{ $message }}</span>
-                                @enderror
-                            </div>
-                            <h1>Tahapan Teknik</h1>
-                            <div class="tanding_list">
-                                {{-- @for($i = 0; $i < 2; $i++)
+                            <div class="flex flex-wrap mt-4 -mx-3">
+                                    <div class="w-full max-w-full px-3 mt-0 mb-6 lg:mb-0 lg:w-5/12 lg:flex-none">
+                                        <div class="relative flex flex-col min-w-0 break-words bg-white border-0 border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl dark:bg-gray-950 border-black-125 rounded-2xl bg-clip-border">
+                                            <h1 class="m-4">Pertandingan</h1>
+                                            <div class="kategori_show">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="w-full max-w-full px-3 mt-0 mb-6 lg:mb-0 lg:w-7/12 lg:flex-none">
+                                        <div class="relative flex flex-col min-w-0 break-words bg-white border-0 border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl dark:bg-gray-950 border-black-125 rounded-2xl bg-clip-border">
+                                            <h1 class="m-4">Tahapan Teknik</h1>
+                                            <div class="kategori_pertandingan_show">
 
-                                @endfor --}}
+                                            </div>
+                                        </div>
+                                    </div>
                             </div>
+
+                            {{-- <h1>Tahapan Teknik</h1>
+                            <div class="tanding_list">
+
+                            </div> --}}
                             <div class="mb-4" style="text-align: center;">
                                 <button type="submit"  style="border: solid 2px green; color: green; font-size: 22px;"   class="inline-block px-8 py-2 mb-0 text-xs font-bold leading-normal text-center text-green-500 align-middle transition-all ease-in bg-transparent border  border-solid rounded-lg shadow-none cursor-pointer bg-150 active:opacity-85 hover:-translate-y-px tracking-tight-rem bg-x-25 hover:opacity-75">Daftar</button>
                             </div>
@@ -305,11 +328,11 @@
 
 
 
-        function AmbilDataPertandingan(tanggal_lahir, jenis_kelamin, kegiatan_id) {
+        function AmbilDataPertandingan(tanggal_lahir, jenis_kelamin, kegiatan_id, kategori_id) {
             $('#pertandingan_id').attr('status', 'true');
             $('#pertandingan_id').html('');
             $.ajax({
-                url: `{{url("pendaftarans")}}/${tanggal_lahir}/${jenis_kelamin}?kegiatan_id=${kegiatan_id}`, // URL API
+                url: `{{url("pendaftarans")}}/${tanggal_lahir}/${jenis_kelamin}?kegiatan_id=${kegiatan_id}&kategori_id=${kategori_id}`, // URL API
                 type: 'GET',
                 dataType: 'json', // bisa 'html', 'text', dll tergantung respon
                 success: function(response) {
@@ -415,11 +438,176 @@
         });
 
         $('#jenis_kelamin').on('change', function (e) {
-            AmbilDataPertandingan($('#tanggal_lahir').val(), $('#jenis_kelamin').val(), $('#kegiatan_id').val());
+            // AmbilDataPertandingan($('#tanggal_lahir').val(), $('#jenis_kelamin').val(), $('#kegiatan_id').val());
         });
 
         $('#tanggal_lahir').on('change', function (e) {
-            AmbilDataPertandingan($('#tanggal_lahir').val(), $('#jenis_kelamin').val(), $('#kegiatan_id').val());
+            // AmbilDataPertandingan($('#tanggal_lahir').val(), $('#jenis_kelamin').val(), $('#kegiatan_id').val());
+        });
+
+
+        function AmbilDataPertandinganKategori(tanggal_lahir, jenis_kelamin, kegiatan_id, kategori_id) {
+                                            // <h1 class="mt-4 ml-4">Pertandingan kategori : </h1>
+                                            // <div class="mt-4 ml-4">
+                                            //     <label for="">Kategori</label>
+                                            //     <select name="pertandingan_id[]" class="pilihan w-full pl-9 text-sm focus:shadow-primary-outline ease leading-5.6 relative -ml-px block min-w-0 flex-auto rounded-lg border border-solid border-gray-300 dark:bg-slate-850 dark:text-white bg-white bg-clip-padding py-2 pr-3 text-gray-700 transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:transition-shadow" multiple="multiple" status="{{ (is_array(old('pertandingan_id')) && count(old('pertandingan_id'))) > 0 ? 'true' : 'false' }}" id="pertandingan_id">
+                                            //     </select>
+                                            // </div>
+            $.ajax({
+                url: `{{url("pendaftarans")}}/${tanggal_lahir}/${jenis_kelamin}?kegiatan_id=${kegiatan_id}&kategori_id=${kategori_id}`, // URL API
+                type: 'GET',
+                dataType: 'json', // bisa 'html', 'text', dll tergantung respon
+                success: function(response) {
+                    console.log(response);
+                    let html = "";
+                    let html2 = "";
+                    let option = "";
+                    if(response.data.length > 0) {
+                        $.each(response.data, function(index, value) {
+                            option += `<option value="${value.id}">${value.pertandingan.nama} | Urutan ${response.urutan[index]}</option>`;
+                        });
+                    } else {
+                        option += `<option value="" selected>Usia anda tidak tersedia untuk pertandingan ini!</option>`
+                    }
+                    html += `
+                            <div class="mt-4 ml-4">
+                                <label for="">${response.kategori.nama}</label>
+                                <select name="pertandingan_id[]" ${response.data.length == 0 ? 'disabled' : ''}  class="pertandingan_kategori w-full pl-9 text-sm focus:shadow-primary-outline ease leading-5.6 relative -ml-px block min-w-0 flex-auto rounded-lg border border-solid border-gray-300 dark:bg-slate-850 dark:text-white bg-white bg-clip-padding py-2 pr-3 text-gray-700 transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:transition-shadow" multiple="multiple" status="{{ (is_array(old('pertandingan_id')) && count(old('pertandingan_id'))) > 0 ? 'true' : 'false' }}" kategori_id="${response.kategori.id}" id="pilihan_${response.kategori.id}">
+                                    ${option}
+                                </select>
+                            </div>
+
+                    `;
+
+                    html2 += `
+                        <div class="mt-4 ml-4">
+                            <h5>${response.kategori.nama}</h5>
+                            <div id="pertandingan_tahapan_teknik_${response.kategori.id}">
+
+                            </div>
+                        </div>
+                    `;
+
+
+                    $('.kategori_show').append(html);
+                    $('.kategori_pertandingan_show').append(html2);
+                    $(`#pilihan_${response.kategori.id}`).select2({
+                        theme: 'mytheme', // atau 'bootstrap5' jika pakai tema lain
+                        allowClear: true,
+                        width: '100%',
+                        minimumResultsForSearch: 0 /// biar full lebar // Biar serasi dengan Bootstrap form-control
+                    });
+                    // alert('Judul: ' + response.title);
+                },
+                error: function(xhr, status, error) {
+                    console.error('Gagal:', error);
+                    alert('Gagal mengambil data!');
+                }
+            });
+        }
+
+        let kategori_choose = [];
+        let pertandingan_choose = [];
+        $('#kategori_id').on('change', function (e) {
+            console.log($(this).val());
+
+            $('.kategori_show').html('');
+            $('.kategori_pertandingan_show').html('');
+
+            const selected = $(this).val();
+
+            // console.log()
+            if (selected && selected.length > 4) {
+                alert('Maksimal hanya bisa memilih 4 Kategori!');
+                // $('#pertandingan_id').val(null).trigger('change');
+                $('#kategori_id').val(kategori_choose).trigger('change');
+                return; // stop function
+            }
+
+            kategori_choose = selected;
+
+            pertandingan_choose = {};;
+            for(var i = 0; i < $(this).val().length; i++) {
+                pertandingan_choose[$(this).val()[i]] = [];
+                AmbilDataPertandinganKategori($('#tanggal_lahir').val(), $('#jenis_kelamin').val(), $('#kegiatan_id').val(), $(this).val()[i]);
+            }
+
+            console.log(pertandingan_choose);
+
+            // AmbilDataPertandingan($('#tanggal_lahir').val(), $('#jenis_kelamin').val(), $('#kegiatan_id').val());
+        });
+
+
+        $(document).on('change', '.pertandingan_kategori',function(e) {
+            // console.log($(this).attr('kategori_id'));
+
+            const selected = $(this).val();
+            let kategori_id = $(this).attr('kategori_id');
+
+
+            // console.log()
+            if (selected && selected.length > 3) {
+                alert('Maksimal hanya bisa memilih 3 Pertandingan!');
+                // $('#pertandingan_id').val(null).trigger('change');
+                $(this).val(pertandingan_choose[$(this).attr('kategori_id')]).trigger('change');
+                return; // stop function
+            }
+
+            pertandingan_choose[$(this).attr('kategori_id')] = selected;
+
+            let data = $(this).select2('data'); // ambil semua data select2
+            let hasil = data.map(item => {
+                return {
+                    value: item.id,   // value option
+                    text: item.text   // text option
+                };
+            });
+
+
+            let data_urutan_list = "";
+            $(`#pertandingan_tahapan_teknik_${kategori_id}`).html("");
+            for(var i = 0; i < hasil.length; i++) {
+                let arr = hasil[i].text.split("|");
+                data_urutan_list += `
+                    <h3>${arr[0]}</h3>
+                    <div class="flex flex-wrap mt-4 -mx-3">
+                        <div class="w-full max-w-full px-3 mt-0 mb-6 lg:mb-0 lg:w-4/12 lg:flex-none">
+                            <div class="relative flex flex-col min-w-0 break-words bg-white border-0 border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl dark:bg-gray-950 border-black-125 rounded-2xl bg-clip-border">
+                                <div class="mb-4">
+                                    <label for="">Nama <span style="color: red;">*</span></label>
+                                    <input type="text" name="nama_tanding[${hasil[i].value}]" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" required placeholder="Nama" id="">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="w-full max-w-full px-3 mt-0 lg:w-4/12 lg:flex-none">
+                            <div class="relative flex flex-col min-w-0 break-words bg-white border-0 border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl dark:bg-gray-950 border-black-125 rounded-2xl bg-clip-border">
+                                <div class="mb-4">
+                                    <label for="">Tingkat <span style="color: red;">*</span></label>
+                                    <input type="text"  name="tingkat_tanding[${hasil[i].value}]" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" required placeholder="Tingkat" id="">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="w-full max-w-full px-3 mt-0 lg:w-4/12 lg:flex-none">
+                            <div class="relative flex flex-col min-w-0 break-words bg-white border-0 border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl dark:bg-gray-950 border-black-125 rounded-2xl bg-clip-border">
+                                <div class="mb-4">
+                                    <label for="">No. Tanding <span style="color: red;">*</span></label>
+                                    <input type="text" readonly  class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full"  value="${arr[1]}" placeholder="No Tanding" id="">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- kelas --}}
+                    <div class="mb-4 urutan_${i}">
+                        <label for="">Urutan komposisi yang dimainkan : <span style="color: red;">*</span></label>
+                        <div class="urutan_list" data-id="${i}">
+                            <input type="text" name="urutan_tanding[${hasil[i].value}][]" ids="${hasil[i].value}" value="" id="urutan_tanding" class="urutan_tanding_${i} urutan_tanding dynamic-textarea px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" required placeholder="Urutan komposisi yang dimainkan" id="">
+                        </div>
+                    </div>
+                `;
+            }
+            // console.log(hasil);
+            $(`#pertandingan_tahapan_teknik_${kategori_id}`).html(data_urutan_list);
         });
 
         // document.getElementById('urutan_tanding').addEventListener('change', function() {
@@ -429,11 +617,11 @@
 
 
 
-        $('#pertandingan_id').on('select2:opening', function (e) {
-            if($(this).attr('status') != 'true') {
-                AmbilDataPertandingan($('#tanggal_lahir').val(), $('#jenis_kelamin').val());
-            }
-        });
+        // $('#pertandingan_id').on('select2:opening', function (e) {
+        //     if($(this).attr('status') != 'true') {
+        //         AmbilDataPertandingan($('#tanggal_lahir').val(), $('#jenis_kelamin').val());
+        //     }
+        // });
 
 
         $(document).on("input", ".urutan_tanding", function () {

@@ -8,6 +8,7 @@ use App\Models\Kategori;
 use App\Models\Kecamatan;
 use App\Models\Kegiatan;
 use App\Models\Kelurahan;
+use App\Models\ListKategori;
 use App\Models\Penulis;
 use App\Models\Pertandingan;
 use App\Models\PertandinganPeserta;
@@ -35,17 +36,25 @@ class HomePageController extends Controller
         $kelamin = old('jenis_kelamin');
 
 
-        if ($tahun && $kelamin) {
-            $data['pertandingan'] = Pertandingan::whereHas('kategori', function($query) use ($tahun) {
-                $query->where('tahun_awal', '<=', Date('Y', strtotime($tahun)))->where('tahun_akhir', '>=', Date('Y', strtotime($tahun)));
-            })->where(function($query) use ($kelamin) {
-                $query->where('jenis_kelamin', $kelamin)
-                    ->orWhereNull('jenis_kelamin');
-            })->get();
-        } else {
 
-            $data['pertandingan'] = Pertandingan::get();
-        }
+
+        // if ($tahun && $kelamin) {
+        //     $data['pertandingan'] = Pertandingan::whereHas('kategori', function($query) use ($tahun) {
+        //         $query->where('tahun_awal', '<=', Date('Y', strtotime($tahun)))->where('tahun_akhir', '>=', Date('Y', strtotime($tahun)));
+        //     })->where(function($query) use ($kelamin) {
+        //         $query->where('jenis_kelamin', $kelamin)
+        //             ->orWhereNull('jenis_kelamin');
+        //     })->get();
+        // } else {
+
+        // }
+
+        // $data['pertandingan'] = Pertandingan::get();
+        $data['kategori'] = ListKategori::with('kategori')->where('kegiatan_id', $data['kegiatan']->id)
+        ->select('kategori_id')
+        ->groupBy('kategori_id')
+        ->get();
+        // dd($kategori);
 
 
         return view('pengunjung.dashboard', $data);
@@ -73,7 +82,7 @@ class HomePageController extends Controller
             'jenis_kelamin'=> 'required',
             'golongan_darah'=> 'required',
             'nik'=> 'required|numeric|digits_between:1,16',
-            'tingkat'=> 'required',
+            // 'tingkat'=> 'required',
             'status'=> 'required',
             'tingkatan_sabuk_a'=> 'required',
             'tingkatan_sabuk_b'=> 'required',
@@ -87,8 +96,6 @@ class HomePageController extends Controller
             'kabupaten_id'=> 'required',
             'kecamatan_id'=> 'required',
             'kelurahan_id'=> 'required',
-
-            'pertandingan_id'=> 'required',
             'foto'=> 'required|image|mimes:jpeg,png,jpg,svg',
         ], [
             'nama.required' => 'Nama Peserta Wajib Diisi!',
@@ -120,6 +127,7 @@ class HomePageController extends Controller
 
 
         if ($validator->fails()) {
+            // dd($validator->errors()->keys());
             return redirect()->back()
                 ->withErrors($validator)
                 ->withInput()
@@ -133,12 +141,14 @@ class HomePageController extends Controller
                 ->with('gagal', 'Uratan Komposisi tidak boleh kosong!');
         }
 
+
+
             $peserta = Peserta::create([
                 'nama' => $request->nama,
                 'jenis_kelamin'=> $request->jenis_kelamin,
                 'golongan_darah'=> $request->golongan_darah,
                 'nik'=> $request->nik,
-                'tingkat'=> $request->tingkat,
+                // 'tingkat'=> $request->tingkat,
                 'status'=> $request->status,
                 'tempat'=> $request->tempat,
                 'tanggal_lahir'=> $request->tanggal_lahir,
@@ -174,6 +184,7 @@ class HomePageController extends Controller
             $peserta_image->foto = 'storage/foto_peserta/' . $filename;
             $peserta_image->save();
 
+
             foreach($request->pertandingan_id as $index => $a) {
                 $existing = PertandinganPeserta::where('list_kategori_id', $a)
                 ->orderBy('urutan')
@@ -199,10 +210,10 @@ class HomePageController extends Controller
 
                 $UKP = new UrutanKomposisiPeserta();
                 $UKP->pertandingan_peserta_id = $PPA->id;
-                $UKP->nama = $request->nama_tanding[$index];
-                $UKP->tingkat = $request->tingkat_tanding[$index];
+                $UKP->nama = $request->nama_tanding[$a];
+                $UKP->tingkat = $request->tingkat_tanding[$a];
                 $deskripsiUKP = "";
-                foreach($request->urutan_tanding[$index] as $b) {
+                foreach($request->urutan_tanding[$a] as $b) {
                     $deskripsiUKP .= $b.",";
                 }
                 $UKP->urutan_komposisi = $deskripsiUKP;
