@@ -210,11 +210,11 @@ class HomePageController extends Controller
 
                 $UKP = new UrutanKomposisiPeserta();
                 $UKP->pertandingan_peserta_id = $PPA->id;
-                $UKP->nama = $request->nama_tanding[$a];
-                $UKP->tingkat = $request->tingkat_tanding[$a];
+                $UKP->nama = $request->nama_tanding[$a] ?? "-";
+                $UKP->tingkat = $request->tingkat_tanding[$a] ?? "-";
                 $deskripsiUKP = "";
                 foreach($request->urutan_tanding[$a] as $b) {
-                    $deskripsiUKP .= $b.",";
+                    $deskripsiUKP .= $b ?? "-".",";
                 }
                 $UKP->urutan_komposisi = $deskripsiUKP;
                 $UKP->save();

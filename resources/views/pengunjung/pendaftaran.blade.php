@@ -13,6 +13,13 @@
                 <div class="flex-auto px-0 pt-0 pb-2">
                     <form action="{{ url('daftar') }}" method="post" enctype="multipart/form-data">
                         @csrf
+<div class="max-w-md mx-auto bg-white shadow-md p-5 border border-gray-200 p-2">
+  <h2 class="text-lg font-semibold text-gray-800 mb-3">Keterangan</h2>
+  <ul class="list-disc list-inside space-y-2 text-gray-700 text-sm">
+    <li>Jika ada simbol "<span style="color: red;">*</span><span style="color: red;">*</span>" Harus diisi garis strip atau tanda hubung.</li>
+    <li>Jika ada simbol "<span style="color: red;">*</span>" Wajib diisi.</li>
+  </ul>
+</div>
 
                         <div class="p-3 overflow-x-auto">
                             <div class="flex flex-wrap mt-4 -mx-3">
@@ -438,10 +445,22 @@
         });
 
         $('#jenis_kelamin').on('change', function (e) {
+
+            $('.kategori_show').html('');
+            $('.kategori_pertandingan_show').html('');
+            for(var i = 0; i < $(this).val().length; i++) {
+                AmbilDataPertandinganKategori($('#tanggal_lahir').val(), $('#jenis_kelamin').val(), $('#kegiatan_id').val(), $("#kategori_id").val()[i]);
+            }
             // AmbilDataPertandingan($('#tanggal_lahir').val(), $('#jenis_kelamin').val(), $('#kegiatan_id').val());
         });
 
         $('#tanggal_lahir').on('change', function (e) {
+
+            $('.kategori_show').html('');
+            $('.kategori_pertandingan_show').html('');
+            for(var i = 0; i < $(this).val().length; i++) {
+                AmbilDataPertandinganKategori($('#tanggal_lahir').val(), $('#jenis_kelamin').val(), $('#kegiatan_id').val(), $("#kategori_id").val()[i]);
+            }
             // AmbilDataPertandingan($('#tanggal_lahir').val(), $('#jenis_kelamin').val(), $('#kegiatan_id').val());
         });
 
@@ -574,7 +593,7 @@
                         <div class="w-full max-w-full px-3 mt-0 mb-6 lg:mb-0 lg:w-4/12 lg:flex-none">
                             <div class="relative flex flex-col min-w-0 break-words bg-white border-0 border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl dark:bg-gray-950 border-black-125 rounded-2xl bg-clip-border">
                                 <div class="mb-4">
-                                    <label for="">Nama <span style="color: red;">*</span></label>
+                                    <label for="">Nama <span style="color: red;">*</span><span style="color: red;">*</span></label>
                                     <input type="text" name="nama_tanding[${hasil[i].value}]" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" required placeholder="Nama" id="">
                                 </div>
                             </div>
@@ -582,7 +601,7 @@
                         <div class="w-full max-w-full px-3 mt-0 lg:w-4/12 lg:flex-none">
                             <div class="relative flex flex-col min-w-0 break-words bg-white border-0 border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl dark:bg-gray-950 border-black-125 rounded-2xl bg-clip-border">
                                 <div class="mb-4">
-                                    <label for="">Tingkat <span style="color: red;">*</span></label>
+                                    <label for="">Tingkat <span style="color: red;">*</span><span style="color: red;">*</span></label>
                                     <input type="text"  name="tingkat_tanding[${hasil[i].value}]" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" required placeholder="Tingkat" id="">
                                 </div>
                             </div>
@@ -590,7 +609,7 @@
                         <div class="w-full max-w-full px-3 mt-0 lg:w-4/12 lg:flex-none">
                             <div class="relative flex flex-col min-w-0 break-words bg-white border-0 border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl dark:bg-gray-950 border-black-125 rounded-2xl bg-clip-border">
                                 <div class="mb-4">
-                                    <label for="">No. Tanding <span style="color: red;">*</span></label>
+                                    <label for="">No. Tanding <span style="color: red;">*</span><span style="color: red;">*</span></label>
                                     <input type="text" readonly  class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full"  value="${arr[1]}" placeholder="No Tanding" id="">
                                 </div>
                             </div>
@@ -599,7 +618,7 @@
 
                     {{-- kelas --}}
                     <div class="mb-4 urutan_${i}">
-                        <label for="">Urutan komposisi yang dimainkan : <span style="color: red;">*</span></label>
+                        <label for="">Urutan komposisi yang dimainkan : <span style="color: red;">*</span><span style="color: red;">*</span></label>
                         <div class="urutan_list" data-id="${i}">
                             <input type="text" name="urutan_tanding[${hasil[i].value}][]" ids="${hasil[i].value}" value="" id="urutan_tanding" class="urutan_tanding_${i} urutan_tanding dynamic-textarea px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" required placeholder="Urutan komposisi yang dimainkan" id="">
                         </div>
