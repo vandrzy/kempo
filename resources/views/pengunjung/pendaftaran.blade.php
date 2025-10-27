@@ -456,11 +456,11 @@
 
         $('#tanggal_lahir').on('change', function (e) {
 
-            $('.kategori_show').html('');
-            $('.kategori_pertandingan_show').html('');
-            for(var i = 0; i < $(this).val().length; i++) {
-                AmbilDataPertandinganKategori($('#tanggal_lahir').val(), $('#jenis_kelamin').val(), $('#kegiatan_id').val(), $("#kategori_id").val()[i]);
-            }
+            // $('.kategori_show').html('');
+            // $('.kategori_pertandingan_show').html('');
+            // for(var i = 0; i < $(this).val().length; i++) {
+            //     AmbilDataPertandinganKategori($('#tanggal_lahir').val(), $('#jenis_kelamin').val(), $('#kegiatan_id').val(), $("#kategori_id").val()[i]);
+            // }
             // AmbilDataPertandingan($('#tanggal_lahir').val(), $('#jenis_kelamin').val(), $('#kegiatan_id').val());
         });
 
