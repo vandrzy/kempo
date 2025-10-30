@@ -11,7 +11,7 @@
                     </div>
                 </div>
                 <div class="flex-auto px-0 pt-0 pb-2">
-                    <form action="{{ url('daftar') }}" method="post" enctype="multipart/form-data">
+                    <form action="{{ url('daftar') }}" method="post" id="form-peserta" enctype="multipart/form-data">
                         @csrf
 <div class="max-w-md mx-auto bg-white shadow-md p-5 border border-gray-200 p-2">
   <h2 class="text-lg font-semibold text-gray-800 mb-3">Keterangan</h2>
@@ -29,9 +29,7 @@
                                         <div class="mb-4">
                                             <label for="">Nama <span style="color: red;">*</span></label>
                                             <input type="text" name="nama" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" value="{{ old('nama') }}" placeholder="Nama" id="">
-                                            @error('nama')
-                                                <span class="text-red" style="color: red;">{{ $message }}</span>
-                                            @enderror
+                                            <span class="error text-sm text-red-600"></span>
                                         </div>
 
                                         <div class="mb-4">
@@ -42,9 +40,7 @@
                                                 <option value="AB" {{ old('golongan_darah', @$peserta->golongan_darah) == 'AB' ? 'selected' : '' }} >AB</option>
                                                 <option value="O" {{ old('golongan_darah', @$peserta->golongan_darah) == 'O' ? 'selected' : '' }} >O</option>
                                             </select>
-                                            @error('golongan_darah')
-                                                <span class="text-red" style="color: red;">{{ $message }}</span>
-                                            @enderror
+                                            <span class="error text-sm text-red-600"></span>
                                         </div>
 
                                         <div class="mb-4">
@@ -54,9 +50,7 @@
                                                 <option value="P" {{ old('status', @$peserta->status) == 'P' ? 'selected' : '' }} >Peserta / Atlet</option>
                                                 <option value="O" {{ old('status', @$peserta->status) == 'O' ? 'selected' : '' }} >Official</option>
                                             </select>
-                                            @error('status')
-                                                <span class="text-red" style="color: red;">{{ $message }}</span>
-                                            @enderror
+                                            <span class="error text-sm text-red-600"></span>
                                         </div>
                                         <div class="mb-4">
                                             <label for="">Tingkat <span style="color: red;">*</span></label>
@@ -68,12 +62,7 @@
                                                 </select>
                                                 <input type="number" name="tingkatan_sabuk_b" class="w-1/2 px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500" value="{{ old('nama') }}" placeholder="Jumlah Tingkatan" id="">
                                             </div>
-                                            @error('tingkatan_sabuk_a')
-                                                <span class="text-red" style="color: red;">{{ $message }}</span>
-                                            @enderror
-                                            @error('tingkatan_sabuk_b')
-                                                <span class="text-red" style="color: red;">{{ $message }}</span>
-                                            @enderror
+                                            <span class="error text-sm text-red-600"></span>
                                         </div>
 
                                         <label for="">Alamat Rumah <span style="color: red;">*</span></label>
@@ -85,9 +74,7 @@
                                                     <option value="{{ $a->id }}">{{ $a->name }}</option>
                                                 @endforeach
                                             </select>
-                                            @error('kabupaten_id')
-                                                <span class="text-red" style="color: red;">{{ $message }}</span>
-                                            @enderror
+                                            <span class="error text-sm text-red-600"></span>
                                         </div>
 
                                         <div class="mb-4">
@@ -95,9 +82,7 @@
                                             <select name="kecamatan_id" id="kecamatan_id" class="w-full border rounded px-3 py-2">
                                                 <option selected disabled>Pilih Kecamatan</option>
                                             </select>
-                                            @error('kecamatan_id')
-                                                <span class="text-red" style="color: red;">{{ $message }}</span>
-                                            @enderror
+                                            <span class="error text-sm text-red-600"></span>
                                         </div>
 
                                         <div class="mb-4">
@@ -105,18 +90,13 @@
                                             <select name="kelurahan_id" id="kelurahan_id" class="w-full border rounded px-3 py-2">
                                                 <option selected disabled>Pilih Kelurahan</option>
                                             </select>
-                                            @error('kelurahan_id')
-                                                <span class="text-red" style="color: red;">{{ $message }}</span>
-                                            @enderror
+                                            <span class="error text-sm text-red-600"></span>
                                         </div>
 
                                         <div class="mb-4">
-                                            <textarea name="alamat" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" id="" rows="5">
-                                                {{ old('alamat') }}
-                                            </textarea>
-                                            @error('alamat')
-                                                <span class="text-red" style="color: red;">{{ $message }}</span>
-                                            @enderror
+                                            <label for="">Alamat Lengkap</label>
+                                            <textarea name="alamat" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" id="" rows="5">{{ old('alamat') }}</textarea>
+                                            <span class="error text-sm text-red-600"></span>
                                         </div>
 
                                     </div>
@@ -130,42 +110,30 @@
                                                 <option value="Perempuan" {{ old('jenis_kelamin', @$peserta->jenis_kelamin) == 'Perempuan' ? 'selected' : '' }} >Perempuan</option>
 
                                             </select>
-                                            @error('jenis_kelamin')
-                                                <span class="text-red" style="color: red;">{{ $message }}</span>
-                                            @enderror
+                                            <span class="error text-sm text-red-600"></span>
                                         </div>
 
                                         <div class="mb-4">
                                             <label for="">NIK <span style="color: red;">*</span></label>
                                             <input type="text" name="nik" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" value="{{ old('nik') }}" placeholder="NIK" id="">
-                                            @error('nik')
-                                                <span class="text-red" style="color: red;">{{ $message }}</span>
-                                            @enderror
+                                            <span class="error text-sm text-red-600"></span>
                                         </div>
 
 
                                         <div class="mb-4">
                                             <label for="">Telepon <span style="color: red;">*</span></label>
                                             <input type="text" name="telepon" value="{{ old('telepon') }}" placeholder="Nomor Telepon" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" id="" >
-                                            @error('telepon')
-                                                <span class="text-red" style="color: red;">{{ $message }}</span>
-                                            @enderror
+                                            <span class="error text-sm text-red-600"></span>
                                         </div>
                                         <div class="mb-4">
                                             <label for="">Berat Badan <span style="color: red;">*</span></label>
                                             <input type="number" min="0" max="1000" name="berat_badan" placeholder="Berat Badan (Kg)" value="{{ old('berat_badan') }}" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" id="" >
-                                            @error('berat_badan')
-                                                <span class="text-red" style="color: red;">{{ $message }}</span>
-                                            @enderror
+                                            <span class="error text-sm text-red-600"></span>
                                         </div>
                                         <div class="mb-4">
                                             <label for="">Keterangan Khusus Peserta Prestasi Terbaik : <span style="color: red;">*</span></label>
-                                            <textarea name="keterangan" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" id="" cols="30" rows="4">
-                                                {{ old('keterangan') }}
-                                            </textarea>
-                                            @error('keterangan')
-                                                <span class="text-red" style="color: red;">{{ $message }}</span>
-                                            @enderror
+                                            <textarea name="keterangan" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" id="" cols="30" rows="4">{{ old('keterangan') }}</textarea>
+                                            <span class="error text-sm text-red-600"></span>
                                         </div>
 
                                         <div class="mb-4">
@@ -174,17 +142,12 @@
                                                 <input type="text" name="tempat"
                                                     class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-1/2"
                                                     value="{{ old('tempat') }}" placeholder="Tempat Lahir" id="">
-
+<span class="error text-sm text-red-600"></span>
                                                 <input type="date" name="tanggal_lahir" id="tanggal_lahir"
                                                     class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-1/2"
                                                     value="{{ old('tanggal_lahir', date('Y-m-d')) }}" id="">
+                                                    <span class="error text-sm text-red-600"></span>
                                             </div>
-                                            @error('tempat')
-                                                <span class="text-red" style="color: red;">{{ $message }}</span><br>
-                                            @enderror
-                                            @error('tanggal_lahir')
-                                                <span class="text-red" style="color: red;">{{ $message }}</span>
-                                            @enderror
                                         </div>
 
 
@@ -195,14 +158,13 @@
                                                 <option value="{{ $a->kategori_id }}">{{ $a->kategori->nama }}</option>
                                             @endforeach
                                         </select>
+                                        <span class="error text-sm text-red-600"></span>
                                     </div>
                                     <div class="mb-4">
                                         <label for="">Foto Berwarna 4 x 6 <span style="color: red;">*</span></label>
                                         <input type="file" name="foto" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" id="imageInput">
                                         <img src="" style="width: 50%;" id="preview" alt=""><br>
-                                        @error('foto')
-                                            <span class="text-red"  style="color: red;" >{{ $message }}</span>
-                                        @enderror
+                                        <span class="error text-sm text-red-600"></span>
                                     </div>
                                         {{-- <div class="mb-4">
                                             <label for="">Kategori <span style="color: red;">*</span></label>
@@ -263,6 +225,90 @@
 @endphp
 <script>
     @section('script')
+
+        document.getElementById('form-peserta').addEventListener('submit', function(e) {
+        e.preventDefault();
+        $('.error').html("");
+        const form = e.target;
+        const data = new FormData(form);
+        const errors = [];
+
+        const rules = {
+            nama: 'Nama Peserta Wajib Diisi!',
+            jenis_kelamin: 'Jenis Kelamin Wajib Diisi!',
+            golongan_darah: 'Golongan Darah Wajib Diisi!',
+            nik: val => {
+            if (!val) return 'NIK Wajib Diisi!';
+            if (isNaN(val)) return 'NIK Wajib Diisi dengan Angka!';
+            if (val.length > 16) return 'NIK Maksimal 16 digit!';
+            },
+            status: 'Status Wajib Diisi!',
+            tingkatan_sabuk_a: 'Tingkat Wajib Diisi!',
+            tingkatan_sabuk_b: 'Tingkat Wajib Diisi!',
+            tempat: 'Tempat Lahir Wajib Diisi!',
+            tanggal_lahir: 'Tanggal Lahir Wajib Diisi!',
+            alamat: 'Alamat Peserta Wajib Diisi!',
+            telepon: val => {
+            if (!val) return 'Nomor Telepon Peserta Wajib Diisi!';
+            if (isNaN(val)) return 'Nomor Telepon harus angka!';
+            if (val.length > 13) return 'Nomor Telepon tidak boleh melebihi 13 digit!';
+            },
+            berat_badan: 'Berat Badan Peserta Wajib Diisi!',
+            keterangan: 'Keterangan Wajib Diisi!',
+            kabupaten_id: 'Kabupaten Wajib Diisi!',
+            kecamatan_id: 'Kecamatan Wajib Diisi!',
+            kelurahan_id: 'Kelurahan Wajib Diisi!',
+            'kategori_id[]': () => {
+            const select = form.querySelector('[name="kategori_id[]"]');
+            const selected = Array.from(select.options).filter(opt => opt.selected);
+            if (selected.length === 0) return 'Minimal pilih satu kategori!';
+            },
+            foto: file => {
+            if (!file) return 'Foto Peserta Wajib Diisi!';
+            const allowed = ['image/jpeg', 'image/png', 'image/jpg', 'image/svg+xml'];
+            if (!allowed.includes(file.type)) return 'Foto hanya boleh JPEG, PNG, JPG, atau SVG!';
+            if (file.size > 1024 * 1024) return 'Foto tidak boleh lebih dari 1MB, mohon dikompres!';
+            }
+        };
+
+        for (const [field, message] of Object.entries(rules)) {
+            const input = form.querySelector(`[name="${field}"]`);
+            if (typeof message === 'function') {
+                const val = field === 'foto' ? data.get(field) : data.get(field)?.trim();
+                const error = message(val);
+                if (error) {
+                    errors.push(error);
+                    const errorEl = input.closest('.mb-4').querySelector('.error');
+                    if (errorEl) {
+                        errorEl.textContent = error;
+
+                    }
+                }
+            } else {
+                const val = data.get(field);
+                if (!val || (val instanceof File && !val.name)) {
+                    errors.push(message);
+                    const errorEl = input.closest('.mb-4').querySelector('.error');
+                    if (errorEl) {
+                        errorEl.textContent = message;
+                    }
+                }
+            }
+        }
+
+        if (errors.length > 0) {
+            Swal.fire({
+                icon: "error",
+                title: "Oops...",
+                text: "Lengkapi form yang belum terisi!",
+            });
+            return false;
+        }
+
+        // Kalau semua valid → bisa lanjut submit form
+        form.submit();
+        });
+
         function copyText(texts) {
             let text = texts;
             if (navigator.clipboard && navigator.clipboard.writeText) {

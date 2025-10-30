@@ -77,69 +77,69 @@ class HomePageController extends Controller
     }
 
     public function daftarProcess(Request $request) {
-        $validator = Validator::make($request->all(), [
-            'nama' => 'required',
-            'jenis_kelamin'=> 'required',
-            'golongan_darah'=> 'required',
-            'nik'=> 'required|numeric|digits_between:1,16',
-            // 'tingkat'=> 'required',
-            'status'=> 'required',
-            'tingkatan_sabuk_a'=> 'required',
-            'tingkatan_sabuk_b'=> 'required',
+        // $validator = Validator::make($request->all(), [
+        //     'nama' => 'required',
+        //     'jenis_kelamin'=> 'required',
+        //     'golongan_darah'=> 'required',
+        //     'nik'=> 'required|numeric|digits_between:1,16',
+        //     // 'tingkat'=> 'required',
+        //     'status'=> 'required',
+        //     'tingkatan_sabuk_a'=> 'required',
+        //     'tingkatan_sabuk_b'=> 'required',
 
-            'tempat'=> 'required',
-            'tanggal_lahir'=> 'required',
-            'alamat'=> 'required',
-            'telepon'=> 'required|numeric|digits_between:1,13',
-            'berat_badan'=> 'required',
-            'keterangan'=> 'required',
-            'kabupaten_id'=> 'required',
-            'kecamatan_id'=> 'required',
-            'kelurahan_id'=> 'required',
-            'foto'=> 'required|image|mimes:jpeg,png,jpg,svg',
-        ], [
-            'nama.required' => 'Nama Peserta Wajib Diisi!',
-            'jenis_kelamin.required' => 'Jenis Kelamin Wajib Diisi!',
-            'golongan_darah.required' => 'Golongan Darah Wajib Diisi!',
-            'nik.required' => 'NIK Wajib Diisi!',
-            'nik.numeric' => 'NIK Wajib Diisi dengan Angka!',
-            'nik.digits_between' => 'NIK Maksimal 16 digit!',
+        //     'tempat'=> 'required',
+        //     'tanggal_lahir'=> 'required',
+        //     'alamat'=> 'required',
+        //     'telepon'=> 'required|numeric|digits_between:1,13',
+        //     'berat_badan'=> 'required',
+        //     'keterangan'=> 'required',
+        //     'kabupaten_id'=> 'required',
+        //     'kecamatan_id'=> 'required',
+        //     'kelurahan_id'=> 'required',
+        //     'foto'=> 'required|image|mimes:jpeg,png,jpg,svg',
+        // ], [
+        //     'nama.required' => 'Nama Peserta Wajib Diisi!',
+        //     'jenis_kelamin.required' => 'Jenis Kelamin Wajib Diisi!',
+        //     'golongan_darah.required' => 'Golongan Darah Wajib Diisi!',
+        //     'nik.required' => 'NIK Wajib Diisi!',
+        //     'nik.numeric' => 'NIK Wajib Diisi dengan Angka!',
+        //     'nik.digits_between' => 'NIK Maksimal 16 digit!',
 
-            'tingkat.required' => 'Kategori Wajib Diisi!',
-            'tingkatan_sabuk_a.required' => 'Tingkat Wajib Diisi!',
-            'tingkatan_sabuk_b.required' => 'Tingkat Wajib Diisi!',
-            'status.required' => 'Status Wajib Diisi!',
-            'tempat.required' => 'Tempat Lahir Wajib Diisi!',
-            'tanggal_lahir.required' => 'Tanggal Lahir Wajib Diisi!',
-            'alamat.required' => 'Alamat Peserta Wajib Diisi!',
+        //     'tingkat.required' => 'Kategori Wajib Diisi!',
+        //     'tingkatan_sabuk_a.required' => 'Tingkat Wajib Diisi!',
+        //     'tingkatan_sabuk_b.required' => 'Tingkat Wajib Diisi!',
+        //     'status.required' => 'Status Wajib Diisi!',
+        //     'tempat.required' => 'Tempat Lahir Wajib Diisi!',
+        //     'tanggal_lahir.required' => 'Tanggal Lahir Wajib Diisi!',
+        //     'alamat.required' => 'Alamat Peserta Wajib Diisi!',
 
-            'telepon.required' => 'Nomor Telepon Peserta Wajib Diisi!',
-            'telepon.numeric' => 'Nomor Telepon Peserta Wajib Diisi! dengan Angka',
-            'telepon.digits_between' => 'Nomor Telepon Peserta Tidak boleh melebihi 13 digit!',
-            'berat_badan.required' => 'Berat Badan Peserta Wajib Diisi!',
+        //     'telepon.required' => 'Nomor Telepon Peserta Wajib Diisi!',
+        //     'telepon.numeric' => 'Nomor Telepon Peserta Wajib Diisi! dengan Angka',
+        //     'telepon.digits_between' => 'Nomor Telepon Peserta Tidak boleh melebihi 13 digit!',
+        //     'berat_badan.required' => 'Berat Badan Peserta Wajib Diisi!',
 
-            'keterangan.required' => 'Keterangan Wajib Diisi!',
-            'pertandingan_id.required' => 'Pertandingan Wajib Diisi!',
-            'foto.required' => 'Foto Peserta Wajib Diisi!',
-            'foto.max' => 'Foto Peserta tidak boleh sizenya lebih dari 1mb, Mohon dicompres dulu!',
-        ]);
+        //     'keterangan.required' => 'Keterangan Wajib Diisi!',
+        //     'pertandingan_id.required' => 'Pertandingan Wajib Diisi!',
+        //     'foto.required' => 'Foto Peserta Wajib Diisi!',
+        //     'foto.max' => 'Foto Peserta tidak boleh sizenya lebih dari 1mb, Mohon dicompres dulu!',
+        // ]);
 
 
 
-        if ($validator->fails()) {
-            // dd($validator->errors()->keys());
-            return redirect()->back()
-                ->withErrors($validator)
-                ->withInput()
-                ->with('gagal', 'Lengkapi Form yang tidak terisi!');
-        }
+        // if ($validator->fails()) {
+        //     // dd($validator->errors()->keys());
+        //     return redirect()->back()
+        //         ->withErrors($validator)
+        //         ->withInput()
+        //         ->with('gagal', 'Lengkapi Form yang tidak terisi!');
+        // }
 
-        if(!$request->nama_tanding) {
-            return redirect()->back()
-                ->withErrors($validator)
-                ->withInput()
-                ->with('gagal', 'Uratan Komposisi tidak boleh kosong!');
-        }
+        // if(!$request->nama_tanding) {
+        //     return redirect()->back()
+        //         ->withErrors($validator)
+        //         ->withInput()
+        //         ->with('gagal', 'Uratan Komposisi tidak boleh kosong!');
+        // }
 
 
 
