@@ -5,6 +5,7 @@ use App\Http\Controllers\BukuController;
 use App\Http\Controllers\HomePageController;
 use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\KegiatanController;
+use App\Http\Controllers\KontigenController;
 use App\Http\Controllers\PertandinganController;
 use App\Http\Controllers\PesertaController;
 use App\Http\Controllers\UsersController;
@@ -56,9 +57,8 @@ Route::middleware('auth')->group(function () {
     Route::get('pertandingans/{kategori}', [PesertaController::class, 'get_pertandingan']);
     // Route::get('pertandingans/{id}/print', [PertandinganController::class, 'print_no_tanding']);
 
-
-
     Route::resource('peserta', PesertaController::class);
+    Route::resource('kontingen', KontigenController::class);
     Route::get('/pesertas/export', [PesertaController::class, 'export']);
 
     // Route::resource('buku', BukuController::class);
