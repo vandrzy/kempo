@@ -115,7 +115,7 @@
 
                                         <div class="mb-4">
                                             <label for="">NIK <span style="color: red;">*</span></label>
-                                            <input type="text" name="nik" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" value="{{ old('nik') }}" placeholder="NIK" id="">
+                                            <input type="text" name="nik" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" value="{{ old('nik') }}" placeholder="NIK" id=""   onkeypress="return event.charCode >= 48 && event.charCode <= 57" oninput="this.value = this.value.replace(/[^0-9]/g, '');" onkeydown="if(['e','E','+','-','.'].includes(event.key)) event.preventDefault();">
                                             <span class="error text-sm text-red-600"></span>
                                         </div>
 
@@ -126,7 +126,7 @@
                                             <span class="error text-sm text-red-600"></span>
                                         </div>
                                         <div class="mb-4">
-                                            <label for="">Berat Badan <span style="color: red;">*</span></label>
+                                            <label for="">Berat Badan (Kg) <span style="color: red;">*</span></label>
                                             <input type="number" min="0" max="1000" name="berat_badan" placeholder="Berat Badan (Kg)" value="{{ old('berat_badan') }}" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" id="" >
                                             <span class="error text-sm text-red-600"></span>
                                         </div>
@@ -225,88 +225,105 @@
 @endphp
 <script>
     @section('script')
+            document.querySelector('input[name="berat_badan"]').addEventListener('keydown', function(e) {
+            if (['e', 'E', '+', '-', '.'].includes(e.key)) e.preventDefault();
+            });
 
         document.getElementById('form-peserta').addEventListener('submit', function(e) {
         e.preventDefault();
-        $('.error').html("");
-        const form = e.target;
-        const data = new FormData(form);
-        const errors = [];
-
-        const rules = {
-            nama: 'Nama Peserta Wajib Diisi!',
-            jenis_kelamin: 'Jenis Kelamin Wajib Diisi!',
-            golongan_darah: 'Golongan Darah Wajib Diisi!',
-            nik: val => {
-            if (!val) return 'NIK Wajib Diisi!';
-            if (isNaN(val)) return 'NIK Wajib Diisi dengan Angka!';
-            if (val.length > 16) return 'NIK Maksimal 16 digit!';
-            },
-            status: 'Status Wajib Diisi!',
-            tingkatan_sabuk_a: 'Tingkat Wajib Diisi!',
-            tingkatan_sabuk_b: 'Tingkat Wajib Diisi!',
-            tempat: 'Tempat Lahir Wajib Diisi!',
-            tanggal_lahir: 'Tanggal Lahir Wajib Diisi!',
-            alamat: 'Alamat Peserta Wajib Diisi!',
-            telepon: val => {
-            if (!val) return 'Nomor Telepon Peserta Wajib Diisi!';
-            if (isNaN(val)) return 'Nomor Telepon harus angka!';
-            if (val.length > 13) return 'Nomor Telepon tidak boleh melebihi 13 digit!';
-            },
-            berat_badan: 'Berat Badan Peserta Wajib Diisi!',
-            keterangan: 'Keterangan Wajib Diisi!',
-            kabupaten_id: 'Kabupaten Wajib Diisi!',
-            kecamatan_id: 'Kecamatan Wajib Diisi!',
-            kelurahan_id: 'Kelurahan Wajib Diisi!',
-            'kategori_id[]': () => {
-            const select = form.querySelector('[name="kategori_id[]"]');
-            const selected = Array.from(select.options).filter(opt => opt.selected);
-            if (selected.length === 0) return 'Minimal pilih satu kategori!';
-            },
-            foto: file => {
-            if (!file) return 'Foto Peserta Wajib Diisi!';
-            const allowed = ['image/jpeg', 'image/png', 'image/jpg', 'image/svg+xml'];
-            if (!allowed.includes(file.type)) return 'Foto hanya boleh JPEG, PNG, JPG, atau SVG!';
-            if (file.size > 1024 * 1024) return 'Foto tidak boleh lebih dari 1MB, mohon dikompres!';
-            }
-        };
-
-        for (const [field, message] of Object.entries(rules)) {
-            const input = form.querySelector(`[name="${field}"]`);
-            if (typeof message === 'function') {
-                const val = field === 'foto' ? data.get(field) : data.get(field)?.trim();
-                const error = message(val);
-                if (error) {
-                    errors.push(error);
-                    const errorEl = input.closest('.mb-4').querySelector('.error');
-                    if (errorEl) {
-                        errorEl.textContent = error;
-
-                    }
-                }
-            } else {
-                const val = data.get(field);
-                if (!val || (val instanceof File && !val.name)) {
-                    errors.push(message);
-                    const errorEl = input.closest('.mb-4').querySelector('.error');
-                    if (errorEl) {
-                        errorEl.textContent = message;
-                    }
-                }
-            }
-        }
-
-        if (errors.length > 0) {
             Swal.fire({
-                icon: "error",
-                title: "Oops...",
-                text: "Lengkapi form yang belum terisi!",
-            });
-            return false;
-        }
+                title: 'Yakin ingin mendaftar?',
+                text: "Pastikan data sudah benar sebelum melanjutkan!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#16a34a', // hijau
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Ya, daftar sekarang!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $('.error').html("");
+                    const form = e.target;
+                    const data = new FormData(form);
+                    const errors = [];
 
-        // Kalau semua valid → bisa lanjut submit form
-        form.submit();
+                    const rules = {
+                        nama: 'Nama Peserta Wajib Diisi!',
+                        jenis_kelamin: 'Jenis Kelamin Wajib Diisi!',
+                        golongan_darah: 'Golongan Darah Wajib Diisi!',
+                        nik: val => {
+                        if (!val) return 'NIK Wajib Diisi!';
+                        if (isNaN(val)) return 'NIK Wajib Diisi dengan Angka!';
+                        if (val.length > 16) return 'NIK Maksimal 16 digit!';
+                        },
+                        status: 'Status Wajib Diisi!',
+                        tingkatan_sabuk_a: 'Tingkat Wajib Diisi!',
+                        tingkatan_sabuk_b: 'Tingkat Wajib Diisi!',
+                        tempat: 'Tempat Lahir Wajib Diisi!',
+                        tanggal_lahir: 'Tanggal Lahir Wajib Diisi!',
+                        alamat: 'Alamat Peserta Wajib Diisi!',
+                        telepon: val => {
+                        if (!val) return 'Nomor Telepon Peserta Wajib Diisi!';
+                        if (isNaN(val)) return 'Nomor Telepon harus angka!';
+                        if (val.length > 13) return 'Nomor Telepon tidak boleh melebihi 13 digit!';
+                        },
+                        berat_badan: 'Berat Badan Peserta Wajib Diisi!',
+                        keterangan: 'Keterangan Wajib Diisi!',
+                        kabupaten_id: 'Kabupaten Wajib Diisi!',
+                        kecamatan_id: 'Kecamatan Wajib Diisi!',
+                        kelurahan_id: 'Kelurahan Wajib Diisi!',
+                        'kategori_id[]': () => {
+                        const select = form.querySelector('[name="kategori_id[]"]');
+                        const selected = Array.from(select.options).filter(opt => opt.selected);
+                        if (selected.length === 0) return 'Minimal pilih satu kategori!';
+                        },
+                        foto: file => {
+                        if (!file) return 'Foto Peserta Wajib Diisi!';
+                        const allowed = ['image/jpeg', 'image/png', 'image/jpg', 'image/svg+xml'];
+                        if (!allowed.includes(file.type)) return 'Foto hanya boleh JPEG, PNG, JPG, atau SVG!';
+                        if (file.size > 1024 * 1024) return 'Foto tidak boleh lebih dari 1MB, mohon dikompres!';
+                        }
+                    };
+
+                    for (const [field, message] of Object.entries(rules)) {
+                        const input = form.querySelector(`[name="${field}"]`);
+                        if (typeof message === 'function') {
+                            const val = field === 'foto' ? data.get(field) : data.get(field)?.trim();
+                            const error = message(val);
+                            if (error) {
+                                errors.push(error);
+                                const errorEl = input.closest('.mb-4').querySelector('.error');
+                                if (errorEl) {
+                                    errorEl.textContent = error;
+
+                                }
+                            }
+                        } else {
+                            const val = data.get(field);
+                            if (!val || (val instanceof File && !val.name)) {
+                                errors.push(message);
+                                const errorEl = input.closest('.mb-4').querySelector('.error');
+                                if (errorEl) {
+                                    errorEl.textContent = message;
+                                }
+                            }
+                        }
+                    }
+
+                    if (errors.length > 0) {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Oops...",
+                            text: "Lengkapi form yang belum terisi!",
+                        });
+                        return false;
+                    }
+
+                    // Kalau semua valid → bisa lanjut submit form
+                    form.submit();
+                }
+            });
+
         });
 
         function copyText(texts) {

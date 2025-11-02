@@ -43,9 +43,10 @@
                 <table class="items-center w-full mb-0 align-top border-collapse dark:border-white/40 text-slate-500">
                 <thead class="align-bottom">
                     <tr>
-                                    <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-4xl border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">No</th>
-                                    <th class="px-6 py-3 pl-2 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-3xl border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Nama Pertandingan</th>
-                                    <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-3xl border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Aksi</th>
+                            <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-4xl border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">No</th>
+                            <th class="px-6 py-3 pl-2 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-3xl border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Nama Pertandingan</th>
+                            <th class="px-6 py-3 pl-2 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-3xl border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Jumlah Peserta terdaftar</th>
+                            <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-3xl border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -61,14 +62,14 @@
                             $kategori_id = $a->kategori_id;
                         @endphp
                         <tr>
-                            <th class="px-6 py-4 border-b" style="text-align: left;" colspan="3">{{ $a->kategori->nama }}</th>
+                            <th class="px-6 py-4 border-b" style="text-align: left;" colspan="4">{{ $a->kategori->nama }}</th>
                         </tr>
                         @if ($a->pertandingan->jenis_kelamin != $jenis_kelamin)
                             @php
                                 $jenis_kelamin = $a->pertandingan->jenis_kelamin;
                             @endphp
                             <tr>
-                                <th class="px-6 py-4 border-b" style="text-align: left;" colspan="3">- {{ $jenis_kelamin ?? "Campuran" }}</th>
+                                <th class="px-6 py-4 border-b" style="text-align: left;" colspan="4">- {{ $jenis_kelamin ?? "Campuran" }}</th>
                                 {{-- <th class="px-6 py-4 border-b" style="text-align: center;">{{ $a->totalEmasPerJenisKelamin($kategori_id, $jenis_kelamin)->total_emas }}</th>
                                 <th class="px-6 py-4 border-b" style="text-align: center;">{{ $a->totalEmasPerJenisKelamin($kategori_id, $jenis_kelamin)->total_perak }}</th>
                                 <th class="px-6 py-4 border-b" style="text-align: center;">{{ $a->totalEmasPerJenisKelamin($kategori_id, $jenis_kelamin)->total_perunggu }}</th>
@@ -78,6 +79,7 @@
                         <tr>
                             <td class="px-6 py-4 border-b">{{ $loop->iteration }}</td>
                             <td class="px-6 py-4 border-b">{{ $a->pertandingan->nama }}</td>
+                            <td class="px-6 py-4 border-b">{{ $a->list_kategori->count() }} Peserta</td>
                             {{-- <td class="px-6 py-4 border-b">{{ $jenis_kelamin }}</td> --}}
                             {{-- <td class="text-center px-6 py-4 border-b">{{ $a->emas }}</td>
                             <td class="text-center px-6 py-4 border-b">{{ $a->perak }}</td>
@@ -102,7 +104,7 @@
                                 // dd($a->totalEmasPerJenisKelamin($kategori_id, $jenis_kelamin)->total_emas );
                             @endphp
                             <tr>
-                                <th class="px-6 py-4 border-b" style="text-align: left;" colspan="3">- {{ $jenis_kelamin ?? 'Campuran' }}</th>
+                                <th class="px-6 py-4 border-b" style="text-align: left;" colspan="4">- {{ $jenis_kelamin ?? 'Campuran' }}</th>
                                 {{-- <th class="px-6 py-4 border-b" style="text-align: center;">{{ $a->totalEmasPerJenisKelamin($kategori_id, $jenis_kelamin)->total_emas ?? '0' }}</th>
                                 <th class="px-6 py-4 border-b" style="text-align: center;">{{ $a->totalEmasPerJenisKelamin($kategori_id, $jenis_kelamin)->total_perak ?? '0' }}</th>
                                 <th class="px-6 py-4 border-b" style="text-align: center;">{{ $a->totalEmasPerJenisKelamin($kategori_id, $jenis_kelamin)->total_perunggu ?? '0' }}</th>
@@ -112,6 +114,7 @@
                         <tr>
                             <td class="px-6 py-4 border-b">{{ $loop->iteration }}</td>
                             <td class="px-6 py-4 border-b">{{ $a->pertandingan->nama }}</td>
+                            <td class="px-6 py-4 border-b">{{ $a->list_kategori->count() }} Peserta</td>
                             {{-- <td class="px-6 py-4 border-b">{{ $jenis_kelamin }}</td> --}}
                             {{-- <td class="text-center px-6 py-4 border-b">{{ $a->emas }}</td>
                             <td class="text-center px-6 py-4 border-b">{{ $a->perak }}</td>

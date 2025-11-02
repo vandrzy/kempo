@@ -120,7 +120,7 @@ class PertandinganController extends Controller
         $data['peserta_ready'] = PertandinganPeserta::where('sudah_terpilih', 'false')->where('kegiatan_id', $_GET['kegiatan_id'])->where('list_kategori_id', $id)->count();
         $data['peserta_lawan'] = PesertaTerpilih::where('list_kategori_id', $id)->where('kegiatan_id', $_GET['kegiatan_id'])->paginate(10);
         // $data['pertandingan'] = Pertandingan::find($id);
-        // $data['kegiatan'] = Kegiatan::find($_GET['kegiatan_id']);
+        // $data['kegiatan'] = Kegiatan::find($_GET['kegiatan_id']);s
 
         $data['pertandingan'] = ListKategori::where('id', $id)->first();
         return view('admin.pertandingan.tanding', $data);

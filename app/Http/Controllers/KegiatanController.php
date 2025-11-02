@@ -99,8 +99,17 @@ class KegiatanController extends Controller
 
         $data['kegiatan'] = Kegiatan::find($id);
 
+
+
         $data['kategori'] = ListKategori::select('kategori_id', DB::raw('count(*) as total'))->where('kegiatan_id', $id)->groupBy('kategori_id')->get();
-        $data['pertandingan'] = ListKategori::where('kegiatan_id', $id)->orderBy('kategori_id','ASC')->paginate(10);
+
+        if(isset($_GET['kategori_id'])) {
+            $data['pertandingan'] = ListKategori::where('kegiatan_id', $id)->where('kategori_id', $_GET['kategori_id'])->orderBy('kategori_id','ASC')->paginate(10);
+        } else {
+            $data['pertandingan'] = ListKategori::where('kegiatan_id', $id)->orderBy('kategori_id','ASC')->paginate(10);
+        }
+
+
 
         // dd($data['kategori']);
         // dd($data['kategori']);

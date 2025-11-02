@@ -23,4 +23,8 @@ class ListKategori extends Model
     {
         return $this->belongsTo(Pertandingan::class);
     }
+
+    public function list_kategori() {
+        return $this->hasMany(PertandinganPeserta::class);
+    }
 }
