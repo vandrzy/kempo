@@ -511,7 +511,7 @@
 
             $('.kategori_show').html('');
             $('.kategori_pertandingan_show').html('');
-            for(var i = 0; i < $(this).val().length; i++) {
+            for(var i = 0; i < $("#kategori_id").val().length; i++) {
                 AmbilDataPertandinganKategori($('#tanggal_lahir').val(), $('#jenis_kelamin').val(), $('#kegiatan_id').val(), $("#kategori_id").val()[i]);
             }
             // AmbilDataPertandingan($('#tanggal_lahir').val(), $('#jenis_kelamin').val(), $('#kegiatan_id').val());
