@@ -628,8 +628,8 @@
 
 
             // console.log()
-            if (selected && selected.length > 3) {
-                alert('Maksimal hanya bisa memilih 3 Pertandingan!');
+            if (selected && selected.length > 4) {
+                alert('Maksimal hanya bisa memilih 4 Pertandingan!');
                 // $('#pertandingan_id').val(null).trigger('change');
                 $(this).val(pertandingan_choose[$(this).attr('kategori_id')]).trigger('change');
                 return; // stop function
