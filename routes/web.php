@@ -59,6 +59,9 @@ Route::middleware('auth')->group(function () {
 
     Route::resource('peserta', PesertaController::class);
     Route::resource('kontingen', KontigenController::class);
+
+
+
     Route::get('/pesertas/export', [PesertaController::class, 'export']);
 
     // Route::resource('buku', BukuController::class);

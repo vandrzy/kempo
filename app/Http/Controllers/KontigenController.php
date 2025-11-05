@@ -38,7 +38,13 @@ class KontigenController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $data['kabupaten'] = Kabupaten::find($id);
+        $data['peserta'] = $data['kabupaten']->peserta()
+            ->whereHas('PertandinganPeserta', function($q) {
+                $q->whereHas('list_kategori');
+            })
+            ->paginate(10);
+        return view('admin.kontigen.peserta', $data);
     }
 
     /**
