@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Kabupaten;
 use App\Models\Kategori;
 use App\Models\Kegiatan;
 use App\Models\ListKategori;
@@ -121,8 +122,23 @@ class PertandinganController extends Controller
         $data['peserta_lawan'] = PesertaTerpilih::where('list_kategori_id', $id)->where('kegiatan_id', $_GET['kegiatan_id'])->paginate(10);
         // $data['pertandingan'] = Pertandingan::find($id);
         // $data['kegiatan'] = Kegiatan::find($_GET['kegiatan_id']);s
-
+        // dd("las");
         $data['pertandingan'] = ListKategori::where('id', $id)->first();
+        $data['kabupaten'] = PertandinganPeserta::with('Peserta.kabupaten')->where('list_kategori_id', $id)->get()->groupBy(function ($item) {
+            return $item->Peserta->kabupaten_id;
+        });
+
+        if(isset($_GET['kabupaten_id']) && $_GET['kabupaten_id'] != "") {
+            $data['kabupaten_first'] = Kabupaten::find($_GET['kabupaten_id']);
+            $kabupaten_id = $data['kabupaten_first']->id;
+            $data['peserta'] = PertandinganPeserta::wherehas('Peserta', function($q) use ($kabupaten_id) {
+                $q->where('kabupaten_id', $kabupaten_id);
+            })->where('list_kategori_id', $id)->get();
+            // dd($data['peserta']);
+
+        }
+        // dd($data['kabupaten']);
+
         return view('admin.pertandingan.tanding', $data);
     }
 
@@ -146,6 +162,7 @@ class PertandinganController extends Controller
             $terpilih = 0;
             $listKategori = ListKategori::find($id);
             $pertandinganPertama = PertandinganPeserta::where('sudah_terpilih', 'false')->where('list_kategori_id', $id)->inRandomOrder()->first();
+            // dd($pertandinganPertama->Peserta);
             if ($pertandinganPertama) {
                 $pertandinganPertama->update(['sudah_terpilih' => 'true']);
                 $terpilih += 1;
@@ -156,7 +173,16 @@ class PertandinganController extends Controller
                 break;
             }
 
-            $pertandinganKedua = PertandinganPeserta::where('sudah_terpilih', 'false')->where('list_kategori_id', $id)->inRandomOrder()->first();
+            // while(true) {
+            //     if($pertandinganKedua->Peserta->kabupaten_id != $pertandinganPertama->Peserta->kabupaten_id) {
+            //         break;
+            //     }
+            // }
+            $pertandinganKedua = PertandinganPeserta::whereHas('Peserta', function($q) use ($pertandinganPertama) {
+                $q->where('kabupaten_id','<>', $pertandinganPertama->Peserta->kabupaten_id);
+            })->where('sudah_terpilih', 'false')->where('list_kategori_id', $id)->inRandomOrder()->first();
+
+
             if ($pertandinganKedua) {
                 $pertandinganKedua->update(['sudah_terpilih' => 'true']);
                 $terpilih += 1;
