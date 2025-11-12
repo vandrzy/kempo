@@ -60,6 +60,60 @@ class HomePageController extends Controller
         return view('pengunjung.dashboard', $data);
     }
 
+    public function teknik_input($id) {
+        $peserta_id = explode('-', $id);
+
+        $data['peserta'] = Peserta::find(base64_decode($peserta_id[1]));
+
+        $tahun = old('tanggal_lahir');
+        $kelamin = old('jenis_kelamin');
+        $data['peserta_id'] = $id;
+
+
+        return view('pengunjung.teknik', $data);
+    }
+
+    public function teknik_process(Request $request, $id) {
+            foreach($request->pertandingan_peserta_id as $a => $index) {
+                if($request->komposisi_id[$a] == "") {
+                    // dd($request->nama_tanding[$a]);
+
+                    $UKP = new UrutanKomposisiPeserta();
+                    $UKP->pertandingan_peserta_id = $index;
+                    $UKP->nama = $request->nama_tanding[$a] ?? "-";
+                    $UKP->tingkat = $request->tingkat_tanding[$a] ?? "-";
+                    $deskripsiUKP = "";
+                    foreach($request->urutan_tanding[$a] as $b) {
+                        if($b != "") {
+                            $deskripsiUKP .= ($b ?? "-").",";
+                        }
+                    }
+                    $UKP->urutan_komposisi = $deskripsiUKP;
+                    $UKP->save();
+                } else {
+                    // dd($request->komposisi_id[$a]);
+                    $UKP = UrutanKomposisiPeserta::find($request->komposisi_id[$a]);
+                    $UKP->pertandingan_peserta_id = $index;
+                    $UKP->nama = $request->nama_tanding[$a] ?? "-";
+                    $UKP->tingkat = $request->tingkat_tanding[$a] ?? "-";
+                    $deskripsiUKP = "";
+
+                    // dd($request->urutan_tanding);
+                    foreach($request->urutan_tanding[$a] as $b) {
+                        if($b != "") {
+                            $deskripsiUKP .= ($b ?? "-").",";
+                        }
+                    }
+                    $UKP->urutan_komposisi = $deskripsiUKP;
+                    $UKP->save();
+                }
+
+            }
+
+
+            return back()->with('success', 'Tahapan Teknik berhasil diinput');
+    }
+
     public function getWilayah($type, $id) {
 
         if($type == "kabupaten_id") {
@@ -214,7 +268,9 @@ class HomePageController extends Controller
                 $UKP->tingkat = $request->tingkat_tanding[$a] ?? "-";
                 $deskripsiUKP = "";
                 foreach($request->urutan_tanding[$a] as $b) {
-                    $deskripsiUKP .= $b ?? "-".",";
+                    if($b != "") {
+                        $deskripsiUKP .= ($b ?? "-").",";
+                    }
                 }
                 $UKP->urutan_komposisi = $deskripsiUKP;
                 $UKP->save();

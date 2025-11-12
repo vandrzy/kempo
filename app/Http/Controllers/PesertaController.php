@@ -309,7 +309,9 @@ class PesertaController extends Controller
                 $UKP->tingkat = $request->tingkat_tanding[$a] ?? "-";
                 $deskripsiUKP = "";
                 foreach($request->urutan_tanding[$a] as $b) {
-                    $deskripsiUKP .= ($b ?? "").",";
+                    if($b != "") {
+                        $deskripsiUKP .= ($b ?? "-").",";
+                    }
                 }
                 $UKP->urutan_komposisi = $deskripsiUKP;
                 $UKP->save();

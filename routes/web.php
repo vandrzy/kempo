@@ -38,6 +38,10 @@ Route::middleware('guest')->group(function () {
 
 Route::get('/getWilayah/{wilayah}/{id}', [HomePageController::class, 'getWilayah']);
 Route::get('/pendaftaran/{id}/daftar', [HomePageController::class, 'index']);
+Route::get('/teknik/{id}', [HomePageController::class, 'teknik_input']);
+Route::post('/teknik/{id}', [HomePageController::class, 'teknik_process']);
+
+
 Route::get('pendaftarans/{tanggal_lahir}/{jenis_kelamin}', [PertandinganController::class, 'get_pertandingan']);
 
 Route::middleware('auth')->group(function () {
