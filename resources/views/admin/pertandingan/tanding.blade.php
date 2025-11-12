@@ -107,95 +107,125 @@
                         @else
 
                             <h4 class="pl-3">Peserta tersedia : {{ $peserta_ready }}</h4>
-                            <table class="items-center w-full ">
-                                <thead class="align-bottom">
-                                    <tr>
-                                        <th rowspan="2" style="text-align: center;" class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-3xl border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">No</th>
-                                        <th rowspan="2" style="text-align: center;" class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-3xl border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Kabupaten</th>
-                                        <th rowspan="2" style="text-align: center" class="px-6 py-3 pl-2 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-3xl border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Nama</th>
-                                        <th colspan="2" style="text-align: center" class="px-6 py-3 pl-2 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-3xl border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Tingkat</th>
-                                        <th rowspan="2" style="text-align: center" class="px-6 py-3 pl-2 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-3xl border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Kelas</th>
-                                        <th rowspan="2" style="text-align: center" class="px-6 py-3 pl-2 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-3xl border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Berat Badan</th>
-                                    </tr>
-                                    <tr>
-                                        <th style="text-align: center" class="px-6 py-3 pl-2 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-3xl border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">KYU</th>
-                                        <th style="text-align: center" class="px-6 py-3 pl-2 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-3xl border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">DAN</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-
-                                    @foreach ($peserta_lawan as $a)
+                            @if($peserta_ready > 0)
+                                <table class="items-center w-full ">
+                                    <thead class="align-bottom">
                                         <tr>
-                                            <td style="text-align: center" class="text-center align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-                                                <h6 class="mb-0 text-sm leading-normal pl-4" style="color: green;">{{ $a->PertandinganPesertaPertama->urutan }}</h6>
-                                            </td>
-                                            <td style="text-align: center" class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-                                                <p class="mb-0 text-3xl font-semibold leading-tight dark:text-white dark:opacity-80" style="color: green;">{{ $a->PertandinganPesertaPertama->Peserta->kabupaten->name ?? "" }} </p>
-                                            </td>
-                                            <td style="text-align: center" class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-                                                <p class="mb-0 text-3xl font-semibold leading-tight dark:text-white dark:opacity-80" style="color: green;">{{ $a->PertandinganPesertaPertama->Peserta->nama }} </p>
-                                            </td>
-                                            <td style="text-align: center" class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-                                                <p class="mb-0 text-3xl font-semibold leading-tight dark:text-white dark:opacity-80" style="color: green;">{{ strtoupper(substr($a->PertandinganPesertaPertama->Peserta->tingkatan_sabuk , 0, 1)) == "K" ? "V" : ''}}</p>
-                                            </td>
-                                            <td style="text-align: center" class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-                                                <p class="mb-0 text-3xl font-semibold leading-tight dark:text-white dark:opacity-80" style="color: green;">{{ strtoupper(substr($a->PertandinganPesertaPertama->Peserta->tingkatan_sabuk , 0, 1)) == "D" ? 'V' : ''}}</p>
-                                            </td>
-                                            <td style="text-align: center" class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-                                                <p class="mb-0 text-3xl font-semibold leading-tight dark:text-white dark:opacity-80" style="color: green;">{{ $a->PertandinganPesertaPertama->Peserta->PertandinganPesertaUtama->list_kategori->pertandingan->kelas }}</p>
-                                            </td>
+                                            <th colspan="1" style="text-align: left;" class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-3xl border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Kabupaten</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach ($kabupaten as $kabId => $items)
+                                            @php
+                                                $kabupatenId = optional($items->first()->Peserta->Kabupaten)->id;
+                                                $kabupatenName = optional($items->first()->Peserta->Kabupaten)->name;
+                                                $kabupatenTotalPeserta = $items->count();
+                                            @endphp
 
-
-                                            <td style="text-align: center" class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-                                                <p class="mb-0 text-3xl font-semibold leading-tight dark:text-white dark:opacity-80" style="color: green;">{{ $a->PertandinganPesertaPertama->Peserta->berat_badan }} Kg</p>
-                                            </td>
+                                            @if ($kabupatenName)
+                                                <tr>
+                                                    <td style="text-align: left" class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
+                                                        <p class="mb-0 text-3xl font-semibold leading-tight dark:text-white dark:opacity-80" style="color: green;">{{ $kabupatenName ?? 'Tanpa Kabupaten' }} : {{ $kabupatenTotalPeserta  }} Peserta</p>
+                                                    </td>
+                                                    {{-- <td style="text-align: left" class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
+                                                        <p class="mb-0 text-3xl font-semibold leading-tight dark:text-white dark:opacity-80" style="color: green;"></p>
+                                                    </td> --}}
+                                                </tr>
+                                            @endif
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            @else
+                                <table class="items-center w-full ">
+                                    <thead class="align-bottom">
+                                        <tr>
+                                            <th rowspan="2" style="text-align: center;" class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-3xl border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">No</th>
+                                            <th rowspan="2" style="text-align: center;" class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-3xl border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Kabupaten</th>
+                                            <th rowspan="2" style="text-align: center" class="px-6 py-3 pl-2 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-3xl border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Nama</th>
+                                            <th colspan="2" style="text-align: center" class="px-6 py-3 pl-2 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-3xl border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Tingkat</th>
+                                            <th rowspan="2" style="text-align: center" class="px-6 py-3 pl-2 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-3xl border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Kelas</th>
+                                            <th rowspan="2" style="text-align: center" class="px-6 py-3 pl-2 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-3xl border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Berat Badan</th>
                                         </tr>
                                         <tr>
-                                            <td style="text-align: center" class="text-center align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-                                                <h6 class="mb-0 text-sm leading-normal pl-4 " style="color: blue;">{{ @$a->PertandinganPesertaKedua->urutan ?? 0 }}</h6>
-                                            </td>
-                                            <td style="text-align: center" class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-                                                <p class="mb-0 text-3xl font-semibold leading-tight dark:text-white dark:opacity-80" style="color: blue;">{{ $a->PertandinganPesertaKedua->Peserta->kabupaten->name ?? "" }}</p>
-                                            </td>
-                                            <td style="text-align: center" class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-                                                <p class="mb-0 text-3xl font-semibold leading-tight dark:text-white dark:opacity-80" style="color: blue;">{{ @$a->PertandinganPesertaKedua->Peserta->nama ?? "WO" }}</p>
-                                            </td>
-                                            <td style="text-align: center" class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-                                                <p class="mb-0 text-3xl font-semibold leading-tight dark:text-white dark:opacity-80" style="color: blue;">{{ strtoupper(substr(@$a->PertandinganPesertaKedua->Peserta->tingkatan_sabuk , 0, 1)) == "K" ? "V" : ''}}</p>
-                                            </td>
-                                            <td style="text-align: center" class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-                                                <p class="mb-0 text-3xl font-semibold leading-tight dark:text-white dark:opacity-80" style="color: blue;">{{ strtoupper(substr(@$a->PertandinganPesertaKedua->Peserta->tingkatan_sabuk , 0, 1)) == "D" ? 'V' : ''}}</p>
-                                            </td>
-                                            <td style="text-align: center" class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-                                                <p class="mb-0 text-3xl font-semibold leading-tight dark:text-white dark:opacity-80" style="color: blue;">{{ @$a->PertandinganPesertaKedua->Peserta->PertandinganPesertaUtama->list_kategori->pertandingan->kelas ?? ""}}</p>
-                                            </td>
-
-
-                                            <td style="text-align: center" class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-                                                <p class="mb-0 text-3xl font-semibold leading-tight dark:text-white dark:opacity-80" style="color: blue;">{{ @$a->PertandinganPesertaKedua->Peserta->berat_badan ?? ""}} Kg</p>
-                                            </td>
+                                            <th style="text-align: center" class="px-6 py-3 pl-2 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-3xl border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">KYU</th>
+                                            <th style="text-align: center" class="px-6 py-3 pl-2 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-3xl border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">DAN</th>
                                         </tr>
-                                        {{-- <div style="background-color: rgb(237, 162, 162); color: black;" class="bg-red-100 p-2 rounded shadow w-40 text-center">{{ $a->PertandinganPesertaPertama->urutan }} | {{ $a->PertandinganPesertaPertama->Peserta->nama }}</div>
-                                        <div style="background-color: rgb(116, 202, 234); color: black;" class="bg-blue-100 p-2 rounded shadow w-40 text-center">{{ $a->PertandinganPesertaKedua->urutan ?? '0' }} | {{ $a->PertandinganPesertaKedua->Peserta->nama ?? 'WO' }}</div> --}}
-                                    @endforeach
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody>
 
-                            <div class="overflow-x-auto">
+                                        @foreach ($peserta_lawan as $a)
+                                            <tr>
+                                                <td style="text-align: center" class="text-center align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
+                                                    <h6 class="mb-0 text-sm leading-normal pl-4" style="color: green;">{{ $a->PertandinganPesertaPertama->urutan }}</h6>
+                                                </td>
+                                                <td style="text-align: center" class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
+                                                    <p class="mb-0 text-3xl font-semibold leading-tight dark:text-white dark:opacity-80" style="color: green;">{{ $a->PertandinganPesertaPertama->Peserta->kabupaten->name ?? "" }} </p>
+                                                </td>
+                                                <td style="text-align: center" class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
+                                                    <p class="mb-0 text-3xl font-semibold leading-tight dark:text-white dark:opacity-80" style="color: green;">{{ $a->PertandinganPesertaPertama->Peserta->nama }} </p>
+                                                </td>
+                                                <td style="text-align: center" class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
+                                                    <p class="mb-0 text-3xl font-semibold leading-tight dark:text-white dark:opacity-80" style="color: green;">{{ strtoupper(substr($a->PertandinganPesertaPertama->Peserta->tingkatan_sabuk , 0, 1)) == "K" ? "V" : ''}}</p>
+                                                </td>
+                                                <td style="text-align: center" class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
+                                                    <p class="mb-0 text-3xl font-semibold leading-tight dark:text-white dark:opacity-80" style="color: green;">{{ strtoupper(substr($a->PertandinganPesertaPertama->Peserta->tingkatan_sabuk , 0, 1)) == "D" ? 'V' : ''}}</p>
+                                                </td>
+                                                <td style="text-align: center" class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
+                                                    <p class="mb-0 text-3xl font-semibold leading-tight dark:text-white dark:opacity-80" style="color: green;">{{ $a->PertandinganPesertaPertama->Peserta->PertandinganPesertaUtama->list_kategori->pertandingan->kelas }}</p>
+                                                </td>
 
-                                <div class="flex gap-8 p-6 overflow-x-auto bg-white">
 
-                                    <div class="flex flex-col justify-between gap-6">
+                                                <td style="text-align: center" class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
+                                                    <p class="mb-0 text-3xl font-semibold leading-tight dark:text-white dark:opacity-80" style="color: green;">{{ $a->PertandinganPesertaPertama->Peserta->berat_badan }} Kg</p>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="text-align: center" class="text-center align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
+                                                    <h6 class="mb-0 text-sm leading-normal pl-4 " style="color: blue;">{{ @$a->PertandinganPesertaKedua->urutan ?? 0 }}</h6>
+                                                </td>
+                                                <td style="text-align: center" class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
+                                                    <p class="mb-0 text-3xl font-semibold leading-tight dark:text-white dark:opacity-80" style="color: blue;">{{ $a->PertandinganPesertaKedua->Peserta->kabupaten->name ?? "" }}</p>
+                                                </td>
+                                                <td style="text-align: center" class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
+                                                    <p class="mb-0 text-3xl font-semibold leading-tight dark:text-white dark:opacity-80" style="color: blue;">{{ @$a->PertandinganPesertaKedua->Peserta->nama ?? "WO" }}</p>
+                                                </td>
+                                                <td style="text-align: center" class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
+                                                    <p class="mb-0 text-3xl font-semibold leading-tight dark:text-white dark:opacity-80" style="color: blue;">{{ strtoupper(substr(@$a->PertandinganPesertaKedua->Peserta->tingkatan_sabuk , 0, 1)) == "K" ? "V" : ''}}</p>
+                                                </td>
+                                                <td style="text-align: center" class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
+                                                    <p class="mb-0 text-3xl font-semibold leading-tight dark:text-white dark:opacity-80" style="color: blue;">{{ strtoupper(substr(@$a->PertandinganPesertaKedua->Peserta->tingkatan_sabuk , 0, 1)) == "D" ? 'V' : ''}}</p>
+                                                </td>
+                                                <td style="text-align: center" class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
+                                                    <p class="mb-0 text-3xl font-semibold leading-tight dark:text-white dark:opacity-80" style="color: blue;">{{ @$a->PertandinganPesertaKedua->Peserta->PertandinganPesertaUtama->list_kategori->pertandingan->kelas ?? ""}}</p>
+                                                </td>
 
 
+                                                <td style="text-align: center" class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
+                                                    <p class="mb-0 text-3xl font-semibold leading-tight dark:text-white dark:opacity-80" style="color: blue;">{{ @$a->PertandinganPesertaKedua->Peserta->berat_badan ?? ""}} Kg</p>
+                                                </td>
+                                            </tr>
+                                            {{-- <div style="background-color: rgb(237, 162, 162); color: black;" class="bg-red-100 p-2 rounded shadow w-40 text-center">{{ $a->PertandinganPesertaPertama->urutan }} | {{ $a->PertandinganPesertaPertama->Peserta->nama }}</div>
+                                            <div style="background-color: rgb(116, 202, 234); color: black;" class="bg-blue-100 p-2 rounded shadow w-40 text-center">{{ $a->PertandinganPesertaKedua->urutan ?? '0' }} | {{ $a->PertandinganPesertaKedua->Peserta->nama ?? 'WO' }}</div> --}}
+                                        @endforeach
+                                    </tbody>
+                                </table>
+
+                                <div class="overflow-x-auto">
+
+                                    <div class="flex gap-8 p-6 overflow-x-auto bg-white">
+
+                                        <div class="flex flex-col justify-between gap-6">
+
+
+
+                                        </div>
+                                        <div class="d-flex justify-content-center">
+                                            {{ $peserta_lawan->withQueryString()->links('vendor.pagination.tailwind') }}
+                                        </div>
 
                                     </div>
-                                    <div class="d-flex justify-content-center">
-                                        {{ $peserta_lawan->withQueryString()->links('vendor.pagination.tailwind') }}
-                                    </div>
-
                                 </div>
-                            </div>
+                            @endif
 
                         @endif
                 </div>

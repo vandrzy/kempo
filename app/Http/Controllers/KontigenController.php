@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Kabupaten;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 
 class KontigenController extends Controller
@@ -53,6 +54,16 @@ class KontigenController extends Controller
     public function edit(string $id)
     {
         //
+        $data['kabupaten'] = Kabupaten::find($id);
+        $data['peserta'] = $data['kabupaten']->peserta()
+            ->whereHas('PertandinganPeserta', function($q) {
+                $q->whereHas('list_kategori');
+            })
+            ->get();
+        $pdf = Pdf::loadView('admin.kontigen.print', $data);
+
+        // 🟢 Tampilkan langsung di browser
+        return $pdf->download('Data_Peserta_Kontigen_'.$data['kabupaten']->name.'.pdf');
     }
 
     /**

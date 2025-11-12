@@ -3,13 +3,20 @@
 namespace App\Http\Controllers;
 
 use App\Exports\PesertaExport;
+use App\Models\Kabupaten;
 use App\Models\Kategori;
 use App\Models\Kegiatan;
 use App\Models\ListKategori;
 use App\Models\Pertandingan;
+use App\Models\PertandinganPeserta;
 use App\Models\Peserta;
+use App\Models\UrutanKomposisiPeserta;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Intervention\Image\ImageManager;
 use Maatwebsite\Excel\Facades\Excel;
+use Intervention\Image\Drivers\Gd\Driver as GdDriver;
+
 
 class PesertaController extends Controller
 {
@@ -22,6 +29,54 @@ class PesertaController extends Controller
 
 
         $data['peserta'] = Peserta::whereNotNull('created_at');
+
+        if(isset($_GET['delete_duplikat'])) {
+            $data['peserta'] = Peserta::select('nama', DB::raw('COUNT(*) as jumlah'));
+            $kegiatan_pertama = Kegiatan::first();
+
+            $kegiatan_id = $_GET['kegiatan_id'] ?? $kegiatan_pertama->id;
+            $data['kategori'] = ListKategori::with('kategori')->where('kegiatan_id', $kegiatan_id)->get()->unique('kategori_id')->values();
+
+
+
+            $data['peserta'] = $data['peserta']->WhereHas('PertandinganPesertaUtama', function ($q1) use ($kegiatan_id) {
+                $q1->WhereHas('list_kategori', function ($q2) use ($kegiatan_id) {
+                    $q2 = $q2->where('kegiatan_id', $kegiatan_id);
+                });
+            });
+
+
+            $data['peserta'] = $data['peserta']->groupBy('nama')->having('jumlah', '>', 1)->get();
+            foreach ($data['peserta'] as $item) {
+                // ambil semua peserta dengan nama yang sama, urutkan terbaru dulu
+                $pesertas = Peserta::where('nama', $item->nama)->WhereHas('PertandinganPesertaUtama', function ($q1) use ($kegiatan_id) {
+                    $q1->WhereHas('list_kategori', function ($q2) use ($kegiatan_id) {
+                        $q2 = $q2->where('kegiatan_id', $kegiatan_id);
+                    });
+                })->orderBy('id', 'desc')->get();
+
+                // simpan 1 data terbaru, hapus sisanya
+                $pesertas->skip(1)->each(function ($peserta) {
+
+                    // pastikan relasinya di-load dulu agar aman
+                    $peserta->load(['PertandinganPeserta.UrutanKomposisiPeserta']);
+
+                    // hapus relasi terdalam dulu (UrutanKomposisiPeserta)
+                    foreach ($peserta->PertandinganPeserta as $pertandinganPeserta) {
+                        $pertandinganPeserta->UrutanKomposisiPeserta()->delete();
+                    }
+
+                    // lalu hapus PertandinganPeserta
+                    $peserta->PertandinganPeserta()->delete();
+
+                    // terakhir hapus Peserta itu sendiri
+                    $peserta->delete();
+                });
+            }
+
+            return back()->with('success', 'Data Duplikat Berhasil Dihapus');
+
+        }
 
         if(isset($_GET['submit']) && $_GET['submit'] == 'export') {
             return Excel::download(new PesertaExport($_GET['kegiatan_id'], $_GET['kategori_id'],  $_GET['pertandingan_id']), 'rekap_peserta.xlsx');
@@ -68,7 +123,7 @@ class PesertaController extends Controller
         }
 
 
-        $data['peserta'] = $data['peserta']->paginate(10);
+        $data['peserta'] = $data['peserta']->orderBy('nama', 'ASC')->paginate(10);
         $data['kegiatan'] = Kegiatan::orderBy('created_at', 'DESC')->get();
         // dd($data);
         return view('admin.peserta.index', $data);
@@ -129,7 +184,46 @@ class PesertaController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        // $kegiatan_id = explode('-', $id);
+
+        // $data['peserta'] = Peserta::find($id);
+        $data['peserta'] = Peserta::with(['PertandinganPeserta.list_kategori.kategori', 'PertandinganPeserta.UrutanKomposisiPeserta'])->find($id);
+
+        // ambil semua kategori dari peserta tsb
+        $data['kategori_terpilih'] = $data['peserta']->PertandinganPeserta->pluck('list_kategori.kategori')->filter()->toArray();
+        $data['list_kategori_terpilih'] = $data['peserta']->PertandinganPeserta->filter()->toArray();
+
+        // dd($data['kategori_terpilih']);
+        $dataPertandinganKegiatan = PertandinganPeserta::where('peserta_id', $data['peserta']->id)->first();
+        $data['kabupatens'] = Kabupaten::get();
+        $data['kegiatan'] = Kegiatan::find($dataPertandinganKegiatan->kegiatan_id);
+
+        $tahun = old('tanggal_lahir');
+        $kelamin = old('jenis_kelamin');
+
+
+
+
+        // if ($tahun && $kelamin) {
+        //     $data['pertandingan'] = Pertandingan::whereHas('kategori', function($query) use ($tahun) {
+        //         $query->where('tahun_awal', '<=', Date('Y', strtotime($tahun)))->where('tahun_akhir', '>=', Date('Y', strtotime($tahun)));
+        //     })->where(function($query) use ($kelamin) {
+        //         $query->where('jenis_kelamin', $kelamin)
+        //             ->orWhereNull('jenis_kelamin');
+        //     })->get();
+        // } else {
+
+        // }
+
+        // $data['pertandingan'] = Pertandingan::get();
+        $data['kategori'] = ListKategori::with('kategori')->where('kegiatan_id', $data['kegiatan']->id)
+        ->select('kategori_id')
+        ->groupBy('kategori_id')
+        ->get();
+        // dd($kategori);
+
+
+        return view('admin.peserta.edit', $data);
     }
 
     /**
@@ -137,7 +231,92 @@ class PesertaController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+            $peserta = Peserta::where('id', $id)->update([
+                'nama' => $request->nama,
+                'jenis_kelamin'=> $request->jenis_kelamin,
+                'golongan_darah'=> $request->golongan_darah,
+                'nik'=> $request->nik,
+                // 'tingkat'=> $request->tingkat,
+                'status'=> $request->status,
+                'tempat'=> $request->tempat,
+                'tanggal_lahir'=> $request->tanggal_lahir,
+                'alamat'=> $request->alamat,
+                'telepon'=> $request->telepon,
+                'berat_badan'=> $request->berat_badan,
+                'keterangan'=> $request->keterangan,
+                'kabupaten_id' => $request->kabupaten_id,
+                'kecamatan_id' => $request->kecamatan_id,
+                'kelurahan_id' => $request->kelurahan_id,
+                'disabilitas' => $request->disabilitas,
+                'tingkatan_sabuk' => $request->tingkatan_sabuk_a."-".$request->tingkatan_sabuk_b,
+            ]);
+
+            $peserta = Peserta::find($id);
+            foreach($peserta->PertandinganPeserta() as $a) {
+                $a->UrutanKomposisiPeserta()->delete();
+            }
+            $peserta->PertandinganPeserta()->delete();
+
+            if($request->foto) {
+                $image = $request->file('foto');
+
+                $filename = time() . '.' . $image->getClientOriginalExtension();
+                $path = storage_path('app/public/foto_peserta/' . $filename);
+
+                // 'foto' => 'storage/'.$request->foto->store('foto_peserta', 'public'),
+                // Resize dan compress (quality 75)
+
+
+                $manager = new ImageManager(new GdDriver());
+
+                $manager->read($image->getRealPath())
+                    ->scale(width: 1200) // gunakan scale() di v3, bukan resize() sds
+                    ->save($path, quality: 50);
+
+
+                $peserta_image = Peserta::find($peserta->id);
+                $peserta_image->foto = 'storage/foto_peserta/' . $filename;
+                $peserta_image->save();
+            }
+
+
+            foreach($request->pertandingan_id as $index => $a) {
+                $existing = PertandinganPeserta::where('list_kategori_id', $a)
+                ->orderBy('urutan')
+                ->pluck('urutan')
+                ->toArray();
+
+                // Cari urutan kosong
+                $urutanBaru = 1;
+                foreach ($existing as $num) {
+                    if ($num == $urutanBaru) {
+                        $urutanBaru++;
+                    } else {
+                        break; // lubang ditemukan
+                    }
+                }
+
+                $PPA = PertandinganPeserta::create([
+                    'peserta_id' => $peserta->id,
+                    'list_kategori_id' => $a,
+                    'urutan' => $urutanBaru,
+                    'kegiatan_id' => $request->kegiatan_id
+                ]);
+
+                $UKP = new UrutanKomposisiPeserta();
+                $UKP->pertandingan_peserta_id = $PPA->id;
+                $UKP->nama = $request->nama_tanding[$a] ?? "-";
+                $UKP->tingkat = $request->tingkat_tanding[$a] ?? "-";
+                $deskripsiUKP = "";
+                foreach($request->urutan_tanding[$a] as $b) {
+                    $deskripsiUKP .= ($b ?? "").",";
+                }
+                $UKP->urutan_komposisi = $deskripsiUKP;
+                $UKP->save();
+            }
+
+
+            return redirect('peserta')->with('success', 'Peserta telah tersimpan, mohon tunggu konfirmasi berikutnya!');
     }
 
     /**
@@ -147,6 +326,9 @@ class PesertaController extends Controller
     {
         try {
             $peserta = Peserta::find($id);
+            foreach($peserta->PertandinganPeserta() as $a) {
+                $a->UrutanKomposisiPeserta()->delete();
+            }
             $peserta->PertandinganPeserta()->delete();
             $peserta->delete();
 

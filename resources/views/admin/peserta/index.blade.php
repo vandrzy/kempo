@@ -39,6 +39,11 @@
 
                     <form action="" method="get">
                         <div class="flex items-center justify-between mb-4">
+                            {{-- <select name="filter_peserta" class="pl-9 text-sm focus:shadow-primary-outline ease leading-5.6 relative -ml-px block min-w-0 flex-auto rounded-lg border border-solid border-gray-300 dark:bg-slate-850 dark:text-white bg-white bg-clip-padding py-2 pr-3 text-gray-700 transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:transition-shadow" id="kegiatan_id">
+                                <option value="kegiatan"  {{ isset($_GET['filter_peserta']) && $_GET['filter_peserta'] == "kegiatan" ? 'selected' : '' }}>Filter Kegiatan</option>
+                                <option value="semua_peserta" {{ isset($_GET['filter_peserta']) && $_GET['filter_peserta'] == "semua_peserta" ? 'selected' : '' }}>Semua Peserta</option>
+
+                            </select> --}}
                             <select name="kegiatan_id" class="pl-9 text-sm focus:shadow-primary-outline ease leading-5.6 relative -ml-px block min-w-0 flex-auto rounded-lg border border-solid border-gray-300 dark:bg-slate-850 dark:text-white bg-white bg-clip-padding py-2 pr-3 text-gray-700 transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:transition-shadow" id="kegiatan_id">
                                 @foreach ($kegiatan as $a)
                                     <option value="{{ $a->id }}" {{ Request('kegiatan_id') == $a->id ? 'selected' : (@$kegiatan_get->id == $a->id ? 'selected' : '') }} >{{ $a->nama }}</option>
@@ -54,7 +59,7 @@
                                     <option value="">Pilih Kegiatan Dulu</option>
                                 @endif
                             </select>
-                            <select name="pertandingan_id"  class="pl-9 text-sm focus:shadow-primary-outline ease leading-5.6 relative -ml-px block min-w-0 flex-auto rounded-lg border border-solid border-gray-300 dark:bg-slate-850 dark:text-white bg-white bg-clip-padding py-2 pr-3 text-gray-700 transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:transition-shadow"  id="pertandingan_id">
+                            {{-- <select name="pertandingan_id"  class="pl-9 text-sm focus:shadow-primary-outline ease leading-5.6 relative -ml-px block min-w-0 flex-auto rounded-lg border border-solid border-gray-300 dark:bg-slate-850 dark:text-white bg-white bg-clip-padding py-2 pr-3 text-gray-700 transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:transition-shadow"  id="pertandingan_id">
                                 @if(isset($_GET['pertandingan_id']) && $_GET['pertandingan_id'] != "")
                                     <option value="">Pilih Pertandingan</option>
                                     @foreach ($pertandingan as $a)
@@ -64,13 +69,18 @@
                                     <option value="">Pilih Kategori Dulu</option>
                                 @endif
 
-                            </select>
+                            </select> --}}
                             <input type="text" name="nama" value="{{ Request('nama') }}" placeholder="Cari Nama Peserta" class="pl-9 text-sm focus:shadow-primary-outline ease leading-5.6 relative -ml-px block min-w-0 flex-auto rounded-lg border border-solid border-gray-300 dark:bg-slate-850 dark:text-white bg-white bg-clip-padding py-2 pr-3 text-gray-700 transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:transition-shadow" id="">
                             <button type="submit" name="submit" value="export" class="bg-blue-500 text-white px-6 py-2 rounded">Export</button>
                             {{-- <a href="{{ url('pesertas/export') }}" target="_blank" class="bg-green-500 text-white px-6 mx-2 py-3 rounded">Export</a> --}}
                             <button type="submit" name="submit" value="cari" class="bg-blue-500 text-white px-6 py-2 rounded">Cari</button>
                         </div>
 
+                    </form>
+                    <form action="" method="get" class="delete-form pl-2">
+                        @csrf
+                        <input type="hidden" name="delete_duplikat" value="delete">
+                        <button type="submit" style="border: solid 2px red; color: red;" class="inline-block px-5 py-2 mb-0 text-xs font-bold leading-normal text-center text-green-500 align-middle transition-all ease-in bg-transparent border  border-solid rounded-lg shadow-none cursor-pointer bg-150 active:opacity-85 hover:-translate-y-px tracking-tight-rem bg-x-25 hover:opacity-75">Hapus Peserta Duplikat</button>
                     </form>
             </div>
             <br>
@@ -187,6 +197,7 @@
                                         @csrf
                                         @method('DELETE')
                                         <a href="{{ url('peserta/'.$a->id) }}" style="border: solid 2px green; color: green;"  class="inline-block px-5 py-2 mb-0 text-xs font-bold leading-normal text-center text-green-500 align-middle transition-all ease-in bg-transparent border  border-solid rounded-lg shadow-none cursor-pointer bg-150 active:opacity-85 hover:-translate-y-px tracking-tight-rem bg-x-25 hover:opacity-75">Detail</a>
+                                        <a href="{{ url('peserta/'.$a->id.'/edit') }}" style="border: solid 2px blue; color: blue;"  class="inline-block px-5 py-2 mb-0 text-xs font-bold leading-normal text-center text-green-500 align-middle transition-all ease-in bg-transparent border  border-solid rounded-lg shadow-none cursor-pointer bg-150 active:opacity-85 hover:-translate-y-px tracking-tight-rem bg-x-25 hover:opacity-75">Edit</a>
                                         <button style="border: solid 2px red; color: red;"  class="inline-block px-5 py-2 mb-0 text-xs font-bold leading-normal text-center text-green-500 align-middle transition-all ease-in bg-transparent border  border-solid rounded-lg shadow-none cursor-pointer bg-150 active:opacity-85 hover:-translate-y-px tracking-tight-rem bg-x-25 hover:opacity-75">Hapus</button>
                                     </form>
                                 </div>

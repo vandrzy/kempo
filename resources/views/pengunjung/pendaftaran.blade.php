@@ -13,13 +13,13 @@
                 <div class="flex-auto px-0 pt-0 pb-2">
                     <form action="{{ url('daftar') }}" method="post" id="form-peserta" enctype="multipart/form-data">
                         @csrf
-<div class="max-w-md mx-auto bg-white shadow-md p-5 border border-gray-200 p-2">
-  <h2 class="text-lg font-semibold text-gray-800 mb-3">Keterangan</h2>
-  <ul class="list-disc list-inside space-y-2 text-gray-700 text-sm">
-    <li>Jika ada simbol "<span style="color: red;">*</span><span style="color: red;">*</span>" Harus diisi garis strip atau tanda hubung.</li>
-    <li>Jika ada simbol "<span style="color: red;">*</span>" Wajib diisi.</li>
-  </ul>
-</div>
+                        <div class="max-w-md mx-auto bg-white shadow-md p-5 border border-gray-200 p-2">
+                        <h2 class="text-lg font-semibold text-gray-800 mb-3">Keterangan</h2>
+                        <ul class="list-disc list-inside space-y-2 text-gray-700 text-sm">
+                            <li>Jika ada simbol "<span style="color: red;">*</span><span style="color: red;">*</span>" Harus diisi garis strip atau tanda hubung.</li>
+                            <li>Jika ada simbol "<span style="color: red;">*</span>" Wajib diisi.</li>
+                        </ul>
+                        </div>
 
                         <div class="p-3 overflow-x-auto">
                             <div class="flex flex-wrap mt-4 -mx-3">
@@ -142,7 +142,7 @@
                                                 <input type="text" name="tempat"
                                                     class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-1/2"
                                                     value="{{ old('tempat') }}" placeholder="Tempat Lahir" id="">
-<span class="error text-sm text-red-600"></span>
+                                                <span class="error text-sm text-red-600"></span>
                                                 <input type="date" name="tanggal_lahir" id="tanggal_lahir"
                                                     class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-1/2"
                                                     value="{{ old('tanggal_lahir', date('Y-m-d')) }}" id="">
