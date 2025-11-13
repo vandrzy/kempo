@@ -414,17 +414,20 @@
                     }
                     console.log(data_saat_ini);
                     let komposisi_list = data_saat_ini?.urutan_komposisi_peserta?.urutan_komposisi?.split(",") || [];
-
+                    console.log(komposisi_list);
                     for (let o = 0; o < komposisi_list.length; o++) {
-                        komposisi_html += `
-                            <input type="text"
-                                name="urutan_tanding[${hasil[i].value}][]"
-                                ids="${hasil[i].value}"
-                                value="${komposisi_list[o] ?? '-'}"
-                                id="urutan_tanding"
-                                class="urutan_tanding_${i} urutan_tanding dynamic-textarea px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full"
+                        if(komposisi_list[o] != '') {
+                            komposisi_html += `
+                                <input type="text"
+                                    name="urutan_tanding[${hasil[i].value}][]"
+                                    ids="${hasil[i].value}"
+                                    value="${komposisi_list[o] ?? '-'}"
+                                    id="urutan_tanding"
+                                    class="urutan_tanding_${i} urutan_tanding dynamic-textarea px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full"
 
-                                placeholder="Urutan komposisi yang dimainkan">`;
+                                    placeholder="Urutan komposisi yang dimainkan">`;
+                        }
+
                     }
                 }
                 data_urutan_list += `

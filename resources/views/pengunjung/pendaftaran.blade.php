@@ -187,14 +187,14 @@
                         </div>
                         <div class="p-3 overflow-x-auto">
                             <div class="flex flex-wrap mt-4 -mx-3">
-                                    <div class="w-full max-w-full px-3 mt-0 mb-6 lg:mb-0 lg:w-5/12 lg:flex-none">
+                                    <div class="w-full max-w-full px-3 mt-0 mb-6 lg:mb-0 lg:w-12/12 lg:flex-none">
                                         <div class="relative flex flex-col min-w-0 break-words bg-white border-0 border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl dark:bg-gray-950 border-black-125 rounded-2xl bg-clip-border">
                                             <h1 class="m-4">Pertandingan</h1>
                                             <div class="kategori_show">
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="w-full max-w-full px-3 mt-0 mb-6 lg:mb-0 lg:w-7/12 lg:flex-none">
+                                    <div style="display: none;" class="w-full max-w-full px-3 mt-0 mb-6 lg:mb-0 lg:w-7/12 lg:flex-none">
                                         <div class="relative flex flex-col min-w-0 break-words bg-white border-0 border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl dark:bg-gray-950 border-black-125 rounded-2xl bg-clip-border">
                                             <h1 class="m-4">Tahapan Teknik</h1>
                                             <div class="kategori_pertandingan_show">
@@ -203,6 +203,7 @@
                                         </div>
                                     </div>
                             </div>
+                            <br><br>
 
                             {{-- <h1>Tahapan Teknik</h1>
                             <div class="tanding_list">
@@ -472,7 +473,7 @@
                                 <div class="relative flex flex-col min-w-0 break-words bg-white border-0 border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl dark:bg-gray-950 border-black-125 rounded-2xl bg-clip-border">
                                     <div class="mb-4">
                                         <label for="">Nama <span style="color: red;">*</span></label>
-                                        <input type="text" name="nama_tanding[]" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" required placeholder="Nama" id="">
+                                        <input type="text" name="nama_tanding[]" value="-" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" required placeholder="Nama" id="">
                                     </div>
                                 </div>
                             </div>
@@ -480,7 +481,7 @@
                                 <div class="relative flex flex-col min-w-0 break-words bg-white border-0 border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl dark:bg-gray-950 border-black-125 rounded-2xl bg-clip-border">
                                     <div class="mb-4">
                                         <label for="">Tingkat <span style="color: red;">*</span></label>
-                                        <input type="text"  name="tingkat_tanding[]" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" required placeholder="Tingkat" id="">
+                                        <input type="text"  name="tingkat_tanding[]" value="-" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" required placeholder="Tingkat" id="">
                                     </div>
                                 </div>
                             </div>
@@ -498,7 +499,7 @@
                         <div class="mb-4 urutan_${i}">
                             <label for="">Urutan komposisi yang dimainkan : <span style="color: red;">*</span></label>
                             <div class="urutan_list" data-id="${i}">
-                                <input type="text" name="urutan_tanding[${i}][]" value="" id="urutan_tanding" class="urutan_tanding_${i} urutan_tanding dynamic-textarea px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" required placeholder="Urutan komposisi yang dimainkan" id="">
+                                <input type="text" name="urutan_tanding[${i}][]" value="-" id="urutan_tanding" class="urutan_tanding_${i} urutan_tanding dynamic-textarea px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" required placeholder="Urutan komposisi yang dimainkan" id="">
                             </div>
                         </div>
                     `;
@@ -657,7 +658,7 @@
                             <div class="relative flex flex-col min-w-0 break-words bg-white border-0 border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl dark:bg-gray-950 border-black-125 rounded-2xl bg-clip-border">
                                 <div class="mb-4">
                                     <label for="">Nama <span style="color: red;">*</span><span style="color: red;">*</span></label>
-                                    <input type="text" name="nama_tanding[${hasil[i].value}]" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" required placeholder="Nama" id="">
+                                    <input type="text" name="nama_tanding[${hasil[i].value}]" value="-" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" required placeholder="Nama" id="">
                                 </div>
                             </div>
                         </div>
@@ -665,7 +666,7 @@
                             <div class="relative flex flex-col min-w-0 break-words bg-white border-0 border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl dark:bg-gray-950 border-black-125 rounded-2xl bg-clip-border">
                                 <div class="mb-4">
                                     <label for="">Tingkat <span style="color: red;">*</span><span style="color: red;">*</span></label>
-                                    <input type="text"  name="tingkat_tanding[${hasil[i].value}]" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" required placeholder="Tingkat" id="">
+                                    <input type="text"  name="tingkat_tanding[${hasil[i].value}]" value="-" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" required placeholder="Tingkat" id="">
                                 </div>
                             </div>
                         </div>
@@ -683,7 +684,7 @@
                     <div class="mb-4 urutan_${i}">
                         <label for="">Urutan komposisi yang dimainkan : <span style="color: red;">*</span><span style="color: red;">*</span></label>
                         <div class="urutan_list" data-id="${i}">
-                            <input type="text" name="urutan_tanding[${hasil[i].value}][]" ids="${hasil[i].value}" value="" id="urutan_tanding" class="urutan_tanding_${i} urutan_tanding dynamic-textarea px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" required placeholder="Urutan komposisi yang dimainkan" id="">
+                            <input type="text" name="urutan_tanding[${hasil[i].value}][]" value="-" ids="${hasil[i].value}" value="" id="urutan_tanding" class="urutan_tanding_${i} urutan_tanding dynamic-textarea px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" required placeholder="Urutan komposisi yang dimainkan" id="">
                         </div>
                     </div>
                 `;

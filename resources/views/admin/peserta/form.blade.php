@@ -151,7 +151,8 @@
             <div class="mb-4">
                 <label for="">Foto Berwarna 4 x 6 <span style="color: red;">*</span></label>
                 <input type="file" name="foto" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" id="imageInput">
-                <img src="" style="width: 50%;" id="preview" alt=""><br>
+                <br>
+                <img src="{{ url($peserta->foto) }}" style="width: 50%;" id="preview" alt=""><br>
                 <span class="error text-sm text-red-600"></span>
             </div>
                 {{-- <div class="mb-4">
