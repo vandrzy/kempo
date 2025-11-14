@@ -63,34 +63,31 @@
       margin-bottom: 12px;
     }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      table-layout: fixed;
-      word-wrap: break-word;
-    }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
 
-    thead th {
-      background: #f2f4f7;
-      padding: 8px;
-      border: 1px solid #ddd;
-      font-weight: 700;
-      text-align: left;
-    }
+        table, th, td {
+            border: 1px solid #000;
+        }
 
-    tbody td {
-      padding: 8px;
-      border: 1px solid #ddd;
-      vertical-align: top;
-    }
+        th {
+            background: #f2f2f2;
+            font-weight: bold;
+            text-align: left;
+            padding: 6px;
+        }
 
-    tbody tr:nth-child(odd) {
-      background: #fff;
-    }
+        td {
+            padding: 6px;
+        }
 
-    tbody tr:nth-child(even) {
-      background: #fbfdff;
-    }
+        /* garis header tabel lebih tebal */
+        th {
+            border-bottom: 2px solid #000;
+        }
 
     .small {
       font-size: 11px;
@@ -127,19 +124,16 @@
       {{ $subtitle ?? 'Peserta dari '.$kabupaten->name }}
     </div>
 
-    <table class="items-center w-full mb-0 align-top border-collapse dark:border-white/40 text-slate-500">
+    {{-- <table class="items-center w-full mb-0 align-top border-collapse dark:border-white/40 text-slate-500">
         <thead class="align-bottom">
             <tr>
                 <th rowspan="2" class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-4xl border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">No</th>
-                {{-- <th rowspan="2" class="px-6 py-3 pl-2 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-3xl border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Kegiatan</th>
-                <th rowspan="2" class="px-6 py-3 pl-2 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-3xl border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Pertandingan</th> --}}
                 <th rowspan="2" class="px-6 py-3 pl-2 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-3xl border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Nama</th>
                 <th rowspan="2" class="px-6 py-3 pl-2 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-3xl border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">NIK</th>
                 <th rowspan="2" class="px-6 py-3 pl-2 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-3xl border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Usia (Tahun)</th>
                 <th colspan="2" style="text-align: center" class="px-6 py-3 pl-2 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-3xl border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Jenis Kelamin</th>
                 <th colspan="2" style="text-align: center" class="px-6 py-3 pl-2 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-3xl border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Tingkat</th>
                 <th colspan="2" style="text-align: center" class="px-6 py-3 pl-2 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-3xl border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Status</th>
-                {{-- <th rowspan="2" class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-3xl border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Aksi</th> --}}
             </tr>
             <tr>
                 <th style="text-align: center" class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-3xl border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">L</th>
@@ -157,19 +151,6 @@
                         <p class="mb-0 text-3xl font-semibold leading-tight dark:text-white dark:opacity-80">{{ $loop->iteration }}</p>
 
                     </td>
-
-                    {{-- <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-                        <p class="mb-0 text-3xl font-semibold leading-tight dark:text-white dark:opacity-80">{{ $a->KegiatanPertandinganPeserta->list_kategori->kegiatan->nama ?? "" }}</p>
-                    </td>
-                    <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-                        <ul>
-                            @isset($a->PertandinganPeserta)
-                                @foreach ($a->PertandinganPeserta as $b)
-                                    <li><p class="mb-0 text-3xl font-semibold leading-tight dark:text-white dark:opacity-80">{{ $b->list_kategori->pertandingan->nama ?? "" }}</p></li>
-                                @endforeach
-                            @endisset
-                        </ul>
-                    </td> --}}
                     <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
                         <p class="mb-0 text-3xl font-semibold leading-tight dark:text-white dark:opacity-80">{{ $a->nama }}</p>
                     </td>
@@ -221,16 +202,73 @@
                             @endif
                         </p>
                     </td>
-                    {{-- <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-                        <div class="flex justify-center items-center space-x-4">
-                                <a href="{{ url('peserta/'.$a->id) }}?kontigen={{ $kabupaten->id }}" style="border: solid 2px green; color: green;"  class="inline-block px-5 py-2 mb-0 text-xs font-bold leading-normal text-center text-green-500 align-middle transition-all ease-in bg-transparent border  border-solid rounded-lg shadow-none cursor-pointer bg-150 active:opacity-85 hover:-translate-y-px tracking-tight-rem bg-x-25 hover:opacity-75">Detail</a>
-
-                        </div>
-                    </td> --}}
                 </tr>
             @endforeach
         </tbody>
-    </table>
+    </table> --}}
+
+    <table>
+    <thead>
+        <tr>
+            <th rowspan="2" style="text-align: center;">No</th>
+            <th rowspan="2" style="text-align: center;">Nama</th>
+            <th rowspan="2" style="text-align: center;">NIK</th>
+            <th rowspan="2" style="text-align: center;">Usia <br>Tahun</th>
+            <th colspan="2" style="text-align: center;">Jenis Kelamin</th>
+            <th colspan="2" style="text-align: center;">Tingkat</th>
+            <th colspan="2" style="text-align: center;">Status</th>
+        </tr>
+        <tr>
+            <th style="text-align: center;">L</th>
+            <th style="text-align: center;">P</th>
+            <th style="text-align: center;">K</th>
+            <th style="text-align: center;">D</th>
+            <th style="text-align: center;">P</th>
+            <th style="text-align: center;">O</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @foreach ($peserta as $a)
+        <tr>
+            <td style="text-align: center;">{{ $loop->iteration }}</td>
+            <td>{{ $a->nama }}</td>
+            <td>{{ $a->nik }}</td>
+            <td style="text-align: center;">{{ (Date('Y')) - (Date('Y', strtotime($a->tanggal_lahir))) }} Tahun </td>
+            <td style="text-align: center;">
+                @if(strtoupper(substr($a->jenis_kelamin, 0, 1)) == "L")
+                    <span style="font-family: DejaVu Sans; font-size: 24px; color: black;">&#10003;</span>
+                @endif
+            </td>
+            <td style="text-align: center;">
+                @if(strtoupper(substr($a->jenis_kelamin, 0, 1)) == "P")
+                    <span style="font-family: DejaVu Sans; font-size: 24px; color: black;">&#10003;</span>
+                @endif
+            </td>
+            <td style="text-align: center;">
+                @if(strtoupper(substr($a->tingkatan_sabuk, 0, 1)) == "K")
+                    <span style="font-family: DejaVu Sans; font-size: 24px; color: black;">&#10003;</span>
+                @endif
+            </td>
+            <td style="text-align: center;">
+                @if(strtoupper(substr($a->tingkatan_sabuk, 0, 1)) == "D")
+                    <span style="font-family: DejaVu Sans; font-size: 24px; color: black;">&#10003;</span>
+                @endif
+            </td>
+            <td style="text-align: center;">
+                @if(strtoupper(substr($a->status, 0, 1)) == "P")
+                    <span style="font-family: DejaVu Sans; font-size: 24px; color: black;">&#10003;</span>
+                @endif
+            </td>
+            <td style="text-align: center;">
+                @if(strtoupper(substr($a->status, 0, 1)) == "O")
+                    <span style="font-family: DejaVu Sans; font-size: 21px; color: black;">&#10003;</span>
+                @endif
+            </td>
+        </tr>
+        @endforeach
+    </tbody>
+</table>
   </div>
 </body>
 </html>

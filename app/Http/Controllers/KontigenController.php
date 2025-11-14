@@ -63,7 +63,7 @@ class KontigenController extends Controller
         $pdf = Pdf::loadView('admin.kontigen.print', $data);
 
         // 🟢 Tampilkan langsung di browser
-        return $pdf->download('Data_Peserta_Kontigen_'.$data['kabupaten']->name.'.pdf');
+        return $pdf->stream('Data_Peserta_Kontigen_'.$data['kabupaten']->name.'.pdf');
     }
 
     /**
