@@ -207,68 +207,69 @@
         </tbody>
     </table> --}}
 
+    <br>
     <table>
-    <thead>
-        <tr>
-            <th rowspan="2" style="text-align: center;">No</th>
-            <th rowspan="2" style="text-align: center;">Nama</th>
-            <th rowspan="2" style="text-align: center;">NIK</th>
-            <th rowspan="2" style="text-align: center;">Usia <br>Tahun</th>
-            <th colspan="2" style="text-align: center;">Jenis Kelamin</th>
-            <th colspan="2" style="text-align: center;">Tingkat</th>
-            <th colspan="2" style="text-align: center;">Status</th>
-        </tr>
-        <tr>
-            <th style="text-align: center;">L</th>
-            <th style="text-align: center;">P</th>
-            <th style="text-align: center;">K</th>
-            <th style="text-align: center;">D</th>
-            <th style="text-align: center;">P</th>
-            <th style="text-align: center;">O</th>
-        </tr>
-    </thead>
+        <thead>
+            <tr>
+                <th rowspan="2" style="text-align: center;">No</th>
+                <th rowspan="2" style="text-align: center;">Nama</th>
+                <th rowspan="2" style="text-align: center;">NIK</th>
+                <th rowspan="2" style="text-align: center;">Usia <br>Tahun</th>
+                <th colspan="2" style="text-align: center;">Jenis Kelamin</th>
+                <th colspan="2" style="text-align: center;">Tingkat</th>
+                <th colspan="2" style="text-align: center;">Status</th>
+            </tr>
+            <tr>
+                <th style="text-align: center;">L</th>
+                <th style="text-align: center;">P</th>
+                <th style="text-align: center;">K</th>
+                <th style="text-align: center;">D</th>
+                <th style="text-align: center;">P</th>
+                <th style="text-align: center;">O</th>
+            </tr>
+        </thead>
 
-    <tbody>
-        @foreach ($peserta as $a)
-        <tr>
-            <td style="text-align: center;">{{ $loop->iteration }}</td>
-            <td>{{ $a->nama }}</td>
-            <td>{{ $a->nik }}</td>
-            <td style="text-align: center;">{{ (Date('Y')) - (Date('Y', strtotime($a->tanggal_lahir))) }} Tahun </td>
-            <td style="text-align: center;">
-                @if(strtoupper(substr($a->jenis_kelamin, 0, 1)) == "L")
-                    <span style="font-family: DejaVu Sans; font-size: 24px; color: black;">&#10003;</span>
-                @endif
-            </td>
-            <td style="text-align: center;">
-                @if(strtoupper(substr($a->jenis_kelamin, 0, 1)) == "P")
-                    <span style="font-family: DejaVu Sans; font-size: 24px; color: black;">&#10003;</span>
-                @endif
-            </td>
-            <td style="text-align: center;">
-                @if(strtoupper(substr($a->tingkatan_sabuk, 0, 1)) == "K")
-                    <span style="font-family: DejaVu Sans; font-size: 24px; color: black;">&#10003;</span>
-                @endif
-            </td>
-            <td style="text-align: center;">
-                @if(strtoupper(substr($a->tingkatan_sabuk, 0, 1)) == "D")
-                    <span style="font-family: DejaVu Sans; font-size: 24px; color: black;">&#10003;</span>
-                @endif
-            </td>
-            <td style="text-align: center;">
-                @if(strtoupper(substr($a->status, 0, 1)) == "P")
-                    <span style="font-family: DejaVu Sans; font-size: 24px; color: black;">&#10003;</span>
-                @endif
-            </td>
-            <td style="text-align: center;">
-                @if(strtoupper(substr($a->status, 0, 1)) == "O")
-                    <span style="font-family: DejaVu Sans; font-size: 21px; color: black;">&#10003;</span>
-                @endif
-            </td>
-        </tr>
-        @endforeach
-    </tbody>
-</table>
+        <tbody>
+            @foreach ($peserta as $a)
+            <tr>
+                <td style="text-align: center;">{{ $loop->iteration }}</td>
+                <td>{{ $a->nama }}</td>
+                <td>{{ $a->nik }}</td>
+                <td style="text-align: center;">{{ (Date('Y')) - (Date('Y', strtotime($a->tanggal_lahir))) }} Tahun </td>
+                <td style="text-align: center;">
+                    @if(strtoupper(substr($a->jenis_kelamin, 0, 1)) == "L")
+                        <span style="font-family: DejaVu Sans; font-size: 24px; color: black;">&#10003;</span>
+                    @endif
+                </td>
+                <td style="text-align: center;">
+                    @if(strtoupper(substr($a->jenis_kelamin, 0, 1)) == "P")
+                        <span style="font-family: DejaVu Sans; font-size: 24px; color: black;">&#10003;</span>
+                    @endif
+                </td>
+                <td style="text-align: center;">
+                    @if(strtoupper(substr($a->tingkatan_sabuk, 0, 1)) == "K")
+                        <span style="font-family: DejaVu Sans; font-size: 24px; color: black;">&#10003;</span>
+                    @endif
+                </td>
+                <td style="text-align: center;">
+                    @if(strtoupper(substr($a->tingkatan_sabuk, 0, 1)) == "D")
+                        <span style="font-family: DejaVu Sans; font-size: 24px; color: black;">&#10003;</span>
+                    @endif
+                </td>
+                <td style="text-align: center;">
+                    @if(strtoupper(substr($a->status, 0, 1)) == "P")
+                        <span style="font-family: DejaVu Sans; font-size: 24px; color: black;">&#10003;</span>
+                    @endif
+                </td>
+                <td style="text-align: center;">
+                    @if(strtoupper(substr($a->status, 0, 1)) == "O")
+                        <span style="font-family: DejaVu Sans; font-size: 21px; color: black;">&#10003;</span>
+                    @endif
+                </td>
+            </tr>
+            @endforeach
+        </tbody>
+    </table>
   </div>
 </body>
 </html>
