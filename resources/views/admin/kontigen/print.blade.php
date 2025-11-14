@@ -11,6 +11,23 @@
       font-family: "DejaVuSans";
       src: url("file:///usr/share/fonts/truetype/dejavu/DejaVuSans.ttf");
     }
+
+    /* Page setup */
+    @page {
+        margin-top: 120px; /* ruang untuk header */
+        margin-bottom: 50px;
+    }
+
+    header {
+        position: fixed;
+        top: -80px; /* sesuaikan agar pas */
+        left: 0;
+        right: 0;
+        height: 80px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #000;
+    }
+
     body {
       font-family: DejaVuSans, sans-serif;
       font-size: 12px;
@@ -19,21 +36,6 @@
       padding: 0;
     }
 
-    /* Page setup */
-    @page {
-      margin: 40px 30px;
-    }
-
-    header {
-      position: fixed;
-      top: -20px;
-      left: 0;
-      right: 0;
-      height: 60px;
-      text-align: left;
-      border-bottom: 1px solid #ccc;
-      padding: 8px 0;
-    }
 
     footer {
       position: fixed;
