@@ -23,7 +23,7 @@
         top: -80px; /* sesuaikan agar pas */
         left: 0;
         right: 0;
-        height: 80px;
+        height: 50px;
         padding-bottom: 10px;
         border-bottom: 1px solid #000;
     }
@@ -50,7 +50,7 @@
     }
 
     .container {
-      margin: 80px 0 60px; /* beri ruang untuk header & footer */
+      margin: 10px 0 60px; /* beri ruang untuk header & footer */
       padding: 0 2px;
     }
 
@@ -208,8 +208,6 @@
             @endforeach
         </tbody>
     </table> --}}
-
-    <br>
     <table>
         <thead>
             <tr>
