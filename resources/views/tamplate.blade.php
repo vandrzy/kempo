@@ -64,7 +64,8 @@
 
         <hr class="h-px mt-0 bg-transparent bg-gradient-to-r from-transparent via-black/40 to-transparent dark:bg-gradient-to-r dark:from-transparent dark:via-white dark:to-transparent" />
 
-        <div class="items-center block w-auto max-h-screen overflow-auto h-sidenav grow basis-full">
+        <div class="items-center block w-auto max-h-screen overflow-visible h-sidenav grow basis-full">
+
             <ul class="flex flex-col pl-0 mb-0">
             <li class="mt-0.5 w-full">
                         {{-- <a href="{{ url('dashboard') }}" class="block p-2 rounded {{ request()->is('dashboard*') ? 'bg-blue-100 text-blue-700 font-semibold' : 'hover:bg-blue-100' }}">Dashboard</a> --}}
