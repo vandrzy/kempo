@@ -220,6 +220,8 @@ class OfficialController extends Controller
 
             if(isset($_GET['kegiatan_id'])  && $_GET['kegiatan_id'] != "") {
                 $kegiatan = Kegiatan::find($_GET['kegiatan_id']);
+                $data['kegiatan_get'] = $kegiatan;
+
                 $data['peserta'] = $data['peserta']->where('kegiatan_id','=',$_GET['kegiatan_id']);
             } else {
                 $data['kegiatan_get'] = Kegiatan::orderBy('created_at', 'DESC')->first();
@@ -238,12 +240,75 @@ class OfficialController extends Controller
 
     }
 
+    public function create() {
+        $data['kabupatens'] = Kabupaten::get();
+        $data['kegiatan'] = Kegiatan::find($_GET['kegiatan_id']);
+
+        return view('admin.official.tambah', $data);
+    }
+
+    public function store(Request $request) {
+        // dd('asd');
+            $peserta = Official::create([
+                'nama' => $request->nama,
+                'jenis_kelamin'=> $request->jenis_kelamin,
+                'golongan_darah'=> $request->golongan_darah,
+                'nik'=> $request->nik,
+                'status'=> "O",
+                'tempat'=> $request->tempat,
+                'tanggal_lahir'=> $request->tanggal_lahir,
+                'alamat'=> $request->alamat,
+                'telepon'=> $request->telepon,
+                // 'berat_badan'=> $request->berat_badan,
+                'keterangan'=> $request->keterangan,
+                'sertifikat'=> $request->sertifikat,
+                'foto' => 'lol',
+                'kabupaten_id' => $request->kabupaten_id,
+                // 'kecamatan_id' => $request->kecamatan_id,
+                // 'kelurahan_id' => $request->kelurahan_id,
+                'kegiatan_id' => $request->kegiatan_id,
+                'tingkat' => $request->tingkatan_sabuk_a."-".$request->tingkatan_sabuk_b,
+            ]);
+
+            $image = $request->file('foto');
+
+            $filename = time() . '.' . $image->getClientOriginalExtension();
+            $path = storage_path('app/public/foto_peserta/' . $filename);
+
+            // 'foto' => 'storage/'.$request->foto->store('foto_peserta', 'public'),
+            // Resize dan compress (quality 75)
+
+
+            $manager = new ImageManager(new GdDriver());
+
+            $manager->read($image->getRealPath())
+                ->scale(width: 1200) // gunakan scale() di v3, bukan resize() sds
+                ->save($path, quality: 50);
+
+
+            $peserta_image = Official::find($peserta->id);
+            $peserta_image->foto = 'storage/foto_peserta/' . $filename;
+            $peserta_image->save();
+
+
+            return redirect('official')->with('success', 'Official telah disimpan');
+        try {
+
+        } catch (\Throwable $th) {
+            return redirect()->back()
+                ->with('gagal', 'Terjadi kesalahan saat menyimpan data!')
+                ->withInput();
+        }
+    }
+
+
     public function show(string $id)
     {
         //
         $data['peserta'] = Official::find($id);
         return view('admin.official.detail', $data);
     }
+
 
     public function edit(string $id)
     {

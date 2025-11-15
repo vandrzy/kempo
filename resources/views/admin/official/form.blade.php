@@ -13,7 +13,7 @@
                 <input type="hidden" name="kegiatan_id" id="kegiatan_id" value="{{ $kegiatan->id }}">
                 <div class="mb-4">
                     <label for="">Nama <span style="color: red;">*</span></label>
-                    <input type="text" name="nama" value="{{ $peserta->nama }}" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" value="{{ old('nama') }}" placeholder="Nama" id="">
+                    <input type="text" name="nama" value="{{ old('nama', @$peserta->nama) }}" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" value="{{ old('nama') }}" placeholder="Nama" id="">
                     <span class="error text-sm text-red-600"></span>
                 </div>
 
@@ -132,7 +132,7 @@
                 <label for="">Foto Berwarna 4 x 6 <span style="color: red;">*</span></label>
                 <input type="file" name="foto" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" id="imageInput">
                 <br>
-                <img src="{{ url($peserta->foto) }}" style="width: 50%;" id="preview" alt=""><br>
+                <img src="{{ url($peserta->foto ?? "") }}" style="width: 50%;" id="preview" alt=""><br>
                 <span class="error text-sm text-red-600"></span>
             </div>
                 {{-- <div class="mb-4">

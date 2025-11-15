@@ -13,7 +13,7 @@
                 <input type="hidden" name="kegiatan_id" id="kegiatan_id" value="{{ $kegiatan->id }}">
                 <div class="mb-4">
                     <label for="">Nama <span style="color: red;">*</span></label>
-                    <input type="text" name="nama" value="{{ $peserta->nama }}" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" value="{{ old('nama') }}" placeholder="Nama" id="">
+                    <input type="text" name="nama" value="{{ old('nama', @$peserta->nama) }}" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" value="{{ old('nama') }}" placeholder="Nama" id="">
                     <span class="error text-sm text-red-600"></span>
                 </div>
 
@@ -33,7 +33,7 @@
                     {{-- <input type="text" name="status" value=" {{ old('status') }}" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" id="" > --}}
                     <select name="status"  class="w-full pl-9 text-sm focus:shadow-primary-outline ease leading-5.6 relative -ml-px block min-w-0 flex-auto rounded-lg border border-solid border-gray-300 dark:bg-slate-850 dark:text-white bg-white bg-clip-padding py-2 pr-3 text-gray-700 transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:transition-shadow" id="">
                         <option value="P" {{ old('status', @$peserta->status) == 'P' ? 'selected' : '' }} >Peserta / Atlet</option>
-                        <option value="O" {{ old('status', @$peserta->status) == 'O' ? 'selected' : '' }} >Official</option>
+                        {{-- <option value="O" {{ old('status', @$peserta->status) == 'O' ? 'selected' : '' }} >Official</option> --}}
                     </select>
                     <span class="error text-sm text-red-600"></span>
                 </div>
@@ -152,7 +152,7 @@
                 <label for="">Foto Berwarna 4 x 6 <span style="color: red;">*</span></label>
                 <input type="file" name="foto" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" id="imageInput">
                 <br>
-                <img src="{{ url($peserta->foto) }}" style="width: 50%;" id="preview" alt=""><br>
+                <img src="{{ url($peserta->foto ?? "") }}" style="width: 50%;" id="preview" alt=""><br>
                 <span class="error text-sm text-red-600"></span>
             </div>
                 {{-- <div class="mb-4">
@@ -176,14 +176,14 @@
 </div>
 <div class="p-3 overflow-x-auto">
     <div class="flex flex-wrap mt-4 -mx-3">
-            <div class="w-full max-w-full px-3 mt-0 mb-6 lg:mb-0 lg:w-5/12 lg:flex-none">
+            <div class="w-full max-w-full px-3 mt-0 mb-6 lg:mb-0 lg:w-12/12 lg:flex-none">
                 <div class="relative flex flex-col min-w-0 break-words bg-white border-0 border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl dark:bg-gray-950 border-black-125 rounded-2xl bg-clip-border">
                     <h1 class="m-4">Pertandingan</h1>
                     <div class="kategori_show">
                     </div>
                 </div>
             </div>
-            <div class="w-full max-w-full px-3 mt-0 mb-6 lg:mb-0 lg:w-7/12 lg:flex-none">
+            <div class="w-full max-w-full px-3 mt-0 mb-6 lg:mb-0 lg:w-7/12 lg:flex-none" style="display: none;">
                 <div class="relative flex flex-col min-w-0 break-words bg-white border-0 border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl dark:bg-gray-950 border-black-125 rounded-2xl bg-clip-border">
                     <h1 class="m-4">Tahapan Teknik</h1>
                     <div class="kategori_pertandingan_show">

@@ -133,6 +133,7 @@ class PesertaController extends Controller
         // return view('admin.peserta.excel', $data);
     }
 
+
     public function get_pertandingan(string $id) {
 
         if(isset($_GET['type'])) {
@@ -158,15 +159,132 @@ class PesertaController extends Controller
      */
     public function create()
     {
-        //
+
+        $data['kabupatens'] = Kabupaten::get();
+        $data['kegiatan'] = Kegiatan::find($_GET['kegiatan_id']);
+
+        $tahun = old('tanggal_lahir');
+        $kelamin = old('jenis_kelamin');
+
+
+
+
+        // if ($tahun && $kelamin) {
+        //     $data['pertandingan'] = Pertandingan::whereHas('kategori', function($query) use ($tahun) {
+        //         $query->where('tahun_awal', '<=', Date('Y', strtotime($tahun)))->where('tahun_akhir', '>=', Date('Y', strtotime($tahun)));
+        //     })->where(function($query) use ($kelamin) {
+        //         $query->where('jenis_kelamin', $kelamin)
+        //             ->orWhereNull('jenis_kelamin');
+        //     })->get();
+        // } else {
+
+        // }
+
+        // $data['pertandingan'] = Pertandingan::get();
+        $data['kategori'] = ListKategori::with('kategori')->where('kegiatan_id', $data['kegiatan']->id)
+        ->select('kategori_id')
+        ->groupBy('kategori_id')
+        ->get();
+        // dd($kategori);
+
+
+        return view('admin.peserta.tambah', $data);
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
-    {
-        //
+    public function store(Request $request) {
+            $peserta = Peserta::create([
+                'nama' => $request->nama,
+                'jenis_kelamin'=> $request->jenis_kelamin,
+                'golongan_darah'=> $request->golongan_darah,
+                'nik'=> $request->nik,
+                // 'tingkat'=> $request->tingkat,
+                'status'=> $request->status,
+                'tempat'=> $request->tempat,
+                'tanggal_lahir'=> $request->tanggal_lahir,
+                'alamat'=> $request->alamat,
+                'telepon'=> $request->telepon,
+                'berat_badan'=> $request->berat_badan,
+                'keterangan'=> $request->keterangan,
+                'foto' => 'lol',
+                'kabupaten_id' => $request->kabupaten_id,
+                'kecamatan_id' => $request->kecamatan_id,
+                'kelurahan_id' => $request->kelurahan_id,
+                'disabilitas' => $request->disabilitas,
+                'tingkatan_sabuk' => $request->tingkatan_sabuk_a."-".$request->tingkatan_sabuk_b,
+            ]);
+
+            $image = $request->file('foto');
+
+            $filename = time() . '.' . $image->getClientOriginalExtension();
+            $path = storage_path('app/public/foto_peserta/' . $filename);
+
+            // 'foto' => 'storage/'.$request->foto->store('foto_peserta', 'public'),
+            // Resize dan compress (quality 75)
+
+
+            $manager = new ImageManager(new GdDriver());
+
+            $manager->read($image->getRealPath())
+                ->scale(width: 1200) // gunakan scale() di v3, bukan resize() sds
+                ->save($path, quality: 50);
+
+
+            $peserta_image = Peserta::find($peserta->id);
+            $peserta_image->foto = 'storage/foto_peserta/' . $filename;
+            $peserta_image->save();
+
+
+            foreach($request->pertandingan_id as $index => $a) {
+                $existing = PertandinganPeserta::where('list_kategori_id', $a)
+                ->orderBy('urutan')
+                ->pluck('urutan')
+                ->toArray();
+
+                // Cari urutan kosong
+                $urutanBaru = 1;
+                foreach ($existing as $num) {
+                    if ($num == $urutanBaru) {
+                        $urutanBaru++;
+                    } else {
+                        break; // lubang ditemukan
+                    }
+                }
+
+                $PPA = PertandinganPeserta::create([
+                    'peserta_id' => $peserta->id,
+                    'list_kategori_id' => $a,
+                    'urutan' => $urutanBaru,
+                    'kegiatan_id' => $request->kegiatan_id
+                ]);
+
+                $UKP = new UrutanKomposisiPeserta();
+                $UKP->pertandingan_peserta_id = $PPA->id;
+                $UKP->nama = $request->nama_tanding[$a] ?? "-";
+                $UKP->tingkat = $request->tingkat_tanding[$a] ?? "-";
+                $deskripsiUKP = "";
+                foreach($request->urutan_tanding[$a] as $b) {
+                    if($b != "") {
+                        $deskripsiUKP .= ($b ?? "-").",";
+                    }
+                }
+                $UKP->urutan_komposisi = $deskripsiUKP;
+                $UKP->save();
+            }
+
+
+            return redirect('peserta')->with('success', 'Peserta telah tersimpan');
+
+
+        try {
+
+        } catch (\Throwable $th) {
+            return redirect()->back()
+                ->with('gagal', 'Terjadi kesalahan saat menyimpan data!')
+                ->withInput();
+        }
     }
 
     /**
@@ -318,7 +436,7 @@ class PesertaController extends Controller
             }
 
 
-            return redirect('peserta')->with('success', 'Peserta telah tersimpan, mohon tunggu konfirmasi berikutnya!');
+            return redirect('peserta')->with('success', 'Peserta telah tersimpan');
     }
 
     /**
