@@ -121,7 +121,7 @@
   </footer> --}}
 
   <div class="container">
-    <h1>{{ $title ?? 'Laporan' }}</h1>
+    <h1>{{ $title ?? 'Laporan' }} Kegiatan {{ $kegiatan->nama }}</h1>
     <div class="meta">
       {{ $subtitle ?? 'Peserta dari '.$kabupaten->name }}
     </div>

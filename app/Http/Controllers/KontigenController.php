@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Kabupaten;
+use App\Models\Kegiatan;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class KontigenController extends Controller
 {
@@ -14,7 +16,21 @@ class KontigenController extends Controller
     public function index()
     {
         //
-        $data['kabupatens'] = Kabupaten::get();
+        $kegiatan_id = $_GET['kegiatan_id'] ?? 0;
+        $data['kabupatens'] = Kabupaten::with(['peserta' => function($q) use ($kegiatan_id) {
+            $q->whereHas('PertandinganPeserta', function($qq) {
+                $qq->select('peserta_id', DB::raw('MIN(id) as id'))
+                ->groupBy('peserta_id')
+                ->whereHas('list_kategori');
+            })
+            ->whereHas('PertandinganPesertaUtama', function($qq1) use ($kegiatan_id) {
+                $qq1->whereHas('list_kategori', function($qq2) use ($kegiatan_id) {
+                    $qq2->where('kegiatan_id', $kegiatan_id);
+                });
+            });
+        }])->get();
+        $data['kegiatan'] = Kegiatan::orderBy('created_at', 'DESC')->get();
+
         return view('admin.kontigen.index', $data);
     }
 
@@ -39,10 +55,16 @@ class KontigenController extends Controller
      */
     public function show(string $id)
     {
+        $kegiatan_id = $_GET['kegiatan_id'] ?? 0;
+        $data['kegiatan'] = Kegiatan::find($kegiatan_id);
         $data['kabupaten'] = Kabupaten::find($id);
         $data['peserta'] = $data['kabupaten']->peserta()
             ->whereHas('PertandinganPeserta', function($q) {
                 $q->whereHas('list_kategori');
+            })->whereHas('PertandinganPesertaUtama', function($qq1) use ($kegiatan_id) {
+                $qq1->whereHas('list_kategori', function($qq2) use ($kegiatan_id) {
+                    $qq2->where('kegiatan_id', $kegiatan_id);
+                });
             })
             ->paginate(10);
         return view('admin.kontigen.peserta', $data);
@@ -55,9 +77,16 @@ class KontigenController extends Controller
     {
         //
         $data['kabupaten'] = Kabupaten::find($id);
+
+        $kegiatan_id = $_GET['kegiatan_id'] ?? 0;
+        $data['kegiatan'] = Kegiatan::find($kegiatan_id);
         $data['peserta'] = $data['kabupaten']->peserta()
             ->whereHas('PertandinganPeserta', function($q) {
                 $q->whereHas('list_kategori');
+            })->whereHas('PertandinganPesertaUtama', function($qq1) use ($kegiatan_id) {
+                $qq1->whereHas('list_kategori', function($qq2) use ($kegiatan_id) {
+                    $qq2->where('kegiatan_id', $kegiatan_id);
+                });
             })
             ->get();
         $pdf = Pdf::loadView('admin.kontigen.print', $data);
