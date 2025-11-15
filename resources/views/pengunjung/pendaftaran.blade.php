@@ -48,7 +48,7 @@
                                             {{-- <input type="text" name="status" value=" {{ old('status') }}" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" id="" > --}}
                                             <select name="status"  class="w-full pl-9 text-sm focus:shadow-primary-outline ease leading-5.6 relative -ml-px block min-w-0 flex-auto rounded-lg border border-solid border-gray-300 dark:bg-slate-850 dark:text-white bg-white bg-clip-padding py-2 pr-3 text-gray-700 transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:transition-shadow" id="">
                                                 <option value="P" {{ old('status', @$peserta->status) == 'P' ? 'selected' : '' }} >Peserta / Atlet</option>
-                                                <option value="O" {{ old('status', @$peserta->status) == 'O' ? 'selected' : '' }} >Official</option>
+                                                {{-- <option value="O" {{ old('status', @$peserta->status) == 'O' ? 'selected' : '' }} >Official</option> --}}
                                             </select>
                                             <span class="error text-sm text-red-600"></span>
                                         </div>

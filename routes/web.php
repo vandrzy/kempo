@@ -6,6 +6,7 @@ use App\Http\Controllers\HomePageController;
 use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\KegiatanController;
 use App\Http\Controllers\KontigenController;
+use App\Http\Controllers\OfficialController;
 use App\Http\Controllers\PertandinganController;
 use App\Http\Controllers\PesertaController;
 use App\Http\Controllers\UsersController;
@@ -25,6 +26,9 @@ Route::middleware('guest')->group(function () {
     Route::get('/register', [HomePageController::class, 'register']);
     Route::post('/register', [HomePageController::class, 'register_proses']);
 
+
+    Route::get('/official/{id}/daftar', [OfficialController::class, 'daftar']);
+    Route::post('/official_register', [OfficialController::class, 'daftar_proses']);
 
 
     Route::get('/test', function() {
@@ -62,6 +66,8 @@ Route::middleware('auth')->group(function () {
     // Route::get('pertandingans/{id}/print', [PertandinganController::class, 'print_no_tanding']);
 
     Route::resource('peserta', PesertaController::class);
+    Route::resource('official', OfficialController::class);
+
     Route::resource('kontingen', KontigenController::class);
 
 

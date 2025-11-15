@@ -28,7 +28,7 @@ class PesertaController extends Controller
         //
 
 
-        $data['peserta'] = Peserta::whereNotNull('created_at');
+        $data['peserta'] = Peserta::where('status', 'P')->whereNotNull('created_at');
 
         if(isset($_GET['delete_duplikat'])) {
             $data['peserta'] = Peserta::select('nama', DB::raw('COUNT(*) as jumlah'));
@@ -126,7 +126,7 @@ class PesertaController extends Controller
         $data['peserta'] = $data['peserta']->orderBy('nama', 'ASC')->paginate(10);
         $data['kegiatan'] = Kegiatan::orderBy('created_at', 'DESC')->get();
         // dd($data);
-        return view('admin.peserta.index', $data);
+                return view('admin.peserta.index', $data);
     }
 
     public function export() {
