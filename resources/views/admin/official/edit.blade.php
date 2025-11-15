@@ -28,7 +28,7 @@
     </div>
 <script>
     @section('script')
-        const komposisi = @json($peserta->PertandinganPeserta);
+        // const komposisi = @json($peserta->PertandinganPeserta);
         // console.log(komposisi[0]);
             // document.querySelector('input[name="berat_badan"]').addEventListener('keydown', function(e) {
             // if (['e', 'E', '+', '-', '.'].includes(e.key)) e.preventDefault();
@@ -75,13 +75,13 @@
                         // berat_badan: 'Berat Badan Peserta Wajib Diisi!',
                         keterangan: 'Keterangan Wajib Diisi!',
                         kabupaten_id: 'Kabupaten Wajib Diisi!',
-                        kecamatan_id: 'Kecamatan Wajib Diisi!',
-                        kelurahan_id: 'Kelurahan Wajib Diisi!',
-                        'kategori_id[]': () => {
-                        const select = form.querySelector('[name="kategori_id[]"]');
-                        const selected = Array.from(select.options).filter(opt => opt.selected);
-                        if (selected.length === 0) return 'Minimal pilih satu kategori!';
-                        },
+                        // kecamatan_id: 'Kecamatan Wajib Diisi!',
+                        // kelurahan_id: 'Kelurahan Wajib Diisi!',
+                        // 'kategori_id[]': () => {
+                        // const select = form.querySelector('[name="kategori_id[]"]');
+                        // const selected = Array.from(select.options).filter(opt => opt.selected);
+                        // if (selected.length === 0) return 'Minimal pilih satu kategori!';
+                        // },
                         foto: file => {
                             if (!file) {
                                 return 'Foto Peserta Wajib Diisi!';
@@ -215,51 +215,6 @@
 
 
 
-        function AmbilDataPertandingan(tanggal_lahir, jenis_kelamin, kegiatan_id, kategori_id) {
-            $('#pertandingan_id').attr('status', 'true');
-            $('#pertandingan_id').html('');
-            $.ajax({
-                url: `{{url("pendaftarans")}}/${tanggal_lahir}/${jenis_kelamin}?kegiatan_id=${kegiatan_id}&kategori_id=${kategori_id}`, // URL API
-                type: 'GET',
-                dataType: 'json', // bisa 'html', 'text', dll tergantung respon
-                success: function(response) {
-                    // var list_kategori_terpilih = @json($list_kategori_terpilih);
-                    // console.log(list_kategori_terpilih);
-                    let data = "";
-
-                    // console.log(response);
-
-                    if(response.data.length > 0) {
-                        $.each(response.data, function(index, value) {
-                            $('#tingkat').val(value.kategori.nama);
-                            data += `<option value="${value.id}">${value.pertandingan.nama} | Urutan ${response.urutan[index]}</option>`;
-                        });
-                    } else {
-                        data += `<option value="" disabled>Pertandingan Tidak Tersedia!</option>`;
-                    }
-
-                    // data += `<option value="" disabled>Pilih Pertandingan</option>`;
-
-                    $('#pertandingan_id').html(data);
-                    let select = document.getElementById('pertandingan_id');
-                    let selected = @json($list_kategori_terpilih); // array dari Laravel
-
-                    // Loop semua option di select
-                    for (let option of select.options) {
-                        if (selected.includes(parseInt(option.value))) {
-                            option.selected = true;
-                        }
-                    }
-
-
-                    // alert('Judul: ' + response.title);
-                },
-                error: function(xhr, status, error) {
-                    console.error('Gagal:', error);
-                    alert('Gagal mengambil data!');
-                }
-            });
-        }
 
         let lastValid = [];
         $('#pertandingan_id').on('change', function () {
@@ -334,16 +289,6 @@
                 // console.log(hasil);
                 $('.tanding_list').html(data_urutan_list);
         });
-
-        @isset($peserta)
-            $('.kategori_show').html('');
-            // $('.kategori_pertandingan_show').html('');
-            for(var i = 0; i < $("#kategori_id").val().length; i++) {
-                AmbilDataPertandinganKategori($('#tanggal_lahir').val(), $('#jenis_kelamin').val(), $('#kegiatan_id').val(), $("#kategori_id").val()[i], true);
-            }
-            $('#kabupaten_id').val('{{ $peserta->kabupaten_id }}').trigger('change');
-
-        @endisset
 
         $('#jenis_kelamin').on('change', function (e) {
 
@@ -475,102 +420,6 @@
 
 
 
-        function AmbilDataPertandinganKategori(tanggal_lahir, jenis_kelamin, kegiatan_id, kategori_id, exist = false) {
-                                            // <h1 class="mt-4 ml-4">Pertandingan kategori : </h1>
-                                            // <div class="mt-4 ml-4">
-                                            //     <label for="">Kategori</label>
-                                            //     <select name="pertandingan_id[]" class="pilihan w-full pl-9 text-sm focus:shadow-primary-outline ease leading-5.6 relative -ml-px block min-w-0 flex-auto rounded-lg border border-solid border-gray-300 dark:bg-slate-850 dark:text-white bg-white bg-clip-padding py-2 pr-3 text-gray-700 transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:transition-shadow" multiple="multiple" status="{{ (is_array(old('pertandingan_id')) && count(old('pertandingan_id'))) > 0 ? 'true' : 'false' }}" id="pertandingan_id">
-                                            //     </select>
-                                            // </div>
-            $.ajax({
-                url: `{{url("pendaftarans")}}/${tanggal_lahir}/${jenis_kelamin}?kegiatan_id=${kegiatan_id}&kategori_id=${kategori_id}`, // URL API
-                type: 'GET',
-                dataType: 'json', // bisa 'html', 'text', dll tergantung respon
-                success: function(response) {
-                    // console.log(response);
-                    let html = "";
-                    let html2 = "";
-                    let option = "";
-                    if(response.data.length > 0) {
-                        $.each(response.data, function(index, value) {
-                            option += `<option value="${value.id}">${value.pertandingan.nama} </option>`;
-                        });
-                    } else {
-                        option += `<option value="" selected>Usia anda tidak tersedia untuk pertandingan ini!</option>`
-                    }
-                    html += `
-                            <div class="mt-4 ml-4">
-                                <label for="">${response.kategori.nama}</label>
-                                <select name="pertandingan_id[]" ${response.data.length == 0 ? 'disabled' : ''}  class="pertandingan_kategori w-full pl-9 text-sm focus:shadow-primary-outline ease leading-5.6 relative -ml-px block min-w-0 flex-auto rounded-lg border border-solid border-gray-300 dark:bg-slate-850 dark:text-white bg-white bg-clip-padding py-2 pr-3 text-gray-700 transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:transition-shadow" multiple="multiple" status="{{ (is_array(old('pertandingan_id')) && count(old('pertandingan_id'))) > 0 ? 'true' : 'false' }}" kategori_id="${response.kategori.id}" id="pilihan_${response.kategori.id}">
-                                    ${option}
-                                </select>
-                            </div>
-
-                    `;
-
-
-
-
-                    $('.kategori_show').append(html);
-                     let select = document.getElementById(`pilihan_${response.kategori.id}`);
-                    // console.log(select);
-                    console.log(exist);
-                    let selected = @json($list_kategori_terpilih); // array dari Laravel
-                    let selectedlist_kategori_Id = selected.map(item => item.list_kategori_id);
-                    if(exist == true) {
-                        for (let option of select.options) {
-                            if (selectedlist_kategori_Id.includes(parseInt(option.value))) {
-                                option.selected = true;
-                                // PertandinganKategori(option.value, $(`#pilihan_${response.kategori.id}`).attr('kategori_id'), `#pilihan_${response.kategori.id}`);
-                                // $('#pertandingan_id').val(lastValid).trigger('change');
-                            }
-                        }
-                    }
-
-                    // console.log(selectedlist_kategori_Id);
-
-
-                    // // Loop semua option di select
-
-                    // $('.pertandingan_kategori').trigger('change');
-
-                                  html2 += `
-                            <div class="mt-4 ml-4">
-                                <h5>${response.kategori.nama}</h5>
-                                <div id="pertandingan_tahapan_teknik_${response.kategori.id}">
-
-                                </div>
-                            </div>
-                        `;
-
-                        $('.kategori_pertandingan_show').append(html2);
-
-                    $(`#pilihan_${response.kategori.id}`).select2({
-                        theme: 'mytheme', // atau 'bootstrap5' jika pakai tema lain
-                        allowClear: true,
-                        width: '100%',
-                        minimumResultsForSearch: 0 /// biar full lebar // Biar serasi dengan Bootstrap form-control
-                    });
-                    if(exist == true) {
-                        for (let option of select.options) {
-                            if (selectedlist_kategori_Id.includes(parseInt(option.value))) {
-                                // option.selected = true;
-                                PertandinganKategori(option.value, $(`#pilihan_${response.kategori.id}`).attr('kategori_id'), `#pilihan_${response.kategori.id}`, true);
-                                // $('#pertandingan_id').val(lastValid).trigger('change');
-                            }
-                        }
-                    }
-
-
-
-                    // alert('Judul: ' + response.title);
-                },
-                error: function(xhr, status, error) {
-                    console.error('Gagal:', error);
-                    alert('Gagal mengambil data!');
-                }
-            });
-        }
 
         let kategori_choose = [];
         let pertandingan_choose = [];

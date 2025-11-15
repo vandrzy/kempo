@@ -39,7 +39,7 @@
                 <div class="mb-4">
                     <label for="">Tingkat <span style="color: red;">*</span></label>
                     @php
-                        $tingkat_sabuk = explode('-', $peserta->tingkatan_sabuk ?? "");
+                        $tingkat_sabuk = explode('-', $peserta->tingkat ?? "");
                     @endphp
                     {{-- <input type="text" name="status" value=" {{ old('status') }}" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" id="" > --}}
                     <div class="flex gap-2">
@@ -65,25 +65,23 @@
                 </div>
 
                 <div class="mb-4">
-                    <label for="kecamatan_id" class="block text-sm font-medium text-gray-700">Kecamatan <span style="color: red;">*</span></label>
-                    <select name="kecamatan_id" id="kecamatan_id" class="w-full border rounded px-3 py-2">
-                        <option selected disabled>Pilih Kecamatan</option>
-                    </select>
-                    <span class="error text-sm text-red-600"></span>
-                </div>
-
-                <div class="mb-4">
-                    <label for="kelurahan_id" class="block text-sm font-medium text-gray-700">Kelurahan <span style="color: red;">*</span></label>
-                    <select name="kelurahan_id" id="kelurahan_id" class="w-full border rounded px-3 py-2">
-                        <option selected disabled>Pilih Kelurahan</option>
-                    </select>
-                    <span class="error text-sm text-red-600"></span>
-                </div>
-
-                <div class="mb-4">
                     <label for="">Alamat Lengkap</label>
                     <textarea name="alamat" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" id="" rows="5">{{ old('alamat', @$peserta->alamat) }}</textarea>
                     <span class="error text-sm text-red-600"></span>
+                </div>
+
+                <div class="mb-4">
+                    <label for="">Tempat, Tanggal Lahir  <span style="color: red;">*</span></label>
+                    <div class="flex gap-2">
+                        <input type="text" name="tempat"
+                            class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-1/2"
+                            value="{{ old('tempat', @$peserta->tempat) }}" placeholder="Tempat Lahir" id="">
+                        <span class="error text-sm text-red-600"></span>
+                        <input type="date" name="tanggal_lahir" id="tanggal_lahir"
+                            class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-1/2"
+                            value="{{ old('tanggal_lahir', date('Y-m-d', strtotime(@$peserta->tanggal_lahir))) }}" id="">
+                            <span class="error text-sm text-red-600"></span>
+                    </div>
                 </div>
 
             </div>
@@ -118,35 +116,18 @@
                     <span class="error text-sm text-red-600"></span>
                 </div> --}}
                 <div class="mb-4">
-                    <label for="">Keterangan Khusus Official Prestasi Terbaik : <span style="color: red;">*</span></label>
+                    <label for="">Keterangan Khusus Official Prestasi Terbaik : </label>
                     <textarea name="keterangan" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" id="" cols="30" rows="4">{{ old('keterangan', @$peserta->keterangan) }}</textarea>
                     <span class="error text-sm text-red-600"></span>
                 </div>
 
                 <div class="mb-4">
-                    <label for="">Tempat, Tanggal Lahir  <span style="color: red;">*</span></label>
-                    <div class="flex gap-2">
-                        <input type="text" name="tempat"
-                            class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-1/2"
-                            value="{{ old('tempat', @$peserta->tempat) }}" placeholder="Tempat Lahir" id="">
-                        <span class="error text-sm text-red-600"></span>
-                        <input type="date" name="tanggal_lahir" id="tanggal_lahir"
-                            class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-1/2"
-                            value="{{ old('tanggal_lahir', date('Y-m-d', strtotime(@$peserta->tanggal_lahir))) }}" id="">
-                            <span class="error text-sm text-red-600"></span>
-                    </div>
+                    <label for="">Sertifikat Pelatih yang diikuti : <span style="color: red;">*</span></label>
+                    <textarea name="sertifikat" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" id="" cols="30" rows="4">{{ old('sertifikat', @$peserta->sertifikat) }}</textarea>
+                    <span class="error text-sm text-red-600"></span>
                 </div>
 
 
-            <div class="mb-4">
-                <label for="">Kategori <span style="color: red;">*</span></label>
-                <select name="kategori_id[]" class="pilihan w-full pl-9 text-sm focus:shadow-primary-outline ease leading-5.6 relative -ml-px block min-w-0 flex-auto rounded-lg border border-solid border-gray-300 dark:bg-slate-850 dark:text-white bg-white bg-clip-padding py-2 pr-3 text-gray-700 transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:transition-shadow" multiple="multiple" status="{{ (is_array(old('kategori_id')) && count(old('kategori_id'))) > 0 ? 'true' : 'false' }}" id="kategori_id">
-                    @foreach ($kategori as $a)
-                        <option value="{{ $a->kategori_id }}" {{ in_array($a->kategori_id, array_column(@$kategori_terpilih ?? [], 'id')) ? 'selected' : '' }}>{{ $a->kategori->nama }}</option>
-                    @endforeach
-                </select>
-                <span class="error text-sm text-red-600"></span>
-            </div>
             <div class="mb-4">
                 <label for="">Foto Berwarna 4 x 6 <span style="color: red;">*</span></label>
                 <input type="file" name="foto" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" id="imageInput">
@@ -174,23 +155,7 @@
     </div>
 </div>
 <div class="p-3 overflow-x-auto">
-    <div class="flex flex-wrap mt-4 -mx-3">
-            <div class="w-full max-w-full px-3 mt-0 mb-6 lg:mb-0 lg:w-5/12 lg:flex-none">
-                <div class="relative flex flex-col min-w-0 break-words bg-white border-0 border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl dark:bg-gray-950 border-black-125 rounded-2xl bg-clip-border">
-                    <h1 class="m-4">Pertandingan</h1>
-                    <div class="kategori_show">
-                    </div>
-                </div>
-            </div>
-            <div class="w-full max-w-full px-3 mt-0 mb-6 lg:mb-0 lg:w-7/12 lg:flex-none">
-                <div class="relative flex flex-col min-w-0 break-words bg-white border-0 border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl dark:bg-gray-950 border-black-125 rounded-2xl bg-clip-border">
-                    <h1 class="m-4">Tahapan Teknik</h1>
-                    <div class="kategori_pertandingan_show">
 
-                    </div>
-                </div>
-            </div>
-    </div>
 
     {{-- <h1>Tahapan Teknik</h1>
     <div class="tanding_list">

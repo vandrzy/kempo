@@ -19,7 +19,7 @@
                         <div class="max-w-md mx-auto bg-white shadow-md p-5 border border-gray-200 p-2">
                         <h2 class="text-lg font-semibold text-gray-800 mb-3">Keterangan</h2>
                         <ul class="list-disc list-inside space-y-2 text-gray-700 text-sm">
-                            <li>Jika ada simbol "<span style="color: red;">*</span><span style="color: red;">*</span>" Harus diisi garis strip atau tanda hubung.</li>
+                            {{-- <li>Jika ada simbol "<span style="color: red;">*</span><span style="color: red;">*</span>" Harus diisi garis strip atau tanda hubung.</li> --}}
                             <li>Jika ada simbol "<span style="color: red;">*</span>" Wajib diisi.</li>
                         </ul>
                         </div>
@@ -80,7 +80,7 @@
                                             <span class="error text-sm text-red-600"></span>
                                         </div>
 
-                                        <div class="mb-4">
+                                        {{-- <div class="mb-4">
                                             <label for="kecamatan_id" class="block text-sm font-medium text-gray-700">Kecamatan <span style="color: red;">*</span></label>
                                             <select name="kecamatan_id" id="kecamatan_id" class="w-full border rounded px-3 py-2">
                                                 <option selected disabled>Pilih Kecamatan</option>
@@ -94,7 +94,7 @@
                                                 <option selected disabled>Pilih Kelurahan</option>
                                             </select>
                                             <span class="error text-sm text-red-600"></span>
-                                        </div>
+                                        </div> --}}
 
                                         <div class="mb-4">
                                             <label for="">Alamat Lengkap</label>
@@ -134,8 +134,14 @@
                                             <span class="error text-sm text-red-600"></span>
                                         </div> --}}
                                         <div class="mb-4">
-                                            <label for="">Keterangan Khusus Official Prestasi Terbaik : <span style="color: red;">*</span></label>
+                                            <label for="">Keterangan Khusus Official Prestasi Terbaik : </label>
                                             <textarea name="keterangan" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" id="" cols="30" rows="4">{{ old('keterangan') }}</textarea>
+                                            <span class="error text-sm text-red-600"></span>
+                                        </div>
+
+                                        <div class="mb-4">
+                                            <label for="">Sertifikat Pelatih yang diikuti : <span style="color: red;">*</span></label>
+                                            <textarea name="sertifikat" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" id="" cols="30" rows="4">{{ old('sertifikat') }}</textarea>
                                             <span class="error text-sm text-red-600"></span>
                                         </div>
 
@@ -154,7 +160,7 @@
                                         </div>
 
 
-                                    <div class="mb-4">
+                                    {{-- <div class="mb-4">
                                         <label for="">Kategori <span style="color: red;">*</span></label>
                                         <select name="kategori_id[]" class="pilihan w-full pl-9 text-sm focus:shadow-primary-outline ease leading-5.6 relative -ml-px block min-w-0 flex-auto rounded-lg border border-solid border-gray-300 dark:bg-slate-850 dark:text-white bg-white bg-clip-padding py-2 pr-3 text-gray-700 transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:transition-shadow" multiple="multiple" status="{{ (is_array(old('kategori_id')) && count(old('kategori_id'))) > 0 ? 'true' : 'false' }}" id="kategori_id">
                                             @foreach ($kategori as $a)
@@ -162,7 +168,7 @@
                                             @endforeach
                                         </select>
                                         <span class="error text-sm text-red-600"></span>
-                                    </div>
+                                    </div> --}}
                                     <div class="mb-4">
                                         <label for="">Foto Berwarna 4 x 6 <span style="color: red;">*</span></label>
                                         <input type="file" name="foto" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" id="imageInput">
@@ -188,7 +194,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="p-3 overflow-x-auto">
+                        {{-- <div class="p-3 overflow-x-auto">
                             <div class="flex flex-wrap mt-4 -mx-3">
                                     <div class="w-full max-w-full px-3 mt-0 mb-6 lg:mb-0 lg:w-12/12 lg:flex-none">
                                         <div class="relative flex flex-col min-w-0 break-words bg-white border-0 border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl dark:bg-gray-950 border-black-125 rounded-2xl bg-clip-border">
@@ -205,7 +211,7 @@
                                             </div>
                                         </div>
                                     </div>
-                            </div>
+                            </div> --}}
                             <br><br>
 
                             {{-- <h1>Tahapan Teknik</h1>
@@ -274,13 +280,14 @@
                         // berat_badan: 'Berat Badan Peserta Wajib Diisi!',
                         keterangan: 'Keterangan Wajib Diisi!',
                         kabupaten_id: 'Kabupaten Wajib Diisi!',
-                        kecamatan_id: 'Kecamatan Wajib Diisi!',
-                        kelurahan_id: 'Kelurahan Wajib Diisi!',
+                        // kecamatan_id: 'Kecamatan Wajib Diisi!',
+                        // kelurahan_id: 'Kelurahan Wajib Diisi!',
+                        /*
                         'kategori_id[]': () => {
                         const select = form.querySelector('[name="kategori_id[]"]');
                         const selected = Array.from(select.options).filter(opt => opt.selected);
                         if (selected.length === 0) return 'Minimal pilih satu kategori!';
-                        },
+                        }, */
                         foto: file => {
                         if (!file) return 'Foto Official Wajib Diisi!';
                         const allowed = ['image/jpeg', 'image/png', 'image/jpg', 'image/svg+xml'];
@@ -511,25 +518,25 @@
                 $('.tanding_list').html(data_urutan_list);
         });
 
-        $('#jenis_kelamin').on('change', function (e) {
+        // $('#jenis_kelamin').on('change', function (e) {
 
-            $('.kategori_show').html('');
-            $('.kategori_pertandingan_show').html('');
-            for(var i = 0; i < $("#kategori_id").val().length; i++) {
-                AmbilDataPertandinganKategori($('#tanggal_lahir').val(), $('#jenis_kelamin').val(), $('#kegiatan_id').val(), $("#kategori_id").val()[i]);
-            }
-            // AmbilDataPertandingan($('#tanggal_lahir').val(), $('#jenis_kelamin').val(), $('#kegiatan_id').val());
-        });
+        //     $('.kategori_show').html('');
+        //     $('.kategori_pertandingan_show').html('');
+        //     for(var i = 0; i < $("#kategori_id").val().length; i++) {
+        //         AmbilDataPertandinganKategori($('#tanggal_lahir').val(), $('#jenis_kelamin').val(), $('#kegiatan_id').val(), $("#kategori_id").val()[i]);
+        //     }
+        //     // AmbilDataPertandingan($('#tanggal_lahir').val(), $('#jenis_kelamin').val(), $('#kegiatan_id').val());
+        // });
 
-        $('#tanggal_lahir').on('change', function (e) {
+        // $('#tanggal_lahir').on('change', function (e) {
 
-            $('.kategori_show').html('');
-            $('.kategori_pertandingan_show').html('');
-            for(var i = 0; i < $("#kategori_id").val().length; i++) {
-                AmbilDataPertandinganKategori($('#tanggal_lahir').val(), $('#jenis_kelamin').val(), $('#kegiatan_id').val(), $("#kategori_id").val()[i]);
-            }
-            // AmbilDataPertandingan($('#tanggal_lahir').val(), $('#jenis_kelamin').val(), $('#kegiatan_id').val());
-        });
+        //     $('.kategori_show').html('');
+        //     $('.kategori_pertandingan_show').html('');
+        //     for(var i = 0; i < $("#kategori_id").val().length; i++) {
+        //         AmbilDataPertandinganKategori($('#tanggal_lahir').val(), $('#jenis_kelamin').val(), $('#kegiatan_id').val(), $("#kategori_id").val()[i]);
+        //     }
+        //     // AmbilDataPertandingan($('#tanggal_lahir').val(), $('#jenis_kelamin').val(), $('#kegiatan_id').val());
+        // });
 
 
         function AmbilDataPertandinganKategori(tanggal_lahir, jenis_kelamin, kegiatan_id, kategori_id) {

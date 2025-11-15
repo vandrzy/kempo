@@ -6,6 +6,7 @@ use App\Exports\PesertaExport;
 use App\Models\Kabupaten;
 use App\Models\Kegiatan;
 use App\Models\ListKategori;
+use App\Models\Official;
 use App\Models\PertandinganPeserta;
 use App\Models\Peserta;
 use App\Models\UrutanKomposisiPeserta;
@@ -123,7 +124,7 @@ class OfficialController extends Controller
 
 
 
-            $peserta = Peserta::create([
+            $peserta = Official::create([
                 'nama' => $request->nama,
                 'jenis_kelamin'=> $request->jenis_kelamin,
                 'golongan_darah'=> $request->golongan_darah,
@@ -136,12 +137,13 @@ class OfficialController extends Controller
                 'telepon'=> $request->telepon,
                 // 'berat_badan'=> $request->berat_badan,
                 'keterangan'=> $request->keterangan,
+                'sertifikat'=> $request->sertifikat,
                 'foto' => 'lol',
                 'kabupaten_id' => $request->kabupaten_id,
-                'kecamatan_id' => $request->kecamatan_id,
-                'kelurahan_id' => $request->kelurahan_id,
-                'disabilitas' => $request->disabilitas,
-                'tingkatan_sabuk' => $request->tingkatan_sabuk_a."-".$request->tingkatan_sabuk_b,
+                // 'kecamatan_id' => $request->kecamatan_id,
+                // 'kelurahan_id' => $request->kelurahan_id,
+                'kegiatan_id' => $request->kegiatan_id,
+                'tingkat' => $request->tingkatan_sabuk_a."-".$request->tingkatan_sabuk_b,
             ]);
 
             $image = $request->file('foto');
@@ -160,47 +162,9 @@ class OfficialController extends Controller
                 ->save($path, quality: 50);
 
 
-            $peserta_image = Peserta::find($peserta->id);
+            $peserta_image = Official::find($peserta->id);
             $peserta_image->foto = 'storage/foto_peserta/' . $filename;
             $peserta_image->save();
-
-
-            foreach($request->pertandingan_id as $index => $a) {
-                $existing = PertandinganPeserta::where('list_kategori_id', $a)
-                ->orderBy('urutan')
-                ->pluck('urutan')
-                ->toArray();
-
-                // Cari urutan kosong
-                $urutanBaru = 1;
-                foreach ($existing as $num) {
-                    if ($num == $urutanBaru) {
-                        $urutanBaru++;
-                    } else {
-                        break; // lubang ditemukan
-                    }
-                }
-
-                $PPA = PertandinganPeserta::create([
-                    'peserta_id' => $peserta->id,
-                    'list_kategori_id' => $a,
-                    'urutan' => $urutanBaru,
-                    'kegiatan_id' => $request->kegiatan_id
-                ]);
-
-                $UKP = new UrutanKomposisiPeserta();
-                $UKP->pertandingan_peserta_id = $PPA->id;
-                $UKP->nama = $request->nama_tanding[$a] ?? "-";
-                $UKP->tingkat = $request->tingkat_tanding[$a] ?? "-";
-                $deskripsiUKP = "";
-                foreach($request->urutan_tanding[$a] as $b) {
-                    if($b != "") {
-                        $deskripsiUKP .= ($b ?? "-").",";
-                    }
-                }
-                $UKP->urutan_komposisi = $deskripsiUKP;
-                $UKP->save();
-            }
 
 
             return back()->with('success', 'Official telah terdaftar, mohon tunggu konfirmasi berikutnya!');
@@ -220,50 +184,27 @@ class OfficialController extends Controller
 
 
 
-        $data['peserta'] = Peserta::where('status', 'O')->whereNotNull('created_at');
+        $data['peserta'] = Official::where('status', 'O')->whereNotNull('created_at');
 
         if(isset($_GET['delete_duplikat'])) {
-            $data['peserta'] = Peserta::select('nama', DB::raw('COUNT(*) as jumlah'));
             $kegiatan_pertama = Kegiatan::first();
 
             $kegiatan_id = $_GET['kegiatan_id'] ?? $kegiatan_pertama->id;
             $data['kategori'] = ListKategori::with('kategori')->where('kegiatan_id', $kegiatan_id)->get()->unique('kategori_id')->values();
 
-
-
-            $data['peserta'] = $data['peserta']->WhereHas('PertandinganPesertaUtama', function ($q1) use ($kegiatan_id) {
-                $q1->WhereHas('list_kategori', function ($q2) use ($kegiatan_id) {
-                    $q2 = $q2->where('kegiatan_id', $kegiatan_id);
-                });
-            });
-
-
+            $data['peserta'] = Official::select('nama', DB::raw('COUNT(*) as jumlah'))->where('kegiatan_id', $kegiatan_id);
             $data['peserta'] = $data['peserta']->groupBy('nama')->having('jumlah', '>', 1)->get();
+
             foreach ($data['peserta'] as $item) {
                 // ambil semua peserta dengan nama yang sama, urutkan terbaru dulu
-                $pesertas = Peserta::where('nama', $item->nama)->WhereHas('PertandinganPesertaUtama', function ($q1) use ($kegiatan_id) {
-                    $q1->WhereHas('list_kategori', function ($q2) use ($kegiatan_id) {
-                        $q2 = $q2->where('kegiatan_id', $kegiatan_id);
-                    });
-                })->orderBy('id', 'desc')->get();
+                $pesertas = Official::where('nama', $item->nama)->where('kegiatan_id', $kegiatan_id)->orderBy('id', 'desc')->get();
 
                 // simpan 1 data terbaru, hapus sisanya
                 $pesertas->skip(1)->each(function ($peserta) {
-
-                    // pastikan relasinya di-load dulu agar aman
-                    $peserta->load(['PertandinganPeserta.UrutanKomposisiPeserta']);
-
-                    // hapus relasi terdalam dulu (UrutanKomposisiPeserta)
-                    foreach ($peserta->PertandinganPeserta as $pertandinganPeserta) {
-                        $pertandinganPeserta->UrutanKomposisiPeserta()->delete();
-                    }
-
-                    // lalu hapus PertandinganPeserta
-                    $peserta->PertandinganPeserta()->delete();
-
                     // terakhir hapus Peserta itu sendiri
                     $peserta->delete();
                 });
+
             }
 
             return back()->with('success', 'Data Duplikat Berhasil Dihapus');
@@ -279,39 +220,14 @@ class OfficialController extends Controller
 
             if(isset($_GET['kegiatan_id'])  && $_GET['kegiatan_id'] != "") {
                 $kegiatan = Kegiatan::find($_GET['kegiatan_id']);
-                $data['kategori'] = ListKategori::with('kategori')->where('kegiatan_id', $kegiatan->id)->get()->unique('kategori_id')->values();
-
-                $kegiatan_id = $kegiatan->id;
-                $kategori_id = $_GET['kategori_id'] ?? "";
-                $pertandingan_id = $_GET['pertandingan_id'] ?? "";
-
-
-                $data['peserta'] = $data['peserta']->WhereHas('PertandinganPesertaUtama', function ($q1) use ($kegiatan_id, $kategori_id, $pertandingan_id) {
-                    $q1->WhereHas('list_kategori', function ($q2) use ($kegiatan_id, $kategori_id, $pertandingan_id) {
-                        $q2 = $q2->where('kegiatan_id', $kegiatan_id);
-
-                        if(isset($kategori_id)  && $kategori_id != "") {
-                            $q2 = $q2->where('kategori_id', $kategori_id);
-                        }
-
-                        if(isset($pertandingan_id)  && $pertandingan_id != "") {
-                            $q2 = $q2->where('pertandingan_id', $pertandingan_id);
-                        }
-                    });
-                });
+                $data['peserta'] = $data['peserta']->where('kegiatan_id','=',$_GET['kegiatan_id']);
             } else {
                 $data['kegiatan_get'] = Kegiatan::orderBy('created_at', 'DESC')->first();
                 $kegiatan_id = $data['kegiatan_get']->id;
-                $kategori_id = $_GET['kategori_id'] ?? "";
+                $data['peserta'] = $data['peserta']->where('kegiatan_id','=',$kegiatan_id);
 
-                $data['peserta'] = $data['peserta']->WhereHas('PertandinganPesertaUtama', function ($q1) use ($kegiatan_id, $kategori_id) {
-                    $q1 = $q1->where('kegiatan_id', $kegiatan_id);
-                });
             }
 
-            if(isset($_GET['kategori_id'])  && $_GET['kategori_id'] != "") {
-                $data['pertandingan'] = ListKategori::with('pertandingan')->where('kegiatan_id', $kegiatan_id)->where('kategori_id', $kategori_id)->get();
-            }
         }
 
 
@@ -325,7 +241,7 @@ class OfficialController extends Controller
     public function show(string $id)
     {
         //
-        $data['peserta'] = Peserta::find($id);
+        $data['peserta'] = Official::find($id);
         return view('admin.official.detail', $data);
     }
 
@@ -334,16 +250,18 @@ class OfficialController extends Controller
         // $kegiatan_id = explode('-', $id);
 
         // $data['peserta'] = Peserta::find($id);
-        $data['peserta'] = Peserta::with(['PertandinganPeserta.list_kategori.kategori', 'PertandinganPeserta.UrutanKomposisiPeserta'])->find($id);
+        // $data['peserta'] = Peserta::with(['PertandinganPeserta.list_kategori.kategori', 'PertandinganPeserta.UrutanKomposisiPeserta'])->find($id);
 
-        // ambil semua kategori dari peserta tsb
-        $data['kategori_terpilih'] = $data['peserta']->PertandinganPeserta->pluck('list_kategori.kategori')->filter()->toArray();
-        $data['list_kategori_terpilih'] = $data['peserta']->PertandinganPeserta->filter()->toArray();
+        // // ambil semua kategori dari peserta tsb
+        // $data['kategori_terpilih'] = $data['peserta']->PertandinganPeserta->pluck('list_kategori.kategori')->filter()->toArray();
+        // $data['list_kategori_terpilih'] = $data['peserta']->PertandinganPeserta->filter()->toArray();
 
-        // dd($data['kategori_terpilih']);
-        $dataPertandinganKegiatan = PertandinganPeserta::where('peserta_id', $data['peserta']->id)->first();
+        // // dd($data['kategori_terpilih']);
+        // $dataPertandinganKegiatan = PertandinganPeserta::where('peserta_id', $data['peserta']->id)->first();
         $data['kabupatens'] = Kabupaten::get();
-        $data['kegiatan'] = Kegiatan::find($dataPertandinganKegiatan->kegiatan_id);
+        $data['peserta'] = Official::find($id);
+
+        $data['kegiatan'] = Kegiatan::find($data['peserta']->kegiatan_id);
 
         $tahun = old('tanggal_lahir');
         $kelamin = old('jenis_kelamin');
@@ -363,11 +281,13 @@ class OfficialController extends Controller
         // }
 
         // $data['pertandingan'] = Pertandingan::get();
-        $data['kategori'] = ListKategori::with('kategori')->where('kegiatan_id', $data['kegiatan']->id)
-        ->select('kategori_id')
-        ->groupBy('kategori_id')
-        ->get();
+        // $data['kategori'] = ListKategori::with('kategori')->where('kegiatan_id', $data['kegiatan']->id)
+        // ->select('kategori_id')
+        // ->groupBy('kategori_id')
+        // ->get();
         // dd($kategori);
+
+        // dd("ASD");
 
 
         return view('admin.official.edit', $data);
@@ -375,7 +295,7 @@ class OfficialController extends Controller
 
     public function update(Request $request, string $id)
     {
-            $peserta = Peserta::where('id', $id)->update([
+            $peserta = Official::where('id', $id)->update([
                 'nama' => $request->nama,
                 'jenis_kelamin'=> $request->jenis_kelamin,
                 'golongan_darah'=> $request->golongan_darah,
@@ -388,18 +308,14 @@ class OfficialController extends Controller
                 'telepon'=> $request->telepon,
                 // 'berat_badan'=> $request->berat_badan,
                 'keterangan'=> $request->keterangan,
+                'sertifikat'=> $request->sertifikat,
+                // 'foto' => 'lol',
                 'kabupaten_id' => $request->kabupaten_id,
-                'kecamatan_id' => $request->kecamatan_id,
-                'kelurahan_id' => $request->kelurahan_id,
-                'disabilitas' => $request->disabilitas,
-                'tingkatan_sabuk' => $request->tingkatan_sabuk_a."-".$request->tingkatan_sabuk_b,
+                // 'kecamatan_id' => $request->kecamatan_id,
+                // 'kelurahan_id' => $request->kelurahan_id,
+                'kegiatan_id' => $request->kegiatan_id,
+                'tingkat' => $request->tingkatan_sabuk_a."-".$request->tingkatan_sabuk_b,
             ]);
-
-            $peserta = Peserta::find($id);
-            foreach($peserta->PertandinganPeserta() as $a) {
-                $a->UrutanKomposisiPeserta()->delete();
-            }
-            $peserta->PertandinganPeserta()->delete();
 
             if($request->foto) {
                 $image = $request->file('foto');
@@ -424,43 +340,6 @@ class OfficialController extends Controller
             }
 
 
-            foreach($request->pertandingan_id as $index => $a) {
-                $existing = PertandinganPeserta::where('list_kategori_id', $a)
-                ->orderBy('urutan')
-                ->pluck('urutan')
-                ->toArray();
-
-                // Cari urutan kosong
-                $urutanBaru = 1;
-                foreach ($existing as $num) {
-                    if ($num == $urutanBaru) {
-                        $urutanBaru++;
-                    } else {
-                        break; // lubang ditemukan
-                    }
-                }
-
-                $PPA = PertandinganPeserta::create([
-                    'peserta_id' => $peserta->id,
-                    'list_kategori_id' => $a,
-                    'urutan' => $urutanBaru,
-                    'kegiatan_id' => $request->kegiatan_id
-                ]);
-
-                $UKP = new UrutanKomposisiPeserta();
-                $UKP->pertandingan_peserta_id = $PPA->id;
-                $UKP->nama = $request->nama_tanding[$a] ?? "-";
-                $UKP->tingkat = $request->tingkat_tanding[$a] ?? "-";
-                $deskripsiUKP = "";
-                foreach($request->urutan_tanding[$a] as $b) {
-                    if($b != "") {
-                        $deskripsiUKP .= ($b ?? "-").",";
-                    }
-                }
-                $UKP->urutan_komposisi = $deskripsiUKP;
-                $UKP->save();
-            }
-
 
             return redirect('official')->with('success', 'Official telah tersimpan, mohon tunggu konfirmasi berikutnya!');
     }
@@ -468,11 +347,7 @@ class OfficialController extends Controller
     public function destroy(string $id)
     {
         try {
-            $peserta = Peserta::find($id);
-            foreach($peserta->PertandinganPeserta() as $a) {
-                $a->UrutanKomposisiPeserta()->delete();
-            }
-            $peserta->PertandinganPeserta()->delete();
+            $peserta = Official::find($id);
             $peserta->delete();
 
             return back()->with('success', 'Data Berhasil Dihapus');

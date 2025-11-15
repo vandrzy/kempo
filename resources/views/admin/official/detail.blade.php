@@ -37,6 +37,10 @@
                                 <table class="min-w-full bg-white border border-gray-200">
                                     <tbody>
                                         <tr>
+                                            <th class="px-6 py-4 border-b" style="text-align: left">Kontigen</th>
+                                            <td class="px-6 py-4 border-b">{{ $peserta->kabupaten->name }}</td>
+                                        </tr>
+                                        <tr>
                                             <th class="px-6 py-4 border-b" style="text-align: left">Nama</th>
                                             <td class="px-6 py-4 border-b">{{ $peserta->nama }}</td>
                                         </tr>
@@ -66,7 +70,7 @@
                                         </tr> --}}
                                         <tr>
                                             <th class="px-6 py-4 border-b" style="text-align: left">Tingkat</td>
-                                            <td class="px-6 py-4 border-b">{{ $peserta->tingkatan_sabuk }}</td>
+                                            <td class="px-6 py-4 border-b">{{ $peserta->tingkat }}</td>
                                         </tr>
                                         {{-- <tr>
                                             <th class="px-6 py-4 border-b" style="text-align: left">Status</td>
@@ -78,7 +82,7 @@
                                         </tr>
                                         <tr>
                                             <th class="px-6 py-4 border-b" style="text-align: left">Alamat Rumah</td>
-                                            <td class="px-6 py-4 border-b">{{ $peserta->alamat }} <br> {{ $peserta->kabupaten->name ?? "" }},{{ $peserta->kecamatan->name ?? "" }},{{ $peserta->kelurahan->name ?? "" }}</td>
+                                            <td class="px-6 py-4 border-b">{{ $peserta->alamat }} </td>
                                         </tr>
                                         <tr>
                                             <th class="px-6 py-4 border-b" style="text-align: left">Telepon</td>
@@ -89,6 +93,12 @@
                                         </tr>
                                         <tr>
                                             <td class="px-6 py-4 border-b" colspan="2">{{ $peserta->keterangan }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th class="px-6 py-4 border-b" style="text-align: left" colspan="2">Sertifikat Pelatih yang diikuti</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="px-6 py-4 border-b" colspan="2">{{ $peserta->sertifikat }}</td>
                                         </tr>
 
                                         {{-- @foreach ($peserta->PertandinganPeserta as $a)
@@ -103,65 +113,6 @@
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="border-black/12.5 shadow-xl dark:bg-slate-850 dark:shadow-dark-xl relative flex min-w-0 flex-col break-words rounded-2xl border-0 border-solid bg-white bg-clip-border">
-                    <table class="min-w-full bg-white border border-gray-200">
-                        <thead>
-                            <tr>
-                                <th class="px-6 py-4 border-b" style="text-align: left" colspan="2">Nomor dan Kelas Pertandingan yang akan diikuti</td>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @php
-                                $kategori_id = 0;
-                            @endphp
-                            @foreach ($peserta->PertandinganPeserta as $a)
-                                @if($kategori_id != $a->list_kategori->kategori_id)
-                                    @php
-                                        $kategori_id = $a->list_kategori->kategori_id;
-                                    @endphp
-                                    <tr>
-                                        <th class="px-6 py-4 border-b" colspan="3" align="left">Kategori : {{ $a->list_kategori->kategori->nama ?? "" }}</th>
-                                    </tr>
-                                @endif
-                                <tr>
-                                    <th class="px-6 py-4 border-b" align="left">Nomor Peserta : {{ $a->urutan }}</th>
-                                    <th class="px-6 py-4 border-b" colspan="2" align="left">Tanding : {{ $a->list_kategori->pertandingan->nama ?? "" }}</th>
-                                </tr>
-                                <tr>
-                                    <th class="px-6 py-4 border-b" align="left">Nama</th>
-                                    <th class="px-6 py-4 border-b" align="left">Tingkat</th>
-                                    <th class="px-6 py-4 border-b" align="left">Urutan Komposisi yang dimainkan : </th>
-
-                                </tr>
-                                @php
-                                    if($a->UrutanKomposisiPeserta) {
-                                    $uk_list = explode(",", $a->UrutanKomposisiPeserta->urutan_komposisi);
-
-                                    } else {
-                                    $uk_list = [];
-
-                                    }
-
-                                    // dd($uk_list);
-                                @endphp
-                                @foreach ($uk_list as $index => $b)
-                                    @if($b != "")
-                                        <tr>
-                                            @if ($index == 0)
-                                                <td class="px-6 py-4 border-b">{{ $a->UrutanKomposisiPeserta->nama }}</td>
-                                                <td class="px-6 py-4 border-b">{{ $a->UrutanKomposisiPeserta->tingkat ?? "" }}</td>
-                                            @else
-                                                <td class="px-6 py-4 border-b"></td>
-                                                <td class="px-6 py-4 border-b"></td>
-                                            @endif
-                                            <td class="px-6 py-4 border-b">{{ $b ?? "" }}</td>
-                                        </tr>
-                                    @endif
-                                @endforeach
-                            @endforeach
-                        </tbody>
-                    </table>
                 </div>
             </div>
         </div>
