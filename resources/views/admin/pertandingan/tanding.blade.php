@@ -254,8 +254,9 @@
 
 
 
-                            {{-- @if($peserta_ready > 0)
-                                <table class="items-center w-full ">
+                            @if($peserta_ready > 0)
+                                @if($kolom1->isEmpty() &&  $kolom2->isEmpty())
+                                                                    <table class="items-center w-full ">
                                     <thead class="align-bottom">
                                         <tr>
                                             <th colspan="1" style="text-align: left;" class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-3xl border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Kabupaten</th>
@@ -279,6 +280,7 @@
                                         @endforeach
                                     </tbody>
                                 </table>
+                                @endif
                             @else
                                 <table class="items-center w-full ">
                                     <thead class="align-bottom">
@@ -367,7 +369,7 @@
 
                                     </div>
                                 </div>
-                            @endif --}}
+                            @endif
 
                         @endif
                 </div>
