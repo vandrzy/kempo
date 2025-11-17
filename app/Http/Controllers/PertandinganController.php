@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Kabupaten;
 use App\Models\Kategori;
 use App\Models\Kegiatan;
+use App\Models\KontigenPertandingan;
 use App\Models\ListKategori;
 use App\Models\Pertandingan;
 use App\Models\PertandinganPeserta;
@@ -121,13 +122,22 @@ class PertandinganController extends Controller
         $data['peserta_ready'] = PertandinganPeserta::where('sudah_terpilih', 'false')->where('kegiatan_id', $_GET['kegiatan_id'])->where('list_kategori_id', $id)->count();
         $data['peserta_lawan'] = PesertaTerpilih::where('list_kategori_id', $id)->where('kegiatan_id', $_GET['kegiatan_id'])->paginate(10);
         // $data['pertandingan'] = Pertandingan::find($id);
-        // $data['kegiatan'] = Kegiatan::find($_GET['kegiatan_id']);s
+        $data['kegiatan'] = Kegiatan::find($_GET['kegiatan_id']);
         // dd("las");
         $data['pertandingan'] = ListKategori::where('id', $id)->first();
         $data['kabupaten'] = PertandinganPeserta::with('Peserta.kabupaten')->where('list_kategori_id', $id)->get()->groupBy(function ($item) {
             return $item->Peserta->kabupaten_id;
         });
 
+
+        if(isset($_GET['print']) && $_GET['print'] != "") {
+            $data['kolom'] = KontigenPertandingan::where('urutan', $_GET['print'])->where('list_kategori_id', $id)->get();
+            $pdf = Pdf::loadView('admin.pertandingan.print_tanding', $data);
+
+            // 🟢 Tampilkan langsung di browser
+            return $pdf->download('Data_Peserta_Kontigen_Pertandingan_'.date('Y-m-d').'.pdf');
+
+        }
         if(isset($_GET['kabupaten_id']) && $_GET['kabupaten_id'] != "") {
             $data['kabupaten_first'] = Kabupaten::find($_GET['kabupaten_id']);
             $kabupaten_id = $data['kabupaten_first']->id;
@@ -138,6 +148,13 @@ class PertandinganController extends Controller
 
         }
         // dd($data['kabupaten']);
+
+        $data['kontigen_pertandingan'] = KontigenPertandingan::where('list_kategori_id', $id)
+            ->get()
+            ->groupBy('urutan');
+        $data['kolom1'] = KontigenPertandingan::where('urutan', 1)->where('list_kategori_id', $id)->get();
+        $data['kolom2'] = KontigenPertandingan::where('urutan', 2)->where('list_kategori_id', $id)->get();
+        // dd($data['kolom1']);
 
         return view('admin.pertandingan.tanding', $data);
     }
@@ -157,51 +174,101 @@ class PertandinganController extends Controller
         return $pdf->stream("nomor_tanding.pdf"); // atau ->download()
     }
 
-    public function tanding($id) {
-        while (true) {
-            $terpilih = 0;
-            $listKategori = ListKategori::find($id);
-            $pertandinganPertama = PertandinganPeserta::where('sudah_terpilih', 'false')->where('list_kategori_id', $id)->inRandomOrder()->first();
-            // dd($pertandinganPertama->Peserta);
-            if ($pertandinganPertama) {
-                $pertandinganPertama->update(['sudah_terpilih' => 'true']);
-                $terpilih += 1;
+    public function tanding(Request $request,$id) {
+
+
+        // $kontigen_tersedia = KontigenPertandingan::where('list_kategori_id', $id)->('urutan')
+        $kontigen_delete = KontigenPertandingan::where('list_kategori_id', $id)->where('urutan', $request->urutan)->delete();
+        $data['kabupaten'] = PertandinganPeserta::with('Peserta.kabupaten')
+            ->where('list_kategori_id', $id)
+            ->whereHas('Peserta', function ($q) {
+                $q->whereNotNull('kabupaten_id');
+            })
+            ->get()
+            ->groupBy(function ($item) {
+                return $item->Peserta->kabupaten_id;
+            })
+            ->values(); // ←
+
+        // dd($data['kabupaten']);
+
+        $kabupaten_list = [];
+        $limit = count($data['kabupaten']) <= 8 ? 8 : 10 ;
+        for($i = 0; $i < $limit; $i++) {
+            if(isset($data['kabupaten'][$i])) {
+                $kabupatenId = optional($data['kabupaten'][$i]->first()->Peserta->Kabupaten)->id;
+                $kabupatenName = optional($data['kabupaten'][$i]->first()->Peserta->Kabupaten)->name;
+                $kabupatenTotalPeserta = $data['kabupaten'][$i]->count();
+                // dd("ASD");
+                $kabupaten_list[] = $kabupatenId;
             } else {
-                return redirect()->back()
-                    ->with('success', 'Peserta sudah terpilih semua!')
-                    ->withInput();
-                break;
-            }
-
-            // while(true) {
-            //     if($pertandinganKedua->Peserta->kabupaten_id != $pertandinganPertama->Peserta->kabupaten_id) {
-            //         break;
-            //     }
-            // }
-            $pertandinganKedua = PertandinganPeserta::whereHas('Peserta', function($q) use ($pertandinganPertama) {
-                $q->where('kabupaten_id','<>', $pertandinganPertama->Peserta->kabupaten_id);
-            })->where('sudah_terpilih', 'false')->where('list_kategori_id', $id)->inRandomOrder()->first();
-
-
-            if ($pertandinganKedua) {
-                $pertandinganKedua->update(['sudah_terpilih' => 'true']);
-                $terpilih += 1;
-            } else {
-                PesertaTerpilih::create([
-                    'list_kategori_id' => $id,
-                    'pertandingan_peserta_kiri_id' => $pertandinganPertama->id,
-                    'kegiatan_id' => $listKategori->kegiatan_id,
-                ]);
-            }
-            if($terpilih > 1) {
-                PesertaTerpilih::create([
-                    'list_kategori_id' => $id,
-                    'pertandingan_peserta_kiri_id' => $pertandinganPertama->id,
-                    'pertandingan_peserta_kanan_id' => $pertandinganKedua->id,
-                    'kegiatan_id' => $listKategori->kegiatan_id,
-                ]);
+                $kabupaten_list[] = null;
             }
         }
+
+        shuffle($kabupaten_list);
+
+        foreach($kabupaten_list as $a) {
+            KontigenPertandingan::create([
+                'list_kategori_id' => $id,
+                'kabupaten_id' => $a,
+                'urutan' => $request->urutan,
+            ]);
+        }
+        // dd($kabupaten_list);
+        // foreach ($data['kabupaten'] as $kabId => $items) {
+        //     $kabupatenId = optional($items->first()->Peserta->Kabupaten)->id;
+        //     $kabupatenName = optional($items->first()->Peserta->Kabupaten)->name;
+        //     $kabupatenTotalPeserta = $items->count();
+        // }
+        // dd($data['kabupaten']);
+        return redirect()->back()
+            ->with('success', 'Kontigen sudah terpilih semua!')
+            ->withInput();
+        // while (true) {
+        //     $terpilih = 0;
+        //     $listKategori = ListKategori::find($id);
+        //     $pertandinganPertama = PertandinganPeserta::where('sudah_terpilih', 'false')->where('list_kategori_id', $id)->inRandomOrder()->first();
+        //     // dd($pertandinganPertama->Peserta);
+        //     if ($pertandinganPertama) {
+        //         $pertandinganPertama->update(['sudah_terpilih' => 'true']);
+        //         $terpilih += 1;
+        //     } else {
+        //         return redirect()->back()
+        //             ->with('success', 'Peserta sudah terpilih semua!')
+        //             ->withInput();
+        //         break;
+        //     }
+
+        //     // while(true) {
+        //     //     if($pertandinganKedua->Peserta->kabupaten_id != $pertandinganPertama->Peserta->kabupaten_id) {
+        //     //         break;
+        //     //     }
+        //     // }
+        //     $pertandinganKedua = PertandinganPeserta::whereHas('Peserta', function($q) use ($pertandinganPertama) {
+        //         $q->where('kabupaten_id','<>', $pertandinganPertama->Peserta->kabupaten_id);
+        //     })->where('sudah_terpilih', 'false')->where('list_kategori_id', $id)->inRandomOrder()->first();
+
+
+        //     if ($pertandinganKedua) {
+        //         $pertandinganKedua->update(['sudah_terpilih' => 'true']);
+        //         $terpilih += 1;
+        //     } else {
+        //         PesertaTerpilih::create([
+        //             'list_kategori_id' => $id,
+        //             'pertandingan_peserta_kiri_id' => $pertandinganPertama->id,
+        //             'kegiatan_id' => $listKategori->kegiatan_id,
+        //         ]);
+        //     }
+        //     if($terpilih > 1) {
+        //         PesertaTerpilih::create([
+        //             'list_kategori_id' => $id,
+        //             'pertandingan_peserta_kiri_id' => $pertandinganPertama->id,
+        //             'pertandingan_peserta_kanan_id' => $pertandinganKedua->id,
+        //             'kegiatan_id' => $listKategori->kegiatan_id,
+        //         ]);
+        //     }
+        // }
     }
 
     public function batal_tanding(Request $request) {
