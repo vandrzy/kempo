@@ -68,16 +68,18 @@ class HomePageController extends Controller
         $data['kabupatens'] = Kabupaten::get();
         $data['kategoris'] = ListKategori::with('kategori')->where('kegiatan_id', base64_decode($kegiatan_id[1]))->get()->groupBy('kategori_id');
         // dd($data['kategoris']);
-        if(isset($_GET['peserta_id'])) {
+        if(isset($_GET['pertandingan_id'])) {
             $data['back'] = $id;
             $kegiatan_id = $_GET['kegiatan_id'];
             $kabupaten_id = $_GET['kabupaten_id'];
             $kategori_id = $_GET['kategori_id'];
             $pertandingan_id = $_GET['pertandingan_id'];
 
+            $data['kabupaten'] = Kabupaten::find($kabupaten_id);
 
 
-            $data['peserta'] = Peserta::with([
+
+            $data['pesertas'] = Peserta::with([
                 'PertandinganPeserta' => function ($q) use ($kegiatan_id, $kategori_id, $pertandingan_id) {
                     $q->where('kegiatan_id', $kegiatan_id)
                     ->whereHas('list_kategori', function ($w) use ($kategori_id, $pertandingan_id, $kegiatan_id) {
@@ -100,7 +102,7 @@ class HomePageController extends Controller
                         ->where('kegiatan_id', $kegiatan_id);
                 });
             })
-            ->find($_GET['peserta_id']);
+            ->where('kabupaten_id', $kabupaten_id)->get();
 
             // dd($data['peserta']);
         }
@@ -163,7 +165,7 @@ class HomePageController extends Controller
                     $UKP->nama = $request->nama_tanding[$a] ?? "-";
                     $UKP->tingkat = $request->tingkat_tanding[$a] ?? "-";
                     $deskripsiUKP = "";
-                    foreach($request->urutan_tanding[$a] as $b) {
+                    foreach($request->urutan_tanding[0] as $b) {
                         if($b != "") {
                             $deskripsiUKP .= ($b ?? "-").",";
                         }
@@ -179,7 +181,7 @@ class HomePageController extends Controller
                     $deskripsiUKP = "";
 
                     // dd($request->urutan_tanding);
-                    foreach($request->urutan_tanding[$a] as $b) {
+                    foreach($request->urutan_tanding[0] as $b) {
                         if($b != "") {
                             $deskripsiUKP .= ($b ?? "-").",";
                         }

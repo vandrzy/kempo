@@ -151,21 +151,21 @@
                                         </div>
 
 
-                                    <div class="mb-4">
-                                        <label for="">Kategori <span style="color: red;">*</span></label>
-                                        <select name="kategori_id[]" class="pilihan w-full pl-9 text-sm focus:shadow-primary-outline ease leading-5.6 relative -ml-px block min-w-0 flex-auto rounded-lg border border-solid border-gray-300 dark:bg-slate-850 dark:text-white bg-white bg-clip-padding py-2 pr-3 text-gray-700 transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:transition-shadow" multiple="multiple" status="{{ (is_array(old('kategori_id')) && count(old('kategori_id'))) > 0 ? 'true' : 'false' }}" id="kategori_id">
-                                            @foreach ($kategori as $a)
-                                                <option value="{{ $a->kategori_id }}">{{ $a->kategori->nama }}</option>
-                                            @endforeach
-                                        </select>
-                                        <span class="error text-sm text-red-600"></span>
-                                    </div>
-                                    <div class="mb-4">
-                                        <label for="">Foto Berwarna 4 x 6 <span style="color: red;">*</span></label>
-                                        <input type="file" name="foto" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" id="imageInput">
-                                        <img src="" style="width: 50%;" id="preview" alt=""><br>
-                                        <span class="error text-sm text-red-600"></span>
-                                    </div>
+                                        <div class="mb-4">
+                                            <label for="">Kategori <span style="color: red;">*</span></label>
+                                            <select name="kategori_id[]" class="pilihan w-full pl-9 text-sm focus:shadow-primary-outline ease leading-5.6 relative -ml-px block min-w-0 flex-auto rounded-lg border border-solid border-gray-300 dark:bg-slate-850 dark:text-white bg-white bg-clip-padding py-2 pr-3 text-gray-700 transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:transition-shadow" multiple="multiple" status="{{ (is_array(old('kategori_id')) && count(old('kategori_id'))) > 0 ? 'true' : 'false' }}" id="kategori_id">
+                                                @foreach ($kategori as $a)
+                                                    <option value="{{ $a->kategori_id }}">{{ $a->kategori->nama }}</option>
+                                                @endforeach
+                                            </select>
+                                            <span class="error text-sm text-red-600"></span>
+                                        </div>
+                                        <div class="mb-4">
+                                            <label for="">Foto Berwarna 4 x 6 <span style="color: red;">*</span></label>
+                                            <input type="file" name="foto" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" id="imageInput">
+                                            <img src="" style="width: 50%;" id="preview" alt=""><br>
+                                            <span class="error text-sm text-red-600"></span>
+                                        </div>
                                         {{-- <div class="mb-4">
                                             <label for="">Kategori <span style="color: red;">*</span></label>
                                             <input type="text" name="tingkat" readonly class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" value="{{ old('tingkat') }}" placeholder="Kategori" id="tingkat">
