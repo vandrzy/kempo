@@ -108,146 +108,151 @@
                                             <div class="flex-auto px-0 pt-0 pb-2">
                                                     <div class="p-3 overflow-x-auto">
                                                         <div class="flex flex-wrap mt-4 -mx-3">
-                                                            <div class="w-full max-w-full px-3 mt-0 mb-6 lg:mb-0 lg:w-5/12 lg:flex-none">
-                                                                <div class="relative flex flex-col min-w-0 break-words bg-white border-0 border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl dark:bg-gray-950 border-black-125 rounded-2xl bg-clip-border">
-                                                                    <input type="hidden" name="kegiatan_id" id="kegiatan_id" value="{{ $kegiatan->id }}">
-                                                                    <div class="mb-4 p-3">
-                                                                        <table class=" bg-white border rounded-lg overflow-hidden" style="width: 100%;">
-                                                                            <thead class="bg-gray-100 border-b">
-                                                                                <tr>
-                                                                                    <th class="px-3 py-2 border-r" style="width: 20%;">No Urut</th>
-                                                                                    <th class="px-3 py-2" style="text-align: left;">Nama Peserta</th>
-                                                                                </tr>
-                                                                            </thead>
-                                                                            <tbody>
-                                                                                @foreach ($pesertas as $peserta)
-                                                                                    @php
-                                                                                        $kategoriList = $peserta->PertandinganPeserta->pluck('list_kategori.kategori')->unique()->values();
-                                                                                        $pertandingan = $peserta->PertandinganPeserta->pluck('list_kategori.pertandingan')->unique()->values();
-                                                                                    @endphp
-                                                                                    @php
-                                                                                        $kategori_id = 0;
-                                                                                        $urutan = 0;
-
-                                                                                    @endphp
-                                                                                    @foreach ($peserta->PertandinganPeserta as $item)
-                                                                                        <tr>
-                                                                                            <td style="text-align: center" class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-                                                                                                <p class="mb-0 text-3xl font-semibold leading-tight dark:text-white dark:opacity-80">
-                                                                                                    {{ $item->urutan }}
-                                                                                                </p>
-                                                                                            </td>
-                                                                                            <td style="text-align: left" class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-                                                                                                <p class="mb-0 text-3xl font-semibold leading-tight dark:text-white dark:opacity-80"> {{ $peserta->nama }}</p>
-                                                                                            </td>
-                                                                                        </tr>
+                                                            @if ($pesertas->count() == 0)
+                                                                <h5 class="m-4" style="text-align: center">Peserta tidak tersedia!</h5>
+                                                            @else
+                                                                <div class="w-full max-w-full px-3 mt-0 mb-6 lg:mb-0 lg:w-5/12 lg:flex-none">
+                                                                    <div class="relative flex flex-col min-w-0 break-words bg-white border-0 border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl dark:bg-gray-950 border-black-125 rounded-2xl bg-clip-border">
+                                                                        <input type="hidden" name="kegiatan_id" id="kegiatan_id" value="{{ $kegiatan->id }}">
+                                                                        <div class="mb-4 p-3">
+                                                                            <table class=" bg-white border rounded-lg overflow-hidden" style="width: 100%;">
+                                                                                <thead class="bg-gray-100 border-b">
+                                                                                    <tr>
+                                                                                        <th class="px-3 py-2 border-r" style="width: 20%;">No Urut</th>
+                                                                                        <th class="px-3 py-2" style="text-align: left;">Nama Peserta</th>
+                                                                                    </tr>
+                                                                                </thead>
+                                                                                <tbody>
+                                                                                    @foreach ($pesertas as $peserta)
                                                                                         @php
-                                                                                            $urutan = $urutan + 1;
+                                                                                            $kategoriList = $peserta->PertandinganPeserta->pluck('list_kategori.kategori')->unique()->values();
+                                                                                            $pertandingan = $peserta->PertandinganPeserta->pluck('list_kategori.pertandingan')->unique()->values();
                                                                                         @endphp
+                                                                                        @php
+                                                                                            $kategori_id = 0;
+                                                                                            $urutan = 0;
+
+                                                                                        @endphp
+                                                                                        @foreach ($peserta->PertandinganPeserta as $item)
+                                                                                            <tr>
+                                                                                                <td style="text-align: center" class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
+                                                                                                    <p class="mb-0 text-3xl font-semibold leading-tight dark:text-white dark:opacity-80">
+                                                                                                        {{ $item->urutan }}
+                                                                                                    </p>
+                                                                                                </td>
+                                                                                                <td style="text-align: left" class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
+                                                                                                    <p class="mb-0 text-3xl font-semibold leading-tight dark:text-white dark:opacity-80"> {{ $peserta->nama }}</p>
+                                                                                                </td>
+                                                                                            </tr>
+                                                                                            @php
+                                                                                                $urutan = $urutan + 1;
+                                                                                            @endphp
+                                                                                        @endforeach
                                                                                     @endforeach
-                                                                                @endforeach
 
-                                                                            </tbody>
-                                                                        </table>
+                                                                                </tbody>
+                                                                            </table>
+                                                                        </div>
                                                                     </div>
                                                                 </div>
-                                                            </div>
-                                                            <div class="w-full max-w-full px-3 mt-0 lg:w-7/12 lg:flex-none">
-                                                                <div class="relative flex flex-col min-w-0 break-words bg-white border-0 border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl dark:bg-gray-950 border-black-125 rounded-2xl bg-clip-border">
-                                                                    <div class="mb-4 p-3">
-                                                                        @foreach ($pesertas as $peserta)
-                                                                            @php
-                                                                                $kategoriList = $peserta->PertandinganPeserta->pluck('list_kategori.kategori')->unique()->values();
-                                                                                $pertandingan = $peserta->PertandinganPeserta->pluck('list_kategori.pertandingan')->unique()->values();
-                                                                            @endphp
-                                                                            @php
-                                                                                $kategori_id = 0;
-                                                                                $urutan = 0;
-                                                                                $peserta_list = $loop->iteration;
-
-                                                                            @endphp
-                                                                            @foreach ($peserta->PertandinganPeserta as $item)
-                                                                                {{-- @dd($item); --}}
-                                                                                <div class="mt-4 ml-4">
-
-                                                                                    <input type="hidden" name="pertandingan_peserta_id[]" value="{{ $item->id }}">
-                                                                                    <input type="hidden" name="komposisi_id[]" value="{{ @$item->UrutanKomposisiPeserta->id ?? "" }}">
-                                                                                    @if($peserta_list == 1)
-                                                                                        @php
-                                                                                            if($item->list_kategori->kategori->id != $kategori_id) {
-                                                                                                echo "<h3>".$item->list_kategori->kategori->nama."</h5>";
-                                                                                                $kategori_id = $item->list_kategori->kategori->id;
-                                                                                            }
-                                                                                        @endphp
-                                                                                        <h4>{{ $item->list_kategori->pertandingan->nama }}</h3>
-                                                                                        {{-- <h5>{{ $peserta->nama }} dari {{ $peserta->kabupaten->name }}</h5> --}}
-                                                                                        <div class="flex flex-wrap mt-4 -mx-3" style="display: none;">
-                                                                                            <div class="w-full max-w-full px-3 mt-0 mb-6 lg:mb-0 lg:w-4/12 lg:flex-none">
-                                                                                                <div class="relative flex flex-col min-w-0 break-words bg-white border-0 border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl dark:bg-gray-950 border-black-125 rounded-2xl bg-clip-border">
-                                                                                                    <div class="mb-4">
-                                                                                                        <label for="">Nama <span style="color: red;">*</span><span style="color: red;">*</span></label>
-                                                                                                        <input type="text" hidden name="nama_tanding[{{ $urutan }}]" value="{{ @$item->UrutanKomposisiPeserta->nama ?? '' }}" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" required placeholder="Nama" id="">
-                                                                                                    </div>
-                                                                                                </div>
-                                                                                            </div>
-                                                                                            <div class="w-full max-w-full px-3 mt-0 lg:w-4/12 lg:flex-none">
-                                                                                                <div class="relative flex flex-col min-w-0 break-words bg-white border-0 border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl dark:bg-gray-950 border-black-125 rounded-2xl bg-clip-border">
-                                                                                                    <div class="mb-4">
-                                                                                                        <label for="">Tingkat <span style="color: red;">*</span><span style="color: red;">*</span></label>
-                                                                                                        <input type="text" hidden name="tingkat_tanding[{{ $urutan }}]" value="{{ @$item->UrutanKomposisiPeserta->tingkat ?? '' }}" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" required placeholder="Tingkat" id="">
-                                                                                                    </div>
-                                                                                                </div>
-                                                                                            </div>
-                                                                                            <div class="w-full max-w-full px-3 mt-0 lg:w-4/12 lg:flex-none">
-                                                                                                <div class="relative flex flex-col min-w-0 break-words bg-white border-0 border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl dark:bg-gray-950 border-black-125 rounded-2xl bg-clip-border">
-                                                                                                    <div class="mb-4">
-                                                                                                        <label for="">No. Tanding <span style="color: red;">*</span><span style="color: red;">*</span></label>
-                                                                                                        <input type="text" hidden readonly value="{{ $item->urutan }}"  class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full"  value="${arr[1]}" placeholder="No Tanding" id="">
-                                                                                                    </div>
-                                                                                                </div>
-                                                                                            </div>
-                                                                                        </div>
-                                                                                        <div class="mb-4 urutan_{{$urutan}}">
-                                                                                            <label for="">Urutan komposisi yang dimainkan : <span style="color: red;">*</span><span style="color: red;">*</span></label>
-                                                                                            <div class="urutan_list" data-id="{{ $urutan }}">
-                                                                                                @if (@$item->UrutanKomposisiPeserta->urutan_komposisi)
-                                                                                                    @php
-                                                                                                        $kelas = explode(",",$item->UrutanKomposisiPeserta->urutan_komposisi);
-                                                                                                        $value_kelas = [];
-                                                                                                        for($i = 0; $i < 6; $i++) {
-                                                                                                            # code...
-                                                                                                            if(isset($kelas[$i])) {
-                                                                                                                $value_kelas[] = $kelas[$i];
-                                                                                                            } else {
-                                                                                                                $value_kelas[] = "";
-                                                                                                            }
-                                                                                                        }
-                                                                                                    @endphp
-                                                                                                    @foreach ($value_kelas as $a)
-                                                                                                        <input type="text" name="urutan_tanding[{{ $urutan }}][]" ids="{{ $urutan }}" value="{{ $a }}" id="urutan_tanding_{{ $urutan }} urutan_tanding" class="urutan_tandings dynamic-textarea px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" required placeholder="Urutan komposisi yang dimainkan" id="">
-                                                                                                    @endforeach
-                                                                                                    {{-- @foreach ($kelas as $a)
-                                                                                                        @if($a != "")
-                                                                                                        @endif
-                                                                                                    @endforeach --}}
-                                                                                                @else
-                                                                                                    @for($i = 0; $i < 6; $i++)
-                                                                                                        <input type="text" name="urutan_tanding[{{ $urutan }}][]" ids="{{ $urutan }}" value="" id="urutan_tanding_{{ $urutan }} urutan_tanding" class="urutan_tandings dynamic-textarea px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" required placeholder="Urutan komposisi yang dimainkan" id="">
-                                                                                                    @endfor
-                                                                                                @endif
-
-                                                                                            </div>
-                                                                                        </div>
-                                                                                    @endif
-                                                                                </div>
+                                                                <div class="w-full max-w-full px-3 mt-0 lg:w-7/12 lg:flex-none">
+                                                                    <div class="relative flex flex-col min-w-0 break-words bg-white border-0 border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl dark:bg-gray-950 border-black-125 rounded-2xl bg-clip-border">
+                                                                        <div class="mb-4 p-3">
+                                                                            @foreach ($pesertas as $peserta)
                                                                                 @php
-                                                                                    $urutan = $urutan + 1;
+                                                                                    $kategoriList = $peserta->PertandinganPeserta->pluck('list_kategori.kategori')->unique()->values();
+                                                                                    $pertandingan = $peserta->PertandinganPeserta->pluck('list_kategori.pertandingan')->unique()->values();
                                                                                 @endphp
+                                                                                @php
+                                                                                    $kategori_id = 0;
+                                                                                    $urutan = 0;
+                                                                                    $peserta_list = $loop->iteration;
+
+                                                                                @endphp
+                                                                                @foreach ($peserta->PertandinganPeserta as $item)
+                                                                                    {{-- @dd($item); --}}
+                                                                                    <div class="mt-4 ml-4">
+
+                                                                                        <input type="hidden" name="pertandingan_peserta_id[]" value="{{ $item->id }}">
+                                                                                        <input type="hidden" name="komposisi_id[]" value="{{ @$item->UrutanKomposisiPeserta->id ?? "" }}">
+                                                                                        @if($peserta_list == 1)
+                                                                                            @php
+                                                                                                if($item->list_kategori->kategori->id != $kategori_id) {
+                                                                                                    echo "<h3>".$item->list_kategori->kategori->nama."</h5>";
+                                                                                                    $kategori_id = $item->list_kategori->kategori->id;
+                                                                                                }
+                                                                                            @endphp
+                                                                                            <h4>{{ $item->list_kategori->pertandingan->nama }}</h3>
+                                                                                            {{-- <h5>{{ $peserta->nama }} dari {{ $peserta->kabupaten->name }}</h5> --}}
+                                                                                            <div class="flex flex-wrap mt-4 -mx-3" style="display: none;">
+                                                                                                <div class="w-full max-w-full px-3 mt-0 mb-6 lg:mb-0 lg:w-4/12 lg:flex-none">
+                                                                                                    <div class="relative flex flex-col min-w-0 break-words bg-white border-0 border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl dark:bg-gray-950 border-black-125 rounded-2xl bg-clip-border">
+                                                                                                        <div class="mb-4">
+                                                                                                            <label for="">Nama <span style="color: red;">*</span><span style="color: red;">*</span></label>
+                                                                                                            <input type="text" hidden name="nama_tanding[{{ $urutan }}]" value="{{ @$item->UrutanKomposisiPeserta->nama ?? '' }}" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" required placeholder="Nama" id="">
+                                                                                                        </div>
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                                <div class="w-full max-w-full px-3 mt-0 lg:w-4/12 lg:flex-none">
+                                                                                                    <div class="relative flex flex-col min-w-0 break-words bg-white border-0 border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl dark:bg-gray-950 border-black-125 rounded-2xl bg-clip-border">
+                                                                                                        <div class="mb-4">
+                                                                                                            <label for="">Tingkat <span style="color: red;">*</span><span style="color: red;">*</span></label>
+                                                                                                            <input type="text" hidden name="tingkat_tanding[{{ $urutan }}]" value="{{ @$item->UrutanKomposisiPeserta->tingkat ?? '' }}" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" required placeholder="Tingkat" id="">
+                                                                                                        </div>
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                                <div class="w-full max-w-full px-3 mt-0 lg:w-4/12 lg:flex-none">
+                                                                                                    <div class="relative flex flex-col min-w-0 break-words bg-white border-0 border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl dark:bg-gray-950 border-black-125 rounded-2xl bg-clip-border">
+                                                                                                        <div class="mb-4">
+                                                                                                            <label for="">No. Tanding <span style="color: red;">*</span><span style="color: red;">*</span></label>
+                                                                                                            <input type="text" hidden readonly value="{{ $item->urutan }}"  class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full"  value="${arr[1]}" placeholder="No Tanding" id="">
+                                                                                                        </div>
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                            </div>
+                                                                                            <div class="mb-4 urutan_{{$urutan}}">
+                                                                                                <label for="">Urutan komposisi yang dimainkan : <span style="color: red;">*</span><span style="color: red;">*</span></label>
+                                                                                                <div class="urutan_list" data-id="{{ $urutan }}">
+                                                                                                    @if (@$item->UrutanKomposisiPeserta->urutan_komposisi)
+                                                                                                        @php
+                                                                                                            $kelas = explode(",",$item->UrutanKomposisiPeserta->urutan_komposisi);
+                                                                                                            $value_kelas = [];
+                                                                                                            for($i = 0; $i < 6; $i++) {
+                                                                                                                # code...
+                                                                                                                if(isset($kelas[$i])) {
+                                                                                                                    $value_kelas[] = $kelas[$i];
+                                                                                                                } else {
+                                                                                                                    $value_kelas[] = "";
+                                                                                                                }
+                                                                                                            }
+                                                                                                        @endphp
+                                                                                                        @foreach ($value_kelas as $a)
+                                                                                                            <input type="text" name="urutan_tanding[{{ $urutan }}][]" ids="{{ $urutan }}" value="{{ $a }}" id="urutan_tanding_{{ $urutan }} urutan_tanding" class="urutan_tandings dynamic-textarea px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" required placeholder="Urutan komposisi yang dimainkan" id="">
+                                                                                                        @endforeach
+                                                                                                        {{-- @foreach ($kelas as $a)
+                                                                                                            @if($a != "")
+                                                                                                            @endif
+                                                                                                        @endforeach --}}
+                                                                                                    @else
+                                                                                                        @for($i = 0; $i < 6; $i++)
+                                                                                                            <input type="text" name="urutan_tanding[{{ $urutan }}][]" ids="{{ $urutan }}" value="" id="urutan_tanding_{{ $urutan }} urutan_tanding" class="urutan_tandings dynamic-textarea px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" required placeholder="Urutan komposisi yang dimainkan" id="">
+                                                                                                        @endfor
+                                                                                                    @endif
+
+                                                                                                </div>
+                                                                                            </div>
+                                                                                        @endif
+                                                                                    </div>
+                                                                                    @php
+                                                                                        $urutan = $urutan + 1;
+                                                                                    @endphp
+                                                                                @endforeach
                                                                             @endforeach
-                                                                        @endforeach
+                                                                        </div>
                                                                     </div>
                                                                 </div>
-                                                            </div>
+                                                            @endif
+
                                                         </div>
                                                     </div>
                                             </div>
@@ -255,7 +260,8 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="mb-4" style="text-align: center;">
+                            <div class="mb-5" style="text-align: center;">
+                                <br>
                                 <button type="submit"  style="border: solid 2px green; color: green; font-size: 22px;"   class="inline-block px-8 py-2 mb-0 text-xs font-bold leading-normal text-center text-green-500 align-middle transition-all ease-in bg-transparent border  border-solid rounded-lg shadow-none cursor-pointer bg-150 active:opacity-85 hover:-translate-y-px tracking-tight-rem bg-x-25 hover:opacity-75">Simpan</button>
                             </div>
                         </div>
