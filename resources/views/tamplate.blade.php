@@ -18,6 +18,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="apple-touch-icon" sizes="76x76" href="{{ asset('assets/img/apple-icon.png') }}" />
     <link rel="icon" type="image/png" href="{{ asset('assets/img/favicon.png') }}" />
     <title>@yield('title') | Pertandingan Kempo</title>
@@ -909,16 +910,15 @@
             });
         });
 
-        document.getElementById('imageInput').addEventListener('change', function (event) {
-            const file = event.target.files[0];
-            if (file) {
-                document.getElementById('preview').src = URL.createObjectURL(file);
-            }
-        });
     </script>
     <script src="//unpkg.com/alpinejs" defer></script>
     <script>
         $(document).ready(function() {
+            $.ajaxSetup({
+                headers: {
+                    "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                }
+            });
             @yield('script')
         });
     </script>

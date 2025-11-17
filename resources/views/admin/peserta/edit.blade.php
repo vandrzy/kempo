@@ -28,6 +28,12 @@
     </div>
 <script>
     @section('script')
+        document.getElementById('imageInput').addEventListener('change', function (event) {
+            const file = event.target.files[0];
+            if (file) {
+                document.getElementById('preview').src = URL.createObjectURL(file);
+            }
+        });
         const komposisi = @json($peserta->PertandinganPeserta);
         // console.log(komposisi[0]);
             document.querySelector('input[name="berat_badan"]').addEventListener('keydown', function(e) {

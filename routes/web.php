@@ -44,6 +44,9 @@ Route::get('/getWilayah/{wilayah}/{id}', [HomePageController::class, 'getWilayah
 Route::get('/pendaftaran/{id}/daftar', [HomePageController::class, 'index']);
 Route::get('/teknik/{id}', [HomePageController::class, 'teknik_input']);
 Route::post('/teknik/{id}', [HomePageController::class, 'teknik_process']);
+Route::get('pertandingans/{kategori}', [PesertaController::class, 'get_pertandingan']);
+
+Route::post('teknik/cari_peserta/lagi', [HomePageController::class, 'teknik_cari_peserta']);
 
 
 Route::get('pendaftarans/{tanggal_lahir}/{jenis_kelamin}', [PertandinganController::class, 'get_pertandingan']);
@@ -62,7 +65,6 @@ Route::middleware('auth')->group(function () {
     Route::get('pertandingan_list/{kategori_id}', [PertandinganController::class, 'kategori_select']);
     Route::post('pertandingans/tanding/{id}', [PertandinganController::class, 'tanding']);
     Route::delete('pertandingans/tanding-delete', [PertandinganController::class, 'batal_tanding']);
-    Route::get('pertandingans/{kategori}', [PesertaController::class, 'get_pertandingan']);
     // Route::get('pertandingans/{id}/print', [PertandinganController::class, 'print_no_tanding']);
 
     Route::resource('peserta', PesertaController::class);

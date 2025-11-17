@@ -742,6 +742,13 @@
             });
         });
 
+        document.getElementById('imageInput').addEventListener('change', function (event) {
+            const file = event.target.files[0];
+            if (file) {
+                document.getElementById('preview').src = URL.createObjectURL(file);
+            }
+        });
+
 
     @endsection
 </script>

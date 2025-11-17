@@ -25,6 +25,12 @@
     </div>
     <script>
     @section('script')
+        document.getElementById('imageInput').addEventListener('change', function (event) {
+            const file = event.target.files[0];
+            if (file) {
+                document.getElementById('preview').src = URL.createObjectURL(file);
+            }
+        });
             document.querySelector('input[name="berat_badan"]').addEventListener('keydown', function(e) {
             if (['e', 'E', '+', '-', '.'].includes(e.key)) e.preventDefault();
             });

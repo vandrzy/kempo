@@ -86,7 +86,10 @@ class PesertaController extends Controller
             }
 
             if(isset($_GET['kegiatan_id'])  && $_GET['kegiatan_id'] != "") {
+
                 $kegiatan = Kegiatan::find($_GET['kegiatan_id']);
+                $data['kegiatan_get'] = Kegiatan::find($_GET['kegiatan_id']);
+
                 $data['kategori'] = ListKategori::with('kategori')->where('kegiatan_id', $kegiatan->id)->get()->unique('kategori_id')->values();
 
                 $kegiatan_id = $kegiatan->id;

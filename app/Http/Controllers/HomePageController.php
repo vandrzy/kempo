@@ -61,16 +61,60 @@ class HomePageController extends Controller
     }
 
     public function teknik_input($id) {
-        $peserta_id = explode('-', $id);
+        $kegiatan_id = explode('-', $id);
 
-        $data['peserta'] = Peserta::find(base64_decode($peserta_id[1]));
+        $data['kegiatan'] = Kegiatan::find(base64_decode($kegiatan_id[1]));
+        $data['kabupatens'] = Kabupaten::get();
+        $data['kategoris'] = ListKategori::with('kategori')->where('kegiatan_id', base64_decode($kegiatan_id[1]))->get()->groupBy('kategori_id');
+        // dd($data['kategoris']);
+        // $data['peserta'] = Peserta::find(base64_decode($peserta_id[1]));
 
         $tahun = old('tanggal_lahir');
         $kelamin = old('jenis_kelamin');
-        $data['peserta_id'] = $id;
+        // $data['peserta_id'] = $id;
 
 
         return view('pengunjung.teknik', $data);
+    }
+
+    public function teknik_cari_peserta(Request $request) {
+        if($request->kabupaten_id && $request->kegiatan_id && $request->kategori_id && $request->pertandingan_id) {
+            $data['peserta'] = Peserta::where('status', 'P')->where('kabupaten_id', $request->kabupaten_id)->whereNotNull('created_at');
+            $kegiatan = Kegiatan::find($request->kegiatan_id);
+            $data['kategori'] = ListKategori::with('kategori')->where('kegiatan_id', $kegiatan->id)->get()->unique('kategori_id')->values();
+
+            $kegiatan_id = $kegiatan->id;
+            $kategori_id = $request->kategori_id;
+            $pertandingan_id = $request->pertandingan_id;
+
+
+            $data['peserta'] = $data['peserta']->WhereHas('PertandinganPesertaUtama', function ($q1) use ($kegiatan_id, $kategori_id, $pertandingan_id) {
+                $q1->WhereHas('list_kategori', function ($q2) use ($kegiatan_id, $kategori_id, $pertandingan_id) {
+                    $q2 = $q2->where('kegiatan_id', $kegiatan_id);
+
+                    if(isset($kategori_id)  && $kategori_id != "") {
+                        $q2 = $q2->where('kategori_id', $kategori_id);
+                    }
+
+                    if(isset($pertandingan_id)  && $pertandingan_id != "") {
+                        $q2 = $q2->where('pertandingan_id', $pertandingan_id);
+                    }
+                });
+            });
+
+            $data['peserta'] = $data['peserta']->get();
+
+            return response()->json([
+                'message' => 'Data tersedia!',
+                'peserta' => $data['peserta'],
+            ]);
+        } else {
+            return response()->json([
+                'message' => 'Isi semua form dulu',
+                'peserta' => [],
+            ]);
+        }
+
     }
 
     public function teknik_process(Request $request, $id) {
