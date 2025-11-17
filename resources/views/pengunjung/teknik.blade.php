@@ -1,59 +1,94 @@
 @extends('tamplate')
 @section('title', 'Input Teknik | Pendaftaran Kempo')
 @section('content')
+<style>
+    /* Fix untuk Select2 single yang tertimpa Tailwind */
+
+
+.select2-container .select2-selection--single {
+    height: 42px !important;
+    display: flex !important;
+    align-items: center !important;
+    padding-left: 10px !important;
+    border: 1px solid #d1d5db !important; /* border-gray-300 */
+
+}
+
+/* Biar teks tidak keluar lagi */
+.select2-selection__rendered {
+    line-height: 42px !important;
+    margin-top: 0 !important;
+}
+
+/* Biar arrow icon sejajar */
+.select2-selection__arrow {
+    height: 42px !important;
+    top: 0 !important;
+    right: 10px !important;
+}
+</style>
 <div class="max-w-6xl mx-auto my-6 px-4">
     <div class="flex flex-wrap -mx-3">
         <div class="flex-none w-full max-w-full px-3">
             <div class="relative flex flex-col min-w-0 mb-6 break-words bg-white border-0 border-transparent border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
                 <div class="p-6 pb-0 mb-0 border-b-0 border-b-solid rounded-t-2xl border-b-transparent">
                     <div class="flex items-center justify-between mb-4">
-                        <h4 class="dark:text-white"> Kegiatan {{ $kegiatan->nama }}  {{ isset($_GET['peserta_id']) ? '| Input Teknik Peserta '.$peserta->nama : '' }} </h4>
+                        @isset($_GET['peserta_id'])
+                            <a href="{{ url('/teknik/'.$back) }}" style="background-color: rgb(53, 53, 53);" class="text-white px-4 py-2 rounded">Kembali</a>
+                        @endisset
+                        <h4 class="dark:text-white"> Kegiatan {{ $kegiatan->nama }} </h4>
                         @if(Auth::user())
                             <button style="background-color: rgb(53, 53, 53);" class="text-white px-4 py-2 rounded" id="copy_link">Salin Link Input Teknik</button>
                         @endif
                     </div>
                 </div>
                 <div class="flex-auto px-0 pt-0 pb-2">
-                    <form action="" method="get">
-                        <input type="hidden" name="kegiatan_id" id="kegiatan_id" value="{{ $kegiatan->id }}">
-                        <div class="p-3">
-                            <div class="mb-4">
-                                <label for="">Kabupaten <span style="color: red;">*</span></label>
-                                <select name="kabupaten_id" id="kabupaten_id" class="w-full border rounded px-3 py-2">
-                                    <option selected disabled>Pilih Kabupaten</option>
-                                    @foreach($kabupatens as $a)
-                                        <option value="{{ $a->id }}" {{ old('kabupaten_id') == $a->id ? 'selected' : '' }}>{{ $a->name }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
+                    @if (!isset($_GET['peserta_id']))
+                        <form action="" method="get" id="cari_peserta_proses">
+                            <input type="hidden" name="kegiatan_id" id="kegiatan_id" value="{{ $kegiatan->id }}">
+                            <div class="p-3">
+                                <div class="mb-4">
+                                    <label for="">Kabupaten <span style="color: red;">*</span></label>
+                                    <select name="kabupaten_id" id="kabupaten_id" class="w-full border rounded px-3 py-2">
+                                        <option selected disabled>Pilih Kabupaten</option>
+                                        @foreach($kabupatens as $a)
+                                            <option value="{{ $a->id }}" {{ old('kabupaten_id') == $a->id ? 'selected' : '' }}>{{ $a->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
 
-                            <div class="mb-4">
-                                <label for="">Kategori <span style="color: red;">*</span></label>
-                                <select name="kategori_id" id="kategori_id" class="w-full border rounded px-3 py-2">
-                                    <option selected disabled>Pilih Kategori</option>
-                                    @foreach($kategoris as $a)
+                                <div class="mb-4">
+                                    <label for="">Kategori <span style="color: red;">*</span></label>
+                                    <select name="kategori_id" id="kategori_id" class="w-full border rounded px-3 py-2">
+                                        <option selected disabled>Pilih Kategori</option>
+                                        @foreach($kategoris as $a)
 
-                                        <option value="{{ $a[0]->kategori->id }}" {{ old('kategori_id') == $a[0]->kategori->id ? 'selected' : '' }}>{{ $a[0]->kategori->nama }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
+                                            <option value="{{ $a[0]->kategori->id }}" {{ old('kategori_id') == $a[0]->kategori->id ? 'selected' : '' }}>{{ $a[0]->kategori->nama }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
 
-                            <div class="mb-4">
-                                <label for="">Pertandingan <span style="color: red;">*</span></label>
-                                <select name="pertandingan_id" id="pertandingan_id" class="w-full border rounded px-3 py-2">
-                                    <option selected disabled>Pilih Pertandingan</option>
-                                </select>
-                            </div>
+                                <div class="mb-4">
+                                    <label for="">Pertandingan <span style="color: red;">*</span></label>
+                                    <select name="pertandingan_id" id="pertandingan_id" class="w-full border rounded px-3 py-2">
+                                        <option selected disabled>Pilih Pertandingan</option>
+                                    </select>
+                                </div>
 
-                            <div class="mb-4">
-                                <label for="">Nama Peserta <span style="color: red;">*</span></label>
-                                <select name="peserta_id" id="peserta_id" class="w-full pl-9 text-sm focus:shadow-primary-outline ease leading-5.6 relative -ml-px block min-w-0 flex-auto rounded-lg border border-solid border-gray-300 dark:bg-slate-850 dark:text-white bg-white bg-clip-padding py-2 pr-3 text-gray-700 transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:transition-shadow">
-                                    <option selected disabled>Cari Peserta</option>
-                                </select>
+                                <div class="mb-4">
+                                    <label for="">Nama Peserta <span style="color: red;">*</span></label>
+                                    <select name="peserta_id" id="peserta_id" class="select2 appearance-none ...">
+                                        <option selected disabled>Cari Peserta</option>
+                                    </select>
+                                </div>
+                                <div class="mb-4">
+                                    <button type="submit"  style="border: solid 2px green; color: green; font-size: 22px;"   class="edit-tanding-form inline-block px-8 py-2 mb-0 text-xs font-bold leading-normal text-center text-green-500 align-middle transition-all ease-in bg-transparent border  border-solid rounded-lg shadow-none cursor-pointer bg-150 active:opacity-85 hover:-translate-y-px tracking-tight-rem bg-x-25 hover:opacity-75">Cari Peserta</button>
+                                </div>
                             </div>
-                        </div>
-                    </form>
-                    {{-- <form action="{{ url('teknik/'.$peserta_id) }}" method="post" id="form-peserta" enctype="multipart/form-data">
+                        </form>
+                    @endif
+                    @if (isset($_GET['peserta_id']))
+                    <form action="{{ url('teknik/'.$peserta->id) }}" method="post" id="form-peserta" enctype="multipart/form-data">
                         @csrf
                         <div class="max-w-md mx-auto bg-white shadow-md p-5 border border-gray-200 p-2">
                         <h2 class="text-lg font-semibold text-gray-800 mb-3">Keterangan</h2>
@@ -75,24 +110,27 @@
                                         @php
                                             $kategori_id = 0;
                                             $urutan = 0;
+
                                         @endphp
                                         @foreach ($peserta->PertandinganPeserta as $item)
+                                            {{-- @dd($item); --}}
                                             <div class="mt-4 ml-4">
                                                 @php
                                                     if($item->list_kategori->kategori->id != $kategori_id) {
-                                                        echo "<h5>".$item->list_kategori->kategori->nama."</h5>";
+                                                        echo "<h3>".$item->list_kategori->kategori->nama."</h5>";
                                                         $kategori_id = $item->list_kategori->kategori->id;
                                                     }
                                                 @endphp
                                                 <input type="hidden" name="pertandingan_peserta_id[]" value="{{ $item->id }}">
                                                 <input type="hidden" name="komposisi_id[]" value="{{ @$item->UrutanKomposisiPeserta->id ?? "" }}">
-                                                <h3>{{ $item->list_kategori->pertandingan->nama }}</h3>
-                                                <div class="flex flex-wrap mt-4 -mx-3">
+                                                <h4>{{ $item->list_kategori->pertandingan->nama }}</h3>
+                                                <h5>{{ $peserta->nama }} dari {{ $peserta->kabupaten->name }}</h5>
+                                                <div class="flex flex-wrap mt-4 -mx-3" style="display: none;">
                                                     <div class="w-full max-w-full px-3 mt-0 mb-6 lg:mb-0 lg:w-4/12 lg:flex-none">
                                                         <div class="relative flex flex-col min-w-0 break-words bg-white border-0 border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl dark:bg-gray-950 border-black-125 rounded-2xl bg-clip-border">
                                                             <div class="mb-4">
                                                                 <label for="">Nama <span style="color: red;">*</span><span style="color: red;">*</span></label>
-                                                                <input type="text" name="nama_tanding[{{ $urutan }}]" value="{{ @$item->UrutanKomposisiPeserta->nama ?? '' }}" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" required placeholder="Nama" id="">
+                                                                <input type="text" hidden name="nama_tanding[{{ $urutan }}]" value="{{ @$item->UrutanKomposisiPeserta->nama ?? '' }}" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" required placeholder="Nama" id="">
                                                             </div>
                                                         </div>
                                                     </div>
@@ -100,7 +138,7 @@
                                                         <div class="relative flex flex-col min-w-0 break-words bg-white border-0 border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl dark:bg-gray-950 border-black-125 rounded-2xl bg-clip-border">
                                                             <div class="mb-4">
                                                                 <label for="">Tingkat <span style="color: red;">*</span><span style="color: red;">*</span></label>
-                                                                <input type="text"  name="tingkat_tanding[{{ $urutan }}]" value="{{ @$item->UrutanKomposisiPeserta->tingkat ?? '' }}" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" required placeholder="Tingkat" id="">
+                                                                <input type="text" hidden name="tingkat_tanding[{{ $urutan }}]" value="{{ @$item->UrutanKomposisiPeserta->tingkat ?? '' }}" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" required placeholder="Tingkat" id="">
                                                             </div>
                                                         </div>
                                                     </div>
@@ -108,7 +146,7 @@
                                                         <div class="relative flex flex-col min-w-0 break-words bg-white border-0 border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl dark:bg-gray-950 border-black-125 rounded-2xl bg-clip-border">
                                                             <div class="mb-4">
                                                                 <label for="">No. Tanding <span style="color: red;">*</span><span style="color: red;">*</span></label>
-                                                                <input type="text" readonly value="{{ $item->urutan }}"  class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full"  value="${arr[1]}" placeholder="No Tanding" id="">
+                                                                <input type="text" hidden readonly value="{{ $item->urutan }}"  class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full"  value="${arr[1]}" placeholder="No Tanding" id="">
                                                             </div>
                                                         </div>
                                                     </div>
@@ -119,14 +157,27 @@
                                                         @if (@$item->UrutanKomposisiPeserta->urutan_komposisi)
                                                             @php
                                                                 $kelas = explode(",",$item->UrutanKomposisiPeserta->urutan_komposisi);
+                                                                $value_kelas = [];
+                                                                for($i = 0; $i < 6; $i++) {
+                                                                    # code...
+                                                                    if(isset($kelas[$i])) {
+                                                                        $value_kelas[] = $kelas[$i];
+                                                                    } else {
+                                                                        $value_kelas[] = "";
+                                                                    }
+                                                                }
                                                             @endphp
-                                                            @foreach ($kelas as $a)
-                                                                @if($a != "")
-                                                                    <input type="text" name="urutan_tanding[{{ $urutan }}][]" ids="{{ $urutan }}" value="{{ $a }}" id="urutan_tanding_{{ $urutan }} urutan_tanding" class="urutan_tanding dynamic-textarea px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" required placeholder="Urutan komposisi yang dimainkan" id="">
-                                                                @endif
+                                                            @foreach ($value_kelas as $a)
+                                                                <input type="text" name="urutan_tanding[{{ $urutan }}][]" ids="{{ $urutan }}" value="{{ $a }}" id="urutan_tanding_{{ $urutan }} urutan_tanding" class="urutan_tandings dynamic-textarea px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" required placeholder="Urutan komposisi yang dimainkan" id="">
                                                             @endforeach
+                                                            {{-- @foreach ($kelas as $a)
+                                                                @if($a != "")
+                                                                @endif
+                                                            @endforeach --}}
                                                         @else
-                                                                <input type="text" name="urutan_tanding[{{ $urutan }}][]" ids="{{ $urutan }}" value="" id="urutan_tanding_{{ $urutan }} urutan_tanding" class="urutan_tanding dynamic-textarea px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" required placeholder="Urutan komposisi yang dimainkan" id="">
+                                                            @for($i = 0; $i < 6; $i++)
+                                                                <input type="text" name="urutan_tanding[{{ $urutan }}][]" ids="{{ $urutan }}" value="" id="urutan_tanding_{{ $urutan }} urutan_tanding" class="urutan_tandings dynamic-textarea px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" required placeholder="Urutan komposisi yang dimainkan" id="">
+                                                            @endfor
                                                         @endif
 
                                                     </div>
@@ -144,7 +195,8 @@
                                 <button type="submit"  style="border: solid 2px green; color: green; font-size: 22px;"   class="inline-block px-8 py-2 mb-0 text-xs font-bold leading-normal text-center text-green-500 align-middle transition-all ease-in bg-transparent border  border-solid rounded-lg shadow-none cursor-pointer bg-150 active:opacity-85 hover:-translate-y-px tracking-tight-rem bg-x-25 hover:opacity-75">Simpan</button>
                             </div>
                         </div>
-                    </form> --}}
+                    </form>
+                    @endif
                 </div>
             </div>
         </div>
@@ -154,6 +206,42 @@
 </div>
 <script>
     @section('script')
+    $('#cari_peserta_proses').on('submit', function (e) {
+        e.preventDefault(); // CEGAH REFRESH!
+
+
+        let kabupaten_id = $('#kabupaten_id').val();
+        let kategori_id = $('#kategori_id').val();
+        let pertandingan_id = $('#pertandingan_id').val();
+        let peserta_id = $('#peserta_id').val();
+
+
+        if (kabupaten_id === null) {
+            e.preventDefault(); // stop submit form
+            Swal.fire("Warning", "Kabupaten masih kosong!", "error");
+            return;
+        }
+
+        if (kategori_id === null) {
+            e.preventDefault(); // stop submit form
+            Swal.fire("Warning", "Kategori masih kosong!", "error");
+            return;
+        }
+
+        if (pertandingan_id === null) {
+            e.preventDefault(); // stop submit form
+            Swal.fire("Warning", "Pertandingan masih kosong!", "error");
+            return;
+        }
+
+        if (peserta_id === null) {
+            e.preventDefault(); // stop submit form
+            Swal.fire("Warning", "Peserta masih kosong!", "error");
+            return;
+        }
+
+        e.target.submit();
+    });
 
                     $(`#peserta_id  `).select2({
                         theme: 'mytheme', // atau 'bootstrap5' jika pakai tema lain
@@ -213,15 +301,15 @@
                         let data = "";
 
                         if(response.peserta.length > 0) {
-                            data += `<option value="" disabled selected>Cari Peserta</option>`;
+                            data += `<option disabled selected>Cari Peserta</option>`;
                             $.each(response.peserta, function(index, value) {
                                 data += `<option value="${value.id}">${value.nama}</option>`;
                             });
                         } else {
                             if(response.message == "Isi semua form dulu") {
-                                data += `<option value="" disabled selected>Lengkapi Form Dulu!</option>`;
+                                data += `<option disabled selected>Lengkapi Form Dulu!</option>`;
                             } else {
-                                data += `<option value="" disabled selected>Peserta Tidak Tersedia!</option>`;
+                                data += `<option disabled selected>Peserta Tidak Tersedia!</option>`;
                             }
                         }
 

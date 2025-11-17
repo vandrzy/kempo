@@ -17,6 +17,7 @@ use App\Models\UrutanKomposisiPeserta;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Intervention\Image\Drivers\Gd\Driver as GdDriver;
@@ -67,7 +68,42 @@ class HomePageController extends Controller
         $data['kabupatens'] = Kabupaten::get();
         $data['kategoris'] = ListKategori::with('kategori')->where('kegiatan_id', base64_decode($kegiatan_id[1]))->get()->groupBy('kategori_id');
         // dd($data['kategoris']);
-        // $data['peserta'] = Peserta::find(base64_decode($peserta_id[1]));
+        if(isset($_GET['peserta_id'])) {
+            $data['back'] = $id;
+            $kegiatan_id = $_GET['kegiatan_id'];
+            $kabupaten_id = $_GET['kabupaten_id'];
+            $kategori_id = $_GET['kategori_id'];
+            $pertandingan_id = $_GET['pertandingan_id'];
+
+
+
+            $data['peserta'] = Peserta::with([
+                'PertandinganPeserta' => function ($q) use ($kegiatan_id, $kategori_id, $pertandingan_id) {
+                    $q->where('kegiatan_id', $kegiatan_id)
+                    ->whereHas('list_kategori', function ($w) use ($kategori_id, $pertandingan_id, $kegiatan_id) {
+                        $w->where('pertandingan_id', $pertandingan_id)
+                            ->where('kategori_id', $kategori_id)
+                            ->where('kegiatan_id', $kegiatan_id);
+                    });
+                },
+                'PertandinganPeserta.list_kategori' => function ($q) use ($kategori_id, $pertandingan_id, $kegiatan_id) {
+                    $q->where('pertandingan_id', $pertandingan_id)
+                    ->where('kategori_id', $kategori_id)
+                    ->where('kegiatan_id', $kegiatan_id);
+                }
+            ])
+            ->whereHas('PertandinganPeserta', function ($q) use ($kegiatan_id, $kategori_id, $pertandingan_id) {
+                $q->where('kegiatan_id', $kegiatan_id)
+                ->whereHas('list_kategori', function ($w) use ($kategori_id, $pertandingan_id, $kegiatan_id) {
+                    $w->where('pertandingan_id', $pertandingan_id)
+                        ->where('kategori_id', $kategori_id)
+                        ->where('kegiatan_id', $kegiatan_id);
+                });
+            })
+            ->find($_GET['peserta_id']);
+
+            // dd($data['peserta']);
+        }
 
         $tahun = old('tanggal_lahir');
         $kelamin = old('jenis_kelamin');
