@@ -306,7 +306,7 @@
                                 <div class="relative flex flex-col min-w-0 break-words bg-white border-0 border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl dark:bg-gray-950 border-black-125 rounded-2xl bg-clip-border">
                                     <div class="mb-4">
                                         <label for="">Nama <span style="color: red;">*</span></label>
-                                        <input type="text" name="nama_tanding[]" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" required placeholder="Nama" id="">
+                                        <input type="text" name="nama_tanding[]" value="-" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" required placeholder="Nama" id="">
                                     </div>
                                 </div>
                             </div>
@@ -314,7 +314,7 @@
                                 <div class="relative flex flex-col min-w-0 break-words bg-white border-0 border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl dark:bg-gray-950 border-black-125 rounded-2xl bg-clip-border">
                                     <div class="mb-4">
                                         <label for="">Tingkat <span style="color: red;">*</span></label>
-                                        <input type="text"  name="tingkat_tanding[]" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" required placeholder="Tingkat" id="">
+                                        <input type="text"  name="tingkat_tanding[]" value="-" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" required placeholder="Tingkat" id="">
                                     </div>
                                 </div>
                             </div>
@@ -322,7 +322,7 @@
                                 <div class="relative flex flex-col min-w-0 break-words bg-white border-0 border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl dark:bg-gray-950 border-black-125 rounded-2xl bg-clip-border">
                                     <div class="mb-4">
                                         <label for="">No. Tanding <span style="color: red;">*</span></label>
-                                        <input type="text" readonly  class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full"  value="${arr[1]}" placeholder="No Tanding" id="">
+                                        <input type="text" readonly value="-"  class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full"  value="${arr[1]}" placeholder="No Tanding" id="">
                                     </div>
                                 </div>
                             </div>
@@ -332,7 +332,7 @@
                         <div class="mb-4 urutan_${i}">
                             <label for="">Urutan komposisi yang dimainkan : <span style="color: red;">*</span></label>
                             <div class="urutan_list" data-id="${i}">
-                                <input type="text" name="urutan_tanding[${i}][]" value="" id="urutan_tanding" class="urutan_tanding_${i} urutan_tanding dynamic-textarea px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" required placeholder="Urutan komposisi yang dimainkan" id="">
+                                <input type="text" name="urutan_tanding[${i}][]" value="-" id="urutan_tanding" class="urutan_tanding_${i} urutan_tanding dynamic-textarea px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" required placeholder="Urutan komposisi yang dimainkan" id="">
                             </div>
                         </div>
                     `;
@@ -443,7 +443,7 @@
                             <div class="relative flex flex-col min-w-0 break-words bg-white border-0 border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl dark:bg-gray-950 border-black-125 rounded-2xl bg-clip-border">
                                 <div class="mb-4">
                                     <label for="">Nama <span style="color: red;">*</span><span style="color: red;">*</span></label>
-                                    <input type="text" name="nama_tanding[${hasil[i].value}]" value="${data_saat_ini?.urutan_komposisi_peserta?.nama ?? ""}" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" required placeholder="Nama" id="">
+                                    <input type="text" name="nama_tanding[${hasil[i].value}]" value="${data_saat_ini?.urutan_komposisi_peserta?.nama ?? "-"}" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" required placeholder="Nama" id="">
                                 </div>
                             </div>
                         </div>
@@ -451,7 +451,7 @@
                             <div class="relative flex flex-col min-w-0 break-words bg-white border-0 border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl dark:bg-gray-950 border-black-125 rounded-2xl bg-clip-border">
                                 <div class="mb-4">
                                     <label for="">Tingkat <span style="color: red;">*</span><span style="color: red;">*</span></label>
-                                    <input type="text"  name="tingkat_tanding[${hasil[i].value}]" value="${data_saat_ini?.urutan_komposisi_peserta?.tingkat ?? ""}" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" required placeholder="Tingkat" id="">
+                                    <input type="text"  name="tingkat_tanding[${hasil[i].value}]" value="${data_saat_ini?.urutan_komposisi_peserta?.tingkat ?? "-"}" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" required placeholder="Tingkat" id="">
                                 </div>
                             </div>
                         </div>
@@ -459,7 +459,7 @@
                             <div class="relative flex flex-col min-w-0 break-words bg-white border-0 border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl dark:bg-gray-950 border-black-125 rounded-2xl bg-clip-border">
                                 <div class="mb-4">
                                     <label for="">No. Tanding <span style="color: red;">*</span><span style="color: red;">*</span></label>
-                                    <input type="text" readonly value="${data_saat_ini?.urutan ?? ""}"  class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full"  value="${arr[1]}" placeholder="No Tanding" id="">
+                                    <input type="text" readonly value="${data_saat_ini?.urutan ?? "-"}"  class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full"  value="${arr[1]}" placeholder="No Tanding" id="">
                                 </div>
                             </div>
                         </div>
@@ -469,7 +469,7 @@
                     <div class="mb-4 urutan_${i}">
                         <label for="">Urutan komposisi yang dimainkan : <span style="color: red;">*</span><span style="color: red;">*</span></label>
                         <div class="urutan_list" data-id="${i}">
-                            ${exist == true ? komposisi_html : `<input type="text" name="urutan_tanding[${hasil[i].value}][]" ids="${hasil[i].value}" value="${data_saat_ini?.urutan_komposisi_peserta?.urutan_komposisi ?? ""}" id="urutan_tanding" class="urutan_tanding_${i} urutan_tanding dynamic-textarea px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" required placeholder="Urutan komposisi yang dimainkan" id="">`}
+                            ${exist == true ? komposisi_html : `<input type="text" name="urutan_tanding[${hasil[i].value}][]" ids="${hasil[i].value}" value="${data_saat_ini?.urutan_komposisi_peserta?.urutan_komposisi ?? "-"}" id="urutan_tanding" class="urutan_tanding_${i} urutan_tanding dynamic-textarea px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" required placeholder="Urutan komposisi yang dimainkan" id="">`}
                         </div>
                     </div>
                 `;

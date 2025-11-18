@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dasar Platformer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+        }
+
+        canvas {
+            background-color: #90c0ff; /* Warna langit cerah */
+            display: block;
+            margin: 20px auto;
+            border: 1px solid #000;
+        }
+    </style>
+</head>
+<body>
+    <h1>Dasar Platformer (Mario)</h1>
+    <canvas id="gameCanvas" width="640" height="480"></canvas>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+// Variabel Fisika
+const gravity = 0.5;
+const friction = 0.8; // Gesekan (untuk memperlambat)
+
+// Properti Pemain (Player)
+let player = {
+    x: 100,
+    y: 400,
+    width: 30,
+    height: 30,
+    velocityX: 0, // Kecepatan horizontal
+    velocityY: 0, // Kecepatan vertikal
+    speed: 5,
+    jumpPower: 12,
+    isGrounded: false // Apakah sedang menyentuh tanah?
+};
+
+// Lantai / Platform
+// Kita bisa buat array untuk banyak platform, tapi kita mulai dengan satu lantai
+const ground = {
+    x: 0,
+    y: canvas.height - 40, // 40 piksel dari bawah
+    width: canvas.width,
+    height: 40
+};
+
+// Objek untuk melacak tombol yang sedang ditekan
+let keys = {
+    right: false,
+    left: false,
+    up: false
+};
+
+// --- Event Listeners untuk Kontrol ---
+
+// Saat tombol ditekan
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === 'd') {
+        keys.right = true;
+    }
+    if (e.key === 'ArrowLeft' || e.key === 'a') {
+        keys.left = true;
+    }
+    if (e.key === 'ArrowUp' || e.key === 'w' || e.key === ' ') {
+        keys.up = true;
+    }
+});
+
+// Saat tombol dilepas
+document.addEventListener('keyup', function(e) {
+    if (e.key === 'ArrowRight' || e.key === 'd') {
+        keys.right = false;
+    }
+    if (e.key === 'ArrowLeft' || e.key === 'a') {
+        keys.left = false;
+    }
+    if (e.key === 'ArrowUp' || e.key === 'w' || e.key === ' ') {
+        keys.up = false;
+    }
+});
+
+
+// --- Fungsi Utama Game ---
+
+function update() {
+    // 1. Logika Lompat
+    // Hanya bisa lompat jika sedang di tanah
+    if (keys.up && player.isGrounded) {
+        player.velocityY = -player.jumpPower; // Beri kecepatan ke atas
+        player.isGrounded = false;
+    }
+
+    // 2. Logika Gerak Kiri/Kanan
+    if (keys.right) {
+        player.velocityX = player.speed;
+    } else if (keys.left) {
+        player.velocityX = -player.speed;
+    } else {
+        // Terapkan gesekan jika tidak ada tombol ditekan
+        player.velocityX *= friction;
+    }
+
+    // 3. Terapkan Gravitasi
+    player.velocityY += gravity;
+
+    // 4. Update Posisi berdasarkan Kecepatan
+    player.x += player.velocityX;
+    player.y += player.velocityY;
+
+    // 5. Deteksi Tabrakan (Collision Detection)
+
+    // Reset status ground
+    player.isGrounded = false;
+
+    // Deteksi tabrakan dengan lantai
+    if (player.x < ground.x + ground.width &&
+        player.x + player.width > ground.x &&
+        player.y < ground.y + ground.height &&
+        player.y + player.height > ground.y)
+    {
+        // Jika bertabrakan:
+        player.isGrounded = true;
+        player.y = ground.y - player.height; // Posisikan pemain tepat di atas lantai
+        player.velocityY = 0; // Hentikan kecepatan jatuh
+    }
+
+    // Mencegah keluar dari sisi kiri/kanan layar
+    if (player.x < 0) {
+        player.x = 0;
+    }
+    if (player.x + player.width > canvas.width) {
+        player.x = canvas.width - player.width;
+    }
+}
+
+function draw() {
+    // 1. Bersihkan layar
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Latar belakang (opsional, sudah di CSS)
+    // ctx.fillStyle = '#90c0ff';
+    // ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // 2. Gambar Lantai
+    ctx.fillStyle = '#228B22'; // Hijau
+    ctx.fillRect(ground.x, ground.y, ground.width, ground.height);
+
+    // 3. Gambar Pemain
+    ctx.fillStyle = '#FF0000'; // Merah (Mario!)
+    ctx.fillRect(player.x, player.y, player.width, player.height);
+}
+
+// Game Loop Utama
+function gameLoop() {
+    update();
+    draw();
+    requestAnimationFrame(gameLoop); // Terus panggil fungsi ini
+}
+
+// Mulai game loop
+gameLoop();
+    </script>
+</body>
+</html>
