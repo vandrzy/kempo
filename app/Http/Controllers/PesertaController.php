@@ -268,11 +268,11 @@ class PesertaController extends Controller
                 $UKP->nama = $request->nama_tanding[$a] ?? "-";
                 $UKP->tingkat = $request->tingkat_tanding[$a] ?? "-";
                 $deskripsiUKP = "";
-                foreach($request->urutan_tanding[$a] as $b) {
-                    if($b != "") {
-                        $deskripsiUKP .= ($b ?? "-").",";
-                    }
-                }
+                // foreach($request->urutan_tanding[$a] as $b) {
+                //     if($b != "") {
+                //         $deskripsiUKP .= ($b ?? "-").",";
+                //     }
+                // }
                 $UKP->urutan_komposisi = $deskripsiUKP;
                 $UKP->save();
             }
@@ -429,11 +429,11 @@ class PesertaController extends Controller
                 $UKP->nama = $request->nama_tanding[$a] ?? "-";
                 $UKP->tingkat = $request->tingkat_tanding[$a] ?? "-";
                 $deskripsiUKP = "";
-                foreach($request->urutan_tanding[$a] as $b) {
-                    if($b != "") {
-                        $deskripsiUKP .= ($b ?? "-").",";
-                    }
-                }
+                // foreach($request->urutan_tanding[$a] as $b) {
+                //     if($b != "") {
+                //         $deskripsiUKP .= ($b ?? "-").",";
+                //     }
+                // }
                 $UKP->urutan_komposisi = $deskripsiUKP;
                 $UKP->save();
             }
