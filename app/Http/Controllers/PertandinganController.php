@@ -105,6 +105,8 @@ class PertandinganController extends Controller
                 'perak' => $request->perak ?? 1,
                 'perunggu' => $request->perunggu ?? 1,
                 'user_id' => Auth::user()->id,
+                'bagan' => $request->bagan ?? '',
+
             ]);
             return redirect('pertandingan?kegiatan_id='.$request->kegiatan_id)->with('success', 'Data Berhasil Disimpan');
         } catch (\Throwable $th) {
@@ -143,8 +145,16 @@ class PertandinganController extends Controller
             return view('admin.pertandingan.print_bagan', $data);
 
         }
-        $data['kolom1'] = KontigenPertandingan::where('urutan', 1)->where('list_kategori_id', $id)->orderByRaw('kabupaten_id IS NULL ASC')->orderBy('kabupaten_id','ASC')->get();
-
+        $data['kolom1'] = KontigenPertandingan::with([
+            'kabupaten.KontigenPertandinganKedua' => function ($q) use ($data) {
+                $q->where('list_kategori_id', $data['pertandingan']->id);
+            }
+        ])
+        ->where('urutan', 1)
+        ->where('list_kategori_id', $id)
+        ->orderByRaw('kabupaten_id IS NULL ASC')
+        ->orderBy('kabupaten_id', 'ASC')
+        ->get();
 
         if(isset($_GET['kabupaten_id'])) {
             $data['kabupaten_first'] = Kabupaten::find($_GET['kabupaten_id']) ?? null;
@@ -236,6 +246,8 @@ class PertandinganController extends Controller
 
 
         // $kontigen_tersedia = KontigenPertandingan::where('list_kategori_id', $id)->('urutan')
+
+        $check = Pertandingan::find($request->pertandingan_id);
         $kontigen_delete = KontigenPertandingan::where('list_kategori_id', $id)->where('urutan', 1)->delete();
         $kontigen_delete = KontigenPertandingan::where('list_kategori_id', $id)->where('urutan', 2)->delete();
 
@@ -267,6 +279,10 @@ class PertandinganController extends Controller
 
         }
 
+        if($check->bagan == null) {
+            $limit = count($data['kabupaten']);
+        }
+
         // $limit = count($data['kabupaten']) <= 8 ? 8 : 10 ;
         for($i = 0; $i < $limit; $i++) {
             if(isset($data['kabupaten'][$i])) {
@@ -290,6 +306,8 @@ class PertandinganController extends Controller
 
         shuffle($kabupaten_list_1);
 
+        // dd($kabupaten_list_1);
+
         do {
             shuffle($kabupaten_list_2);
 
@@ -302,7 +320,7 @@ class PertandinganController extends Controller
             }
 
         } while (!$valid);
-        // dd($kabupaten_list_1);
+        // dd($kabupaten_list_2);
 
         foreach($kabupaten_list_1 as $index => $a) {
             KontigenPertandingan::create([
@@ -511,6 +529,8 @@ class PertandinganController extends Controller
             $pertandingan->perak = $request->perak;
             $pertandingan->perunggu = $request->perunggu;
             $pertandingan->user_id = Auth::user()->id;
+            $pertandingan->bagan = $request->bagan;
+
 
             $pertandingan->save();
 

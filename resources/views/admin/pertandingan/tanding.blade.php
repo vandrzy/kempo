@@ -59,6 +59,7 @@
                                                     <option value="1">Acak Kontigen Pertama</option>
                                                     <option value="2">Acak Kontigen Kedua</option>
                                                 </select> --}}
+                                                <input type="hidden" name="pertandingan_id" value="{{ $pertandingan->pertandingan->id }}">
                                                 <button type="submit" style="border: solid 2px green; color: green;"  class="inline-block px-5 py-2 mb-0 text-xs font-bold leading-normal text-center text-green-500 align-middle transition-all ease-in bg-transparent border  border-solid rounded-lg shadow-none cursor-pointer bg-150 active:opacity-85 hover:-translate-y-px tracking-tight-rem bg-x-25 hover:opacity-75">Acak Nomor Tanding</button>
                                             </div>
                                         </form>
@@ -207,10 +208,12 @@
                             <h4 class="pl-3">Peserta tersedia : {{ $peserta_ready }}</h4>
                             <br>
                             @if(!$kolom1->isEmpty())
-                            <div class="p-2">
-                                <a href="{{ url('/pertandingan/119?kegiatan_id=8&print=1') }}" target="_blank" style="background-color: rgb(69, 69, 69);" class="lihat_peserta text-white px-4 py-2 rounded">Bagan Babak 1</a>
-                                <a href="{{ url('/pertandingan/119?kegiatan_id=8&print=2') }}" target="_blank" style="background-color: rgb(99, 99, 99);" class="lihat_peserta text-white px-4 py-2 rounded">Bagan Babak 2</a>
-                            </div>
+                                @if($pertandingan->pertandingan->bagan == 1)
+                                    <div class="p-2">
+                                        <a href="{{ url('/pertandingan/119?kegiatan_id=8&print=1') }}" target="_blank" style="background-color: rgb(69, 69, 69);" class="lihat_peserta text-white px-4 py-2 rounded">Bagan Babak 1</a>
+                                        <a href="{{ url('/pertandingan/119?kegiatan_id=8&print=2') }}" target="_blank" style="background-color: rgb(99, 99, 99);" class="lihat_peserta text-white px-4 py-2 rounded">Bagan Babak 2</a>
+                                    </div>
+                                @endif
                             @endif
 
                         <div class="flex items-center justify-start space-x-4 mb-4" >

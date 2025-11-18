@@ -40,6 +40,17 @@
         <span class="text-red" style="color: red;">{{ $message }}</span>
     @enderror
 </div>
+<div class="mb-4">
+    <label for="">Status Bagan <span style="color: red;">*</span></label>
+    <select name="bagan"  class="w-full pl-9 text-sm focus:shadow-primary-outline ease leading-5.6 relative -ml-px block min-w-0 flex-auto rounded-lg border border-solid border-gray-300 dark:bg-slate-850 dark:text-white bg-white bg-clip-padding py-2 pr-3 text-gray-700 transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:transition-shadow" id="">
+        <option value="" selected disabled>Pilih Status Bagan </option>
+        <option value="1" {{ old('bagan', @$pertandingan->bagan) == '1' ? 'selected' : '' }} >Ya</option>
+        <option value="" {{ old('bagan', @$pertandingan->bagan) == null ? 'selected' : '' }} >Tidak</option>
+    </select>
+    @error('jenis_kelamin')
+        <span class="text-red" style="color: red;">{{ $message }}</span>
+    @enderror
+</div>
 {{-- <div class="mb-4">
     <label for="">Medali <span style="color: red;">*</span></label>
     <div class="flex flex-wrap -mx-2">
