@@ -332,7 +332,7 @@
                         <div class="mb-4 urutan_${i}">
                             <label for="">Urutan komposisi yang dimainkan : <span style="color: red;">*</span></label>
                             <div class="urutan_list" data-id="${i}">
-                                <input type="text" name="urutan_tanding[${i}][]" value="-" id="urutan_tanding" class="urutan_tanding_${i} urutan_tanding dynamic-textarea px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" required placeholder="Urutan komposisi yang dimainkan" id="">
+                                <input type="text" name="urutan_tanding[${i}][]" value="-" id="urutan_tanding" class="urutan_tanding_${i} urutan_tanding dynamic-textarea px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" placeholder="Urutan komposisi yang dimainkan" id="">
                             </div>
                         </div>
                     `;
@@ -427,7 +427,7 @@
                                 <input type="text"
                                     name="urutan_tanding[${hasil[i].value}][]"
                                     ids="${hasil[i].value}"
-                                    value="${komposisi_list[o] ?? '-'}"
+                                    value="${'-'}"
                                     id="urutan_tanding"
                                     class="urutan_tanding_${i} urutan_tanding dynamic-textarea px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full"
 
@@ -469,7 +469,7 @@
                     <div class="mb-4 urutan_${i}">
                         <label for="">Urutan komposisi yang dimainkan : <span style="color: red;">*</span><span style="color: red;">*</span></label>
                         <div class="urutan_list" data-id="${i}">
-                            ${exist == true ? komposisi_html : `<input type="text" name="urutan_tanding[${hasil[i].value}][]" ids="${hasil[i].value}" value="${data_saat_ini?.urutan_komposisi_peserta?.urutan_komposisi ?? "-"}" id="urutan_tanding" class="urutan_tanding_${i} urutan_tanding dynamic-textarea px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" required placeholder="Urutan komposisi yang dimainkan" id="">`}
+                            ${exist == true ? komposisi_html : `<input type="text" name="urutan_tanding[${hasil[i].value}][]" ids="${hasil[i].value}" value="${"-"}" id="urutan_tanding" class="urutan_tanding_${i} urutan_tanding dynamic-textarea px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" placeholder="Urutan komposisi yang dimainkan" id="">`}
                         </div>
                     </div>
                 `;
