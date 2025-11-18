@@ -117,9 +117,11 @@ class HomePageController extends Controller
 
     public function teknik_cari_peserta(Request $request) {
         if($request->kabupaten_id && $request->kegiatan_id && $request->kategori_id && $request->pertandingan_id) {
-            $data['peserta'] = Peserta::where('status', 'P')->where('kabupaten_id', $request->kabupaten_id)->whereNotNull('created_at');
+
             $kegiatan = Kegiatan::find($request->kegiatan_id);
             $data['kategori'] = ListKategori::with('kategori')->where('kegiatan_id', $kegiatan->id)->get()->unique('kategori_id')->values();
+
+            $data['peserta'] = Peserta::where('status', 'P')->where('kabupaten_id', $request->kabupaten_id)->whereNotNull('created_at');
 
             $kegiatan_id = $kegiatan->id;
             $kategori_id = $request->kategori_id;

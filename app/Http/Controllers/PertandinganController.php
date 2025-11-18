@@ -9,6 +9,7 @@ use App\Models\KontigenPertandingan;
 use App\Models\ListKategori;
 use App\Models\Pertandingan;
 use App\Models\PertandinganPeserta;
+use App\Models\Peserta;
 use App\Models\PesertaTerpilih;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Dotenv\Util\Str;
@@ -131,19 +132,77 @@ class PertandinganController extends Controller
 
 
         if(isset($_GET['print']) && $_GET['print'] != "") {
-            $data['kolom'] = KontigenPertandingan::where('urutan', $_GET['print'])->where('list_kategori_id', $id)->get();
-            $pdf = Pdf::loadView('admin.pertandingan.print_tanding', $data);
+            // $data['kolom'] = KontigenPertandingan::where('urutan', $_GET['print'])->where('list_kategori_id', $id)->get();
+            // $data['kolom2'] = KontigenPertandingan::where('urutan', $_GET['print'])->where('list_kategori_id', $id)->orderByRaw('kabupaten_id IS NULL ASC')->orderBy('kabupaten_id','ASC')->get();
+            $data['kolom1'] = KontigenPertandingan::where('urutan', $_GET['print'])->where('list_kategori_id', $id)->orderByRaw('kabupaten_id IS NULL ASC')->orderBy('kabupaten_id','ASC')->get();
 
-            // 🟢 Tampilkan langsung di browser
-            return $pdf->download('Data_Peserta_Kontigen_Pertandingan_'.date('Y-m-d').'.pdf');
+            // $pdf = Pdf::loadView('admin.pertandingan.print_bagan', $data);
+
+            // // 🟢 Tampilkan langsung di browser
+            // return $pdf->stream('Data_Peserta_Kontigen_Pertandingan_'.date('Y-m-d').'.pdf');
+            return view('admin.pertandingan.print_bagan', $data);
 
         }
-        if(isset($_GET['kabupaten_id']) && $_GET['kabupaten_id'] != "") {
-            $data['kabupaten_first'] = Kabupaten::find($_GET['kabupaten_id']);
-            $kabupaten_id = $data['kabupaten_first']->id;
-            $data['peserta'] = PertandinganPeserta::wherehas('Peserta', function($q) use ($kabupaten_id) {
+        $data['kolom1'] = KontigenPertandingan::where('urutan', 1)->where('list_kategori_id', $id)->orderByRaw('kabupaten_id IS NULL ASC')->orderBy('kabupaten_id','ASC')->get();
+
+
+        if(isset($_GET['kabupaten_id'])) {
+            $data['kabupaten_first'] = Kabupaten::find($_GET['kabupaten_id']) ?? null;
+            $kabupaten_id = $data['kabupaten_first']->id ?? null;
+
+            $data['peserta'] = PertandinganPeserta::with('Peserta')->wherehas('Peserta', function($q) use ($kabupaten_id) {
                 $q->where('kabupaten_id', $kabupaten_id);
             })->where('list_kategori_id', $id)->get();
+
+            $kegiatan_id = $data['kegiatan']->id;
+            $data['kategori'] = ListKategori::with('kategori')->where('kegiatan_id', $kegiatan_id)->get()->unique('kategori_id')->values();
+
+            $kategori_id = $data['pertandingan']->pertandingan->kategori->id;
+            $pertandingan_id = $data['pertandingan']->pertandingan_id;
+
+            $data['pesertas'] = Peserta::with([
+                'PertandinganPeserta' => function ($q) use ($kegiatan_id, $kategori_id, $pertandingan_id) {
+                    $q->where('kegiatan_id', $kegiatan_id)
+                    ->whereHas('list_kategori', function ($w) use ($kategori_id, $pertandingan_id, $kegiatan_id) {
+                        $w->where('pertandingan_id', $pertandingan_id)
+                            ->where('kategori_id', $kategori_id)
+                            ->where('kegiatan_id', $kegiatan_id);
+                    });
+                },
+                'PertandinganPeserta.list_kategori' => function ($q) use ($kategori_id, $pertandingan_id, $kegiatan_id) {
+                    $q->where('pertandingan_id', $pertandingan_id)
+                    ->where('kategori_id', $kategori_id)
+                    ->where('kegiatan_id', $kegiatan_id);
+                }
+            ])
+            ->whereHas('PertandinganPeserta', function ($q) use ($kegiatan_id, $kategori_id, $pertandingan_id) {
+                $q->where('kegiatan_id', $kegiatan_id)
+                ->whereHas('list_kategori', function ($w) use ($kategori_id, $pertandingan_id, $kegiatan_id) {
+                    $w->where('pertandingan_id', $pertandingan_id)
+                        ->where('kategori_id', $kategori_id)
+                        ->where('kegiatan_id', $kegiatan_id);
+                });
+            })
+            ->where('kabupaten_id', $kabupaten_id)->get();
+
+
+            if(isset($_GET['status'])) {
+                if($_GET['status'] == 'print') {
+                    $data['tanding'] = ListKategori::where('id', $id)->first();
+                    $data['kolom1'] = KontigenPertandingan::find($_GET['kontigen_id_1']);
+                    $data['kolom2'] = KontigenPertandingan::find($_GET['kontigen_id_2']);
+
+                    $pdf = Pdf::loadView('admin.pertandingan.print_babak', $data);
+
+                    // 🟢 Tampilkan langsung di browser
+                    return $pdf->stream('Data_Peserta_Kontigen_Pertandingan_Babak_1_'.date('Y-m-d').'.pdf');
+                }
+                return response()->json([
+                    'message' => 'data berhasil ditampilkan!',
+                    'data' => $data['peserta'],
+                    'total_data' => $data['peserta']->count(),
+                ]);
+            }
             // dd($data['peserta']);
 
         }
@@ -152,8 +211,7 @@ class PertandinganController extends Controller
         $data['kontigen_pertandingan'] = KontigenPertandingan::where('list_kategori_id', $id)
             ->get()
             ->groupBy('urutan');
-        $data['kolom1'] = KontigenPertandingan::where('urutan', 1)->where('list_kategori_id', $id)->get();
-        $data['kolom2'] = KontigenPertandingan::where('urutan', 2)->where('list_kategori_id', $id)->get();
+        $data['kolom2'] = KontigenPertandingan::where('urutan', 2)->where('list_kategori_id', $id)->whereNull('kabupaten_id')->get();
         // dd($data['kolom1']);
 
         return view('admin.pertandingan.tanding', $data);
@@ -178,7 +236,9 @@ class PertandinganController extends Controller
 
 
         // $kontigen_tersedia = KontigenPertandingan::where('list_kategori_id', $id)->('urutan')
-        $kontigen_delete = KontigenPertandingan::where('list_kategori_id', $id)->where('urutan', $request->urutan)->delete();
+        $kontigen_delete = KontigenPertandingan::where('list_kategori_id', $id)->where('urutan', 1)->delete();
+        $kontigen_delete = KontigenPertandingan::where('list_kategori_id', $id)->where('urutan', 2)->delete();
+
         $data['kabupaten'] = PertandinganPeserta::with('Peserta.kabupaten')
             ->where('list_kategori_id', $id)
             ->whereHas('Peserta', function ($q) {
@@ -190,29 +250,76 @@ class PertandinganController extends Controller
             })
             ->values(); // ←
 
+
         // dd($data['kabupaten']);
 
-        $kabupaten_list = [];
-        $limit = count($data['kabupaten']) <= 8 ? 8 : 10 ;
+        $kabupaten_list_1 = [];
+        $kabupaten_list_2 = [];
+
+        $limit = count($data['kabupaten']);
+        if( count($data['kabupaten']) <= 8) {
+            $limit = 8;
+        }
+
+        if( count($data['kabupaten']) <= 4) {
+            $limit = 4;
+
+
+        }
+
+        // $limit = count($data['kabupaten']) <= 8 ? 8 : 10 ;
         for($i = 0; $i < $limit; $i++) {
             if(isset($data['kabupaten'][$i])) {
                 $kabupatenId = optional($data['kabupaten'][$i]->first()->Peserta->Kabupaten)->id;
                 $kabupatenName = optional($data['kabupaten'][$i]->first()->Peserta->Kabupaten)->name;
                 $kabupatenTotalPeserta = $data['kabupaten'][$i]->count();
                 // dd("ASD");
-                $kabupaten_list[] = $kabupatenId;
+                $kabupaten_list_1[] = $kabupatenId;
+                $kabupaten_list_2[] = $kabupatenId;
+
             } else {
-                $kabupaten_list[] = null;
+                $kabupaten_list_1[] = null;
+                $kabupaten_list_2[] = null;
+
             }
         }
 
-        shuffle($kabupaten_list);
+        // dd($kabupaten_list_1);
 
-        foreach($kabupaten_list as $a) {
+
+
+        shuffle($kabupaten_list_1);
+
+        do {
+            shuffle($kabupaten_list_2);
+
+            $valid = true;
+            foreach ($kabupaten_list_1 as $i => $val) {
+                if ($kabupaten_list_2[$i] === $val) {
+                    $valid = false;
+                    break;
+                }
+            }
+
+        } while (!$valid);
+        // dd($kabupaten_list_1);
+
+        foreach($kabupaten_list_1 as $index => $a) {
             KontigenPertandingan::create([
                 'list_kategori_id' => $id,
                 'kabupaten_id' => $a,
-                'urutan' => $request->urutan,
+                'urutan' => 1,
+                'undian' => $index,
+            ]);
+        }
+
+
+        foreach($kabupaten_list_2 as $index => $a) {
+            KontigenPertandingan::create([
+                'list_kategori_id' => $id,
+                'kabupaten_id' => $a,
+                'urutan' => 2,
+                'undian' => $index,
             ]);
         }
         // dd($kabupaten_list);

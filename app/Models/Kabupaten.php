@@ -18,4 +18,14 @@ class Kabupaten extends Model
 
         return $this->hasMany(Peserta::class);
     }
+
+    public function KontigenPertandinganPertama() {
+        return $this->hasOne(KontigenPertandingan::class)
+                ->where('urutan', 1);
+    }
+
+    public function KontigenPertandinganKedua() {
+        return $this->hasOne(KontigenPertandingan::class)
+                ->where('urutan', 2);
+    }
 }
