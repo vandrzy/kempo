@@ -19,6 +19,15 @@ class Kabupaten extends Model
         return $this->hasMany(Peserta::class);
     }
 
+    public function official() {
+        // return $this->hasMany(Peserta::class)->whereHas('PertandinganPeserta', function($q) {
+        //     $q->select('peserta_id', DB::raw('MIN(id) as id'))
+        //         ->groupBy('peserta_id')->whereHas('list_kategori');
+        // });
+
+        return $this->hasMany(Official::class);
+    }
+
     public function KontigenPertandinganPertama() {
         return $this->hasOne(KontigenPertandingan::class)
                 ->where('urutan', 1);

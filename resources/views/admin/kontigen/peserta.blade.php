@@ -25,7 +25,20 @@
                     <h4 class="dark:text-white">Data Kontigen {{ $kabupaten->name }}</h4>
                     <h4>{{ $kegiatan->nama }}</h4>
                 </div>
-                <a href="{{ url('kontingen') }}" style="border: solid 2px green; color: green;"  class="inline-block px-5 py-2 mb-0 text-xs font-bold leading-normal text-center text-green-500 align-middle transition-all ease-in bg-transparent border  border-solid rounded-lg shadow-none cursor-pointer bg-150 active:opacity-85 hover:-translate-y-px tracking-tight-rem bg-x-25 hover:opacity-75">Kembali</a>
+                <div class="flex items-center justify-between mb-2">
+                    <div>
+                        <a href="{{ url('kontingen') }}" style="border: solid 2px green; color: green;"  class="inline-block px-5 py-2 mb-0 text-xs font-bold leading-normal text-center text-green-500 align-middle transition-all ease-in bg-transparent border  border-solid rounded-lg shadow-none cursor-pointer bg-150 active:opacity-85 hover:-translate-y-px tracking-tight-rem bg-x-25 hover:opacity-75">Kembali</a>
+                    </div>
+                    <div>
+                        <form action="{{ url('kontingen/'.$kabupaten->id) }}" method="get">
+                            <input type="hidden" name="kegiatan_id" value="{{ $kegiatan->id }}">
+                            <select name="status" onchange="this.form.submit()" class="pl-9 text-sm focus:shadow-primary-outline ease leading-5.6 relative -ml-px block min-w-0 flex-auto rounded-lg border border-solid border-gray-300 dark:bg-slate-850 dark:text-white bg-white bg-clip-padding py-2 pr-3 text-gray-700 transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:transition-shadow" id="kegiatan_id">
+                                <option value="peserta" {{ Request('status') == 'peserta' ? 'selected' : '' }} >Peserta</option>
+                                <option value="official" {{ Request('status') == 'official' ? 'selected' : '' }} >Official</option>
+                            </select>
+                        </form>
+                    </div>
+                </div>
             </div>
             <div class="flex-auto px-0 pt-0 pb-2">
             <div class="p-0 overflow-x-auto">
@@ -136,7 +149,19 @@
                                 </td>
                                 <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
                                     <div class="flex justify-center items-center space-x-4">
-                                            <a href="{{ url('peserta/'.$a->id) }}?kontigen={{ $kabupaten->id }}&ehh={{ $_GET['kegiatan_id'] }}" style="border: solid 2px green; color: green;"  class="inline-block px-5 py-2 mb-0 text-xs font-bold leading-normal text-center text-green-500 align-middle transition-all ease-in bg-transparent border  border-solid rounded-lg shadow-none cursor-pointer bg-150 active:opacity-85 hover:-translate-y-px tracking-tight-rem bg-x-25 hover:opacity-75">Detail</a>
+                                            @if(isset($_GET['status']))
+                                                @if($_GET['status'] == "official")
+                                                    <a href="{{ url('official/'.$a->id) }}?kontigen={{ $kabupaten->id }}&ehh={{ $_GET['kegiatan_id'] }}" style="border: solid 2px green; color: green;"  class="inline-block px-5 py-2 mb-0 text-xs font-bold leading-normal text-center text-green-500 align-middle transition-all ease-in bg-transparent border  border-solid rounded-lg shadow-none cursor-pointer bg-150 active:opacity-85 hover:-translate-y-px tracking-tight-rem bg-x-25 hover:opacity-75">Detail</a>
+                                                @endif
+                                                @if($_GET['status'] == "peserta")
+                                                    <a href="{{ url('official/'.$a->id) }}?kontigen={{ $kabupaten->id }}&ehh={{ $_GET['kegiatan_id'] }}" style="border: solid 2px green; color: green;"  class="inline-block px-5 py-2 mb-0 text-xs font-bold leading-normal text-center text-green-500 align-middle transition-all ease-in bg-transparent border  border-solid rounded-lg shadow-none cursor-pointer bg-150 active:opacity-85 hover:-translate-y-px tracking-tight-rem bg-x-25 hover:opacity-75">Detail</a>
+                                                @endif
+                                            @endif
+
+                                            @if (!isset($_GET['status']))
+                                                <a href="{{ url('peserta/'.$a->id) }}?kontigen={{ $kabupaten->id }}&ehh={{ $_GET['kegiatan_id'] }}" style="border: solid 2px green; color: green;"  class="inline-block px-5 py-2 mb-0 text-xs font-bold leading-normal text-center text-green-500 align-middle transition-all ease-in bg-transparent border  border-solid rounded-lg shadow-none cursor-pointer bg-150 active:opacity-85 hover:-translate-y-px tracking-tight-rem bg-x-25 hover:opacity-75">Detail</a>
+
+                                            @endif
 
                                     </div>
                                 </td>

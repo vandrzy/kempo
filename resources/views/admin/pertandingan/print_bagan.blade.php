@@ -142,21 +142,22 @@
 							else
                                 if(groupCount == 4) {
                                     if(g == 1) {
-                                        round.append('<div><div class="bracketbox"><span class="info">'+gg.bracketNo+'</span><span class="teama">'+grouped[g][0].teamnames[0]+'</span><span class="teamb">'+grouped[g][0].teamnames[1]+'</span></div></div>');
+                                        // <span class="info">'+gg.bracketNo+'</span>
+                                        round.append('<div><div class="bracketbox"><span class="teama">'+grouped[g][0].teamnames[0]+'</span><span class="teamb">'+grouped[g][0].teamnames[1]+'</span></div></div>');
                                         console.log(g);
 
                                     } else {
 
                                         if(g == 2) {
                                             if(i == 0) {
-                                                round.append('<div><div class="bracketbox"><span class="info">'+gg.bracketNo+'</span><span class="teama"></span><span class="teamb">'+grouped[g - 1][i + 1].teamnames[0]+'</span></div></div>');
+                                                round.append('<div><div class="bracketbox"><span class="teama"></span><span class="teamb">'+grouped[g - 1][i + 1].teamnames[0]+'</span></div></div>');
                                             } else {
-                                                round.append('<div><div class="bracketbox"><span class="info">'+gg.bracketNo+'</span><span class="teama">'+grouped[g - 1][i].teamnames[1]+'</span><span class="teamb">'+grouped[g - 1][i + 1].teamnames[0]+'</span></div></div>');
+                                                round.append('<div><div class="bracketbox"><span class="teama">'+grouped[g - 1][i].teamnames[1]+'</span><span class="teamb">'+grouped[g - 1][i + 1].teamnames[0]+'</span></div></div>');
                                             }
                                             console.log(g);
 
                                         } else {
-                                            round.append('<div><div class="bracketbox"><span class="info">'+gg.bracketNo+'</span><span class="teama"></span><span class="teamb"></span></div></div>');
+                                            round.append('<div><div class="bracketbox"><span class="teama"></span><span class="teamb"></span></div></div>');
 
                                         }
                                     }
@@ -218,6 +219,28 @@
 				min-height: 100%;
 				font-family: "Arial", sans-serif;
 			}
+
+            header {
+                position: fixed;
+                top: -80px; /* sesuaikan agar pas */
+                left: 0;
+                right: 0;
+                height: 50px;
+                padding-bottom: 10px;
+                border-bottom: 1px solid #000;
+            }
+
+            footer {
+            position: fixed;
+            bottom: -20px;
+            left: 0;
+            right: 0;
+            height: 40px;
+            border-top: 1px solid #ccc;
+            text-align: right;
+            font-size: 11px;
+            padding: 8px 0;
+            }
 			.metroBtn {
 				background-color: #2E7BCC;
 				color: #fff;
@@ -291,19 +314,19 @@
 				width: 16.3%;
 			}
 			.brackets > div > .r1 > div {
-				height: 60px;
+				height: 50px;
 			}
 			.brackets > div > .r2 > div {
 				margin: 80px 0 110px 0;
-				height: 110px;
+				height: 90px;
 			}
 			.brackets > div > .r3 > div {
-				margin: 135px 0 220px 0;
-				height: 220px;
+				margin: 140px 0 220px 0;
+				height: 180px;
 			}
 			.brackets > div > .r4 > div {
 				margin: 250px 0 445px 0;
-				height: 445px;
+				height: 350px;
 			}
 			.brackets > div > .r5 > div {
 				margin: 460px 0 0 0;
@@ -334,15 +357,27 @@
 	<body>
 		{{-- <p>Quick script to demonstrate generating tournament brackets without tables (using CSS). Let me know what you think <a href="http://twitter.com/sterlingwes">@SterlingWes</a> (bonus marks if you can help me improve my CSS).</p>
 		<div id="add" class="metroBtn">Add Bracket</div> --}}
-        <center>
-            <h3>{{ $pertandingan->pertandingan->nama }}</h3>
-            <h4>Babak {{ $_GET['print'] }}</h4>
-        </center>
-        {{-- <a onclick="window.print()">Print page</a> --}}
-		<div class="brackets" id="brackets_1">
-		</div>
-        <div class="new-page"></div>
-        <div class="brackets" id="brackets_1">
-		</div>
+
+        <footer>
+            <div style="padding-right:10px;">
+                <center>
+
+                    <h2>CUP</h2>
+                </center>
+
+            </div>
+        </footer>
+        <div class="container">
+            <center>
+                <h3>{{ $pertandingan->pertandingan->nama }}</h3>
+                <h4>Babak {{ $_GET['print'] }}</h4>
+            </center>
+            {{-- <a onclick="window.print()">Print page</a> --}}
+            <div class="brackets" id="brackets_1">
+            </div>
+            <div class="new-page"></div>
+            <div class="brackets" id="brackets_1">
+            </div>
+        </div>
 	</body>
 </html>

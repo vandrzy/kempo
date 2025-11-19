@@ -28,6 +28,8 @@ class KontigenController extends Controller
                     $qq2->where('kegiatan_id', $kegiatan_id);
                 });
             });
+        }, 'official' => function($s) use ($kegiatan_id) {
+            $s->where('kegiatan_id',$kegiatan_id);
         }])->get();
         $data['kegiatan'] = Kegiatan::orderBy('created_at', 'DESC')->get();
 
@@ -58,15 +60,23 @@ class KontigenController extends Controller
         $kegiatan_id = $_GET['kegiatan_id'] ?? 0;
         $data['kegiatan'] = Kegiatan::find($kegiatan_id);
         $data['kabupaten'] = Kabupaten::find($id);
-        $data['peserta'] = $data['kabupaten']->peserta()
-            ->whereHas('PertandinganPeserta', function($q) {
-                $q->whereHas('list_kategori');
-            })->whereHas('PertandinganPesertaUtama', function($qq1) use ($kegiatan_id) {
-                $qq1->whereHas('list_kategori', function($qq2) use ($kegiatan_id) {
-                    $qq2->where('kegiatan_id', $kegiatan_id);
-                });
-            })
-            ->paginate(10);
+
+        $status = $_GET['status'] ?? 'peserta';
+        if($status == 'peserta') {
+            $data['peserta'] = $data['kabupaten']->peserta()
+                ->whereHas('PertandinganPeserta', function($q) {
+                    $q->whereHas('list_kategori');
+                })->whereHas('PertandinganPesertaUtama', function($qq1) use ($kegiatan_id) {
+                    $qq1->whereHas('list_kategori', function($qq2) use ($kegiatan_id) {
+                        $qq2->where('kegiatan_id', $kegiatan_id);
+                    });
+                })
+                ->paginate(10);
+        }
+
+        if($status == 'official') {
+            $data['peserta'] = $data['kabupaten']->official()->where('kegiatan_id',$kegiatan_id)->paginate(10);
+        }
         return view('admin.kontigen.peserta', $data);
     }
 
@@ -80,15 +90,21 @@ class KontigenController extends Controller
 
         $kegiatan_id = $_GET['kegiatan_id'] ?? 0;
         $data['kegiatan'] = Kegiatan::find($kegiatan_id);
-        $data['peserta'] = $data['kabupaten']->peserta()
-            ->whereHas('PertandinganPeserta', function($q) {
-                $q->whereHas('list_kategori');
-            })->whereHas('PertandinganPesertaUtama', function($qq1) use ($kegiatan_id) {
-                $qq1->whereHas('list_kategori', function($qq2) use ($kegiatan_id) {
-                    $qq2->where('kegiatan_id', $kegiatan_id);
-                });
-            })
-            ->get();
+        if($_GET['print'] == 'peserta') {
+            $data['peserta'] = $data['kabupaten']->peserta()
+                ->whereHas('PertandinganPeserta', function($q) {
+                    $q->whereHas('list_kategori');
+                })->whereHas('PertandinganPesertaUtama', function($qq1) use ($kegiatan_id) {
+                    $qq1->whereHas('list_kategori', function($qq2) use ($kegiatan_id) {
+                        $qq2->where('kegiatan_id', $kegiatan_id);
+                    });
+                })
+                ->get();
+        }
+
+        if($_GET['print'] == 'official') {
+            $data['peserta'] = $data['kabupaten']->official()->where('kegiatan_id',$kegiatan_id)->get();
+        }
         $pdf = Pdf::loadView('admin.kontigen.print', $data);
 
         // 🟢 Tampilkan langsung di browser

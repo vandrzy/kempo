@@ -123,7 +123,15 @@
   <div class="container">
     <h1>{{ $title ?? 'Laporan' }} Kegiatan {{ $kegiatan->nama }}</h1>
     <div class="meta">
-      {{ $subtitle ?? 'Peserta dari '.$kabupaten->name }}
+        @if($_GET['print'] == "peserta")
+            {{ $subtitle ?? 'Peserta dari '.$kabupaten->name }}
+
+        @endif
+
+        @if($_GET['print'] == "official")
+            {{ $subtitle ?? 'Official dari '.$kabupaten->name }}
+
+        @endif
     </div>
 
     {{-- <table class="items-center w-full mb-0 align-top border-collapse dark:border-white/40 text-slate-500">
@@ -247,12 +255,12 @@
                     @endif
                 </td>
                 <td style="text-align: center;">
-                    @if(strtoupper(substr($a->tingkatan_sabuk, 0, 1)) == "K")
+                    @if(strtoupper(substr($a->tingkatan_sabuk ?? $a->tingkat, 0, 1)) == "K")
                         <span style="font-family: DejaVu Sans; font-size: 24px; color: black;">&#10003;</span>
                     @endif
                 </td>
                 <td style="text-align: center;">
-                    @if(strtoupper(substr($a->tingkatan_sabuk, 0, 1)) == "D")
+                    @if(strtoupper(substr($a->tingkatan_sabuk ?? $a->tingkat, 0, 1)) == "D")
                         <span style="font-family: DejaVu Sans; font-size: 24px; color: black;">&#10003;</span>
                     @endif
                 </td>
