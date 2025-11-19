@@ -415,18 +415,18 @@
 
                                             @if ($kabupatenName)
                                                 <tr id="tr_team_{{ $kabId }}">
-                                                    <td style="text-align: left" class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
+                                                    <td style="text-align: left" class="col-team-{{ $kabId }} p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
                                                         <p class="mb-0 text-3xl font-semibold leading-tight dark:text-white dark:opacity-80" style="color: green;">{{ $kabupatenName ?? 'Tanpa Kabupaten' }} : {{ $kabupatenTotalPeserta  }} Peserta</p>
                                                     </td>
-                                                    <td style="text-align: left" class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
+                                                    <td style="text-align: left" class="col-team-{{ $kabId }} p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
                                                         <p class="mb-0 text-3xl font-semibold leading-tight dark:text-white dark:opacity-80" style="color: green;"></p>
                                                     </td>
-                                                    <td style="text-align: left" class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
+                                                    <td style="text-align: left" class=" col-team-{{ $kabId }} p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
                                                         <p class="mb-0 text-3xl font-semibold leading-tight dark:text-white dark:opacity-80" style="color: green;"></p>
                                                     </td>
                                                     <td>
-                                                        <a style="background-color: rgb(30, 120, 255);" class="text-white px-4 py-2 rounded" href="{{ url('pertandingan/'.$pertandingan->id.'?kegiatan_id='.$pertandingan->kegiatan->id.'&kabupaten_id='.($item->kabupaten->id ?? null) ) }}">Detail Kontigen</a>
-                                                        <button style="background-color: rgb(102, 233, 100);" status="-" total_peserta="{{ $kabupatenTotalPeserta }}" index="{{ $kabId }}" kabupaten_id="{{ $item->kabupaten->id ?? "-" }}" class="lihat_peserta text-white px-4 py-2 rounded">Lihat Peserta</button>
+                                                        <a style="background-color: rgb(30, 120, 255);" class="text-white px-4 py-2 rounded" href="{{ url('pertandingan/'.$pertandingan->id.'?kegiatan_id='.$pertandingan->kegiatan->id.'&kabupaten_id='.($kabupatenId ?? null) ) }}">Detail Kontigen</a>
+                                                        <button style="background-color: rgb(102, 233, 100);" status="-" total_peserta="{{ $kabupatenTotalPeserta }}" index="{{ $kabId }}" kabupaten_id="{{ $kabupatenId ?? "-" }}" class="lihat_peserta text-white px-4 py-2 rounded">Lihat Peserta</button>
 
                                                     </td>
                                                 </tr>
@@ -550,8 +550,6 @@
     form.submit(); // otomatis kirim form saat select berubah
   });
   @section('script')
-    @if(!isset($_GET['kabupaten_id'] ))
-        @if (!$kolom1->isEmpty())
             $('.lihat_peserta').click(function() {
                 let kabupaten_id = $(this).attr('kabupaten_id');
                 let index_list = $(this).attr('index');
@@ -587,7 +585,7 @@
                                 response.data.forEach(function(item, index) {
                                     html += `<tr class="tr_team_all_${index_list}">
                                                 <td style="text-align: left" rowspan="1" class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-                                                    <p class="mb-0 text-3xl font-semibold leading-tight dark:text-white dark:opacity-80" style="color: {{ $warna }}"> ${index + 1}. ${item.peserta.nama}</p>
+                                                    <p class="mb-0 text-3xl font-semibold leading-tight dark:text-white dark:opacity-80" style="color: green;"> ${index + 1}. ${item.peserta.nama}</p>
                                                 </td>
                                             </tr>`;
                                 });
@@ -609,8 +607,6 @@
                 }
                 //
             });
-        @endif
-    @endif
   @endsection
 </script>
 @endsection
