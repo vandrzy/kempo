@@ -414,7 +414,7 @@
                                             @endphp
 
                                             @if ($kabupatenName)
-                                                <tr>
+                                                <tr id="tr_team_{{ $kabId }}">
                                                     <td style="text-align: left" class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
                                                         <p class="mb-0 text-3xl font-semibold leading-tight dark:text-white dark:opacity-80" style="color: green;">{{ $kabupatenName ?? 'Tanpa Kabupaten' }} : {{ $kabupatenTotalPeserta  }} Peserta</p>
                                                     </td>
@@ -426,7 +426,7 @@
                                                     </td>
                                                     <td>
                                                         <a style="background-color: rgb(30, 120, 255);" class="text-white px-4 py-2 rounded" href="{{ url('pertandingan/'.$pertandingan->id.'?kegiatan_id='.$pertandingan->kegiatan->id.'&kabupaten_id='.($item->kabupaten->id ?? null) ) }}">Detail Kontigen</a>
-                                                        <button style="background-color: rgb(102, 233, 100);" status="-" total_peserta="{{ $total_peserta }}" index="{{ $index_list }}" kabupaten_id="{{ $item->kabupaten->id ?? "-" }}" class="lihat_peserta text-white px-4 py-2 rounded">Lihat Peserta</button>
+                                                        <button style="background-color: rgb(102, 233, 100);" status="-" total_peserta="{{ $kabupatenTotalPeserta }}" index="{{ $kabId }}" kabupaten_id="{{ $item->kabupaten->id ?? "-" }}" class="lihat_peserta text-white px-4 py-2 rounded">Lihat Peserta</button>
 
                                                     </td>
                                                 </tr>
