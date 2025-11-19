@@ -398,6 +398,8 @@
                                             <th colspan="1" style="text-align: left;" class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-3xl border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Kabupaten</th>
                                             <th colspan="1" style="text-align: left;" class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-3xl border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Babak 1</th>
                                             <th colspan="1" style="text-align: left;" class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-3xl border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Babak 2</th>
+                                            <th colspan="1" style="text-align: left;" class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-3xl border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Aksi</th>
+
 
                                         </tr>
                                     </thead>
@@ -421,6 +423,11 @@
                                                     </td>
                                                     <td style="text-align: left" class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
                                                         <p class="mb-0 text-3xl font-semibold leading-tight dark:text-white dark:opacity-80" style="color: green;"></p>
+                                                    </td>
+                                                    <td>
+                                                        <a style="background-color: rgb(30, 120, 255);" class="text-white px-4 py-2 rounded" href="{{ url('pertandingan/'.$pertandingan->id.'?kegiatan_id='.$pertandingan->kegiatan->id.'&kabupaten_id='.($item->kabupaten->id ?? null) ) }}">Detail Kontigen</a>
+                                                        <button style="background-color: rgb(102, 233, 100);" status="-" total_peserta="{{ $total_peserta }}" index="{{ $index_list }}" kabupaten_id="{{ $item->kabupaten->id ?? "-" }}" class="lihat_peserta text-white px-4 py-2 rounded">Lihat Peserta</button>
+
                                                     </td>
                                                 </tr>
                                             @endif
