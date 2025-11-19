@@ -210,8 +210,8 @@
                             @if(!$kolom1->isEmpty())
                                 @if($pertandingan->pertandingan->bagan == 1)
                                     <div class="p-2">
-                                        <a href="{{ url('/pertandingan/119?kegiatan_id=8&print=1') }}" target="_blank" style="background-color: rgb(69, 69, 69);" class="lihat_peserta text-white px-4 py-2 rounded">Bagan Babak 1</a>
-                                        <a href="{{ url('/pertandingan/119?kegiatan_id=8&print=2') }}" target="_blank" style="background-color: rgb(99, 99, 99);" class="lihat_peserta text-white px-4 py-2 rounded">Bagan Babak 2</a>
+                                        <a href="{{ url('/pertandingan/'.$pertandingan->id.'?kegiatan_id=8&print=1') }}" target="_blank" style="background-color: rgb(69, 69, 69);" class="lihat_peserta text-white px-4 py-2 rounded">Bagan Babak 1</a>
+                                        <a href="{{ url('/pertandingan/'.$pertandingan->id.'?kegiatan_id=8&print=2') }}" target="_blank" style="background-color: rgb(99, 99, 99);" class="lihat_peserta text-white px-4 py-2 rounded">Bagan Babak 2</a>
                                     </div>
                                 @endif
                             @endif
