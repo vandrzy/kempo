@@ -138,7 +138,7 @@ class PertandinganController extends Controller
             // $data['kolom2'] = KontigenPertandingan::where('urutan', $_GET['print'])->where('list_kategori_id', $id)->orderByRaw('kabupaten_id IS NULL ASC')->orderBy('kabupaten_id','ASC')->get();
             $data['pertandingan'] = ListKategori::where('id', $id)->first();
             $data['kolom1'] = KontigenPertandingan::where('urutan', $_GET['print'])->where('list_kategori_id', $id)->orderByRaw('kabupaten_id IS NULL ASC')->orderBy('kabupaten_id','ASC')->get();
-
+            dd($data['pertandingan']);
             // $pdf = Pdf::loadView('admin.pertandingan.print_bagan', $data);
 
             // // 🟢 Tampilkan langsung di browser
