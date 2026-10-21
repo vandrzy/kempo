@@ -558,4 +558,336 @@ class PertandinganController extends Controller
             //throw $th;
         }
     }
+
+    /**
+     * TUGAS 1: Halaman Rekapitulasi Informasi Berdasarkan Kegiatan
+     */
+    public function laporanKegiatan(Request $request, $kegiatan_id = null)
+    {
+        $semua_kegiatan = Kegiatan::orderBy('created_at', 'DESC')->get();
+        $active_kegiatan_id = $kegiatan_id ?: ($request->kegiatan_id ?: optional($semua_kegiatan->first())->id);
+        $kegiatan_aktif = Kegiatan::find($active_kegiatan_id);
+
+        $klasemen = [];
+        $daftar_juara = [];
+        $total_kategori = 0;
+        $total_medali_emas = 0;
+        $total_medali_perak = 0;
+        $total_medali_perunggu = 0;
+
+        if ($kegiatan_aktif) {
+            // Ambil semua list kategori pada kegiatan ini
+            $listKategori = ListKategori::with(['kategori', 'pertandingan', 'list_kategori.Peserta.kabupaten'])
+                ->where('kegiatan_id', $active_kegiatan_id)
+                ->get();
+
+            $total_kategori = $listKategori->count();
+
+            // Ambil semua kabupaten / kontingen yang terlibat
+            $kabupatenIds = PertandinganPeserta::where('kegiatan_id', $active_kegiatan_id)
+                ->orWhereIn('list_kategori_id', $listKategori->pluck('id'))
+                ->with('Peserta')
+                ->get()
+                ->pluck('Peserta.kabupaten_id')
+                ->filter()
+                ->unique();
+
+            // Inisialisasi klasemen per kabupaten
+            $semuaKabupaten = Kabupaten::whereIn('id', $kabupatenIds)->get();
+            foreach ($semuaKabupaten as $kab) {
+                $klasemen[$kab->id] = [
+                    'id' => $kab->id,
+                    'nama' => $kab->name,
+                    'emas' => 0,
+                    'perak' => 0,
+                    'perunggu' => 0,
+                    'total' => 0,
+                ];
+            }
+
+            // Proses setiap kategori untuk mendapatkan juara dan klasemen medali
+            foreach ($listKategori as $lk) {
+                $isRandori = stripos($lk->pertandingan->nama ?? '', 'randori') !== false || stripos($lk->kategori->nama ?? '', 'randori') !== false;
+                $jenis = $isRandori ? 'Randori' : 'Embu';
+
+                $juara = $lk->data_juara ?? [];
+
+                $emas_kab_id = $juara['emas']['kabupaten_id'] ?? null;
+                $emas_kab_nama = $juara['emas']['kabupaten_nama'] ?? null;
+                $emas_peserta = $juara['emas']['peserta_nama'] ?? null;
+
+                $perak_kab_id = $juara['perak']['kabupaten_id'] ?? null;
+                $perak_kab_nama = $juara['perak']['kabupaten_nama'] ?? null;
+                $perak_peserta = $juara['perak']['peserta_nama'] ?? null;
+
+                $perunggu_kab_id = $juara['perunggu']['kabupaten_id'] ?? null;
+                $perunggu_kab_nama = $juara['perunggu']['kabupaten_nama'] ?? null;
+                $perunggu_peserta = $juara['perunggu']['peserta_nama'] ?? null;
+
+                $perunggu2_kab_id = $juara['perunggu_2']['kabupaten_id'] ?? null;
+                $perunggu2_kab_nama = $juara['perunggu_2']['kabupaten_nama'] ?? null;
+                $perunggu2_peserta = $juara['perunggu_2']['peserta_nama'] ?? null;
+
+                // Hitung medali ke klasemen
+                if ($emas_kab_id) {
+                    if (!isset($klasemen[$emas_kab_id])) {
+                        $klasemen[$emas_kab_id] = [
+                            'id' => $emas_kab_id,
+                            'nama' => $emas_kab_nama ?: optional(Kabupaten::find($emas_kab_id))->name,
+                            'emas' => 0, 'perak' => 0, 'perunggu' => 0, 'total' => 0,
+                        ];
+                    }
+                    $klasemen[$emas_kab_id]['emas'] += 1;
+                    $total_medali_emas += 1;
+                }
+
+                if ($perak_kab_id) {
+                    if (!isset($klasemen[$perak_kab_id])) {
+                        $klasemen[$perak_kab_id] = [
+                            'id' => $perak_kab_id,
+                            'nama' => $perak_kab_nama ?: optional(Kabupaten::find($perak_kab_id))->name,
+                            'emas' => 0, 'perak' => 0, 'perunggu' => 0, 'total' => 0,
+                        ];
+                    }
+                    $klasemen[$perak_kab_id]['perak'] += 1;
+                    $total_medali_perak += 1;
+                }
+
+                if ($perunggu_kab_id) {
+                    if (!isset($klasemen[$perunggu_kab_id])) {
+                        $klasemen[$perunggu_kab_id] = [
+                            'id' => $perunggu_kab_id,
+                            'nama' => $perunggu_kab_nama ?: optional(Kabupaten::find($perunggu_kab_id))->name,
+                            'emas' => 0, 'perak' => 0, 'perunggu' => 0, 'total' => 0,
+                        ];
+                    }
+                    $klasemen[$perunggu_kab_id]['perunggu'] += 1;
+                    $total_medali_perunggu += 1;
+                }
+
+                if ($perunggu2_kab_id) {
+                    if (!isset($klasemen[$perunggu2_kab_id])) {
+                        $klasemen[$perunggu2_kab_id] = [
+                            'id' => $perunggu2_kab_id,
+                            'nama' => $perunggu2_kab_nama ?: optional(Kabupaten::find($perunggu2_kab_id))->name,
+                            'emas' => 0, 'perak' => 0, 'perunggu' => 0, 'total' => 0,
+                        ];
+                    }
+                    $klasemen[$perunggu2_kab_id]['perunggu'] += 1;
+                    $total_medali_perunggu += 1;
+                }
+
+                $daftar_juara[] = [
+                    'list_kategori_id' => $lk->id,
+                    'pertandingan_id' => $lk->pertandingan_id,
+                    'kategori_nama' => $lk->kategori->nama ?? '-',
+                    'pertandingan_nama' => $lk->pertandingan->nama ?? '-',
+                    'kelas' => $lk->pertandingan->kelas ?? '-',
+                    'jenis' => $jenis,
+                    'emas' => [
+                        'kabupaten' => $emas_kab_nama,
+                        'peserta' => $emas_peserta,
+                    ],
+                    'perak' => [
+                        'kabupaten' => $perak_kab_nama,
+                        'peserta' => $perak_peserta,
+                    ],
+                    'perunggu' => [
+                        'kabupaten' => $perunggu_kab_nama,
+                        'peserta' => $perunggu_peserta,
+                    ],
+                    'perunggu_2' => [
+                        'kabupaten' => $perunggu2_kab_nama,
+                        'peserta' => $perunggu2_peserta,
+                    ],
+                    'is_set' => !empty($emas_kab_id),
+                ];
+            }
+
+            // Hitung total medali per kabupaten & urutkan klasemen
+            foreach ($klasemen as $kId => $v) {
+                $klasemen[$kId]['total'] = $v['emas'] + $v['perak'] + $v['perunggu'];
+            }
+
+            // Urutkan: Emas DESC, Perak DESC, Perunggu DESC, Total DESC, Nama ASC
+            usort($klasemen, function ($a, $b) {
+                if ($a['emas'] !== $b['emas']) {
+                    return $b['emas'] <=> $a['emas'];
+                }
+                if ($a['perak'] !== $b['perak']) {
+                    return $b['perak'] <=> $a['perak'];
+                }
+                if ($a['perunggu'] !== $b['perunggu']) {
+                    return $b['perunggu'] <=> $a['perunggu'];
+                }
+                if ($a['total'] !== $b['total']) {
+                    return $b['total'] <=> $a['total'];
+                }
+                return strcmp($a['nama'], $b['nama']);
+            });
+        }
+
+        return view('admin.pertandingan.laporan_kegiatan', compact(
+            'semua_kegiatan',
+            'kegiatan_aktif',
+            'klasemen',
+            'daftar_juara',
+            'total_kategori',
+            'total_medali_emas',
+            'total_medali_perak',
+            'total_medali_perunggu'
+        ));
+    }
+
+    /**
+     * TUGAS 2: Simpan Isian PDF Scoresheet Pertandingan (Embu & Randori)
+     */
+    public function simpanIsianPdf(Request $request, string $id)
+    {
+        $listKategori = ListKategori::findOrFail($id);
+        $pertandingan = Pertandingan::find($listKategori->pertandingan_id);
+
+        $payload = $request->except(['_token', 'kegiatan_id']);
+
+        // Simpan ke ListKategori
+        $listKategori->data_scoresheet = $payload;
+        $listKategori->save();
+
+        // Simpan juga ke Pertandingan untuk kompatibilitas data
+        if ($pertandingan) {
+            $pertandingan->data_scoresheet = $payload;
+            $pertandingan->save();
+        }
+
+        $kegiatan_id = $request->kegiatan_id ?? $listKategori->kegiatan_id;
+
+        return redirect('pertandingan/' . $id . '?kegiatan_id=' . $kegiatan_id)
+            ->with('success', 'Data isian scoresheet pertandingan berhasil disimpan!');
+    }
+
+    /**
+     * TUGAS 2: Cetak PDF Berdasarkan Jenis Kategori (Embu vs Randori)
+     */
+    public function cetakPdf(Request $request, string $id)
+    {
+        $listKategori = ListKategori::with(['kegiatan', 'kategori', 'pertandingan'])->findOrFail($id);
+
+        $isRandori = stripos($listKategori->pertandingan->nama ?? '', 'randori') !== false ||
+                     stripos($listKategori->kategori->nama ?? '', 'randori') !== false;
+
+        $scoresheet = $listKategori->data_scoresheet ?? ($listKategori->pertandingan->data_scoresheet ?? []);
+        $juara = $listKategori->data_juara ?? [];
+
+        // Ambil data peserta yang bertanding di kategori ini
+        $peserta_list = PertandinganPeserta::with('Peserta.kabupaten')
+            ->where('list_kategori_id', $id)
+            ->get();
+
+        $namaPertandingan = $listKategori->pertandingan->nama ?? 'Pertandingan';
+        $safeFileName = preg_replace('/[^A-Za-z0-9_\-]/', '_', $namaPertandingan);
+
+        if ($isRandori) {
+            $pdf = Pdf::loadView('pertandingan.pdf_randori', compact('listKategori', 'scoresheet', 'juara', 'peserta_list'))
+                ->setPaper('a4', 'landscape');
+            return $pdf->stream('Randori_' . $safeFileName . '.pdf');
+        } else {
+            $pdf = Pdf::loadView('pertandingan.pdf_embu', compact('listKategori', 'scoresheet', 'juara', 'peserta_list'))
+                ->setPaper('a4', 'portrait');
+            return $pdf->stream('Embu_' . $safeFileName . '.pdf');
+        }
+    }
+
+    /**
+     * TUGAS 3: Set Peraih Medali Berdasarkan Kategori (Embu & Randori)
+     */
+    public function setMedali(Request $request, string $id)
+    {
+        $listKategori = ListKategori::with(['list_kategori.Peserta.kabupaten'])->findOrFail($id);
+
+        $emas_kab_id = $request->emas_kabupaten_id;
+        $perak_kab_id = $request->perak_kabupaten_id;
+        $perunggu_kab_id = $request->perunggu_kabupaten_id;
+        $perunggu2_kab_id = $request->perunggu_2_kabupaten_id;
+
+        $dataJuara = [
+            'emas' => [
+                'kabupaten_id' => $emas_kab_id,
+                'kabupaten_nama' => $emas_kab_id ? optional(Kabupaten::find($emas_kab_id))->name : null,
+                'peserta_nama' => $this->getPesertaNamesByKabupaten($listKategori, $emas_kab_id),
+            ],
+            'perak' => [
+                'kabupaten_id' => $perak_kab_id,
+                'kabupaten_nama' => $perak_kab_id ? optional(Kabupaten::find($perak_kab_id))->name : null,
+                'peserta_nama' => $this->getPesertaNamesByKabupaten($listKategori, $perak_kab_id),
+            ],
+            'perunggu' => [
+                'kabupaten_id' => $perunggu_kab_id,
+                'kabupaten_nama' => $perunggu_kab_id ? optional(Kabupaten::find($perunggu_kab_id))->name : null,
+                'peserta_nama' => $this->getPesertaNamesByKabupaten($listKategori, $perunggu_kab_id),
+            ],
+            'perunggu_2' => [
+                'kabupaten_id' => $perunggu2_kab_id,
+                'kabupaten_nama' => $perunggu2_kab_id ? optional(Kabupaten::find($perunggu2_kab_id))->name : null,
+                'peserta_nama' => $this->getPesertaNamesByKabupaten($listKategori, $perunggu2_kab_id),
+            ],
+        ];
+
+        $listKategori->data_juara = $dataJuara;
+        $listKategori->save();
+
+        // Update medali di tabel pertandingan_pesertas
+        PertandinganPeserta::where('list_kategori_id', $id)->update(['medali' => null]);
+
+        if ($emas_kab_id) {
+            PertandinganPeserta::where('list_kategori_id', $id)
+                ->whereHas('Peserta', function ($q) use ($emas_kab_id) {
+                    $q->where('kabupaten_id', $emas_kab_id);
+                })->update(['medali' => 'emas']);
+        }
+
+        if ($perak_kab_id) {
+            PertandinganPeserta::where('list_kategori_id', $id)
+                ->whereHas('Peserta', function ($q) use ($perak_kab_id) {
+                    $q->where('kabupaten_id', $perak_kab_id);
+                })->update(['medali' => 'perak']);
+        }
+
+        if ($perunggu_kab_id) {
+            PertandinganPeserta::where('list_kategori_id', $id)
+                ->whereHas('Peserta', function ($q) use ($perunggu_kab_id) {
+                    $q->where('kabupaten_id', $perunggu_kab_id);
+                })->update(['medali' => 'perunggu']);
+        }
+
+        if ($perunggu2_kab_id) {
+            PertandinganPeserta::where('list_kategori_id', $id)
+                ->whereHas('Peserta', function ($q) use ($perunggu2_kab_id) {
+                    $q->where('kabupaten_id', $perunggu2_kab_id);
+                })->update(['medali' => 'perunggu']);
+        }
+
+        $kegiatan_id = $request->kegiatan_id ?? $listKategori->kegiatan_id;
+
+        return redirect('pertandingan/' . $id . '?kegiatan_id=' . $kegiatan_id)
+            ->with('success', 'Peraih medali berhasil disimpan dan tercatat di Laporan Kegiatan!');
+    }
+
+    /**
+     * Helper untuk mengambil nama peserta berdasarkan kabupaten pada list_kategori
+     */
+    private function getPesertaNamesByKabupaten($listKategori, $kabupaten_id)
+    {
+        if (!$kabupaten_id) {
+            return '';
+        }
+
+        $pesertas = PertandinganPeserta::with('Peserta')
+            ->where('list_kategori_id', $listKategori->id)
+            ->whereHas('Peserta', function ($q) use ($kabupaten_id) {
+                $q->where('kabupaten_id', $kabupaten_id);
+            })
+            ->get();
+
+        return $pesertas->pluck('Peserta.nama')->filter()->implode(', ');
+    }
 }

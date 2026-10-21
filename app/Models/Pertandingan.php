@@ -10,6 +10,10 @@ class Pertandingan extends Model
     //
     protected $guarded = ['id'];
 
+    protected $casts = [
+        'data_scoresheet' => 'array',
+    ];
+
     public function kategori() {
         return $this->belongsTo(Kategori::class);
     }

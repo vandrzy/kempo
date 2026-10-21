@@ -38,7 +38,16 @@
                                     </form> --}}
                             </div>
                             <div>
-                                <div class="flex items-center justify-between mb-4 p-3">
+                                <div class="flex items-center justify-between mb-4 p-3 flex-wrap gap-2">
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <button type="button" onclick="openScoresheetModal()" style="border: solid 2px #2563eb; color: #2563eb;" class="inline-block px-4 py-2 mb-0 text-xs font-bold leading-normal text-center text-blue-600 align-middle transition-all ease-in bg-transparent border border-solid rounded-lg shadow-none cursor-pointer bg-150 active:opacity-85 hover:-translate-y-px tracking-tight-rem bg-x-25 hover:bg-blue-50">
+                                            <i class="fa fa-file-pdf mr-1"></i> Isi / Cetak PDF
+                                        </button>
+                                        <button type="button" onclick="openMedaliModal()" style="border: solid 2px #d97706; color: #d97706;" class="inline-block px-4 py-2 mb-0 text-xs font-bold leading-normal text-center text-amber-600 align-middle transition-all ease-in bg-transparent border border-solid rounded-lg shadow-none cursor-pointer bg-150 active:opacity-85 hover:-translate-y-px tracking-tight-rem bg-x-25 hover:bg-amber-50">
+                                            <i class="fa fa-medal mr-1"></i> Tentukan Peraih Medali
+                                        </button>
+                                    </div>
+                                    <div class="flex items-center gap-2 flex-wrap">
                                     @if($peserta_ready == 0)
                                         <a href="{{ url('pertandingans/'.$pertandingan->id.'/print') }}?kegiatan_id={{ $pertandingan->kegiatan->id }}" style="border: solid 2px green; color: green;"  class="inline-block px-5 py-2 mb-0 text-xs font-bold leading-normal text-center text-green-500 align-middle transition-all ease-in bg-transparent border  border-solid rounded-lg shadow-none cursor-pointer bg-150 active:opacity-85 hover:-translate-y-px tracking-tight-rem bg-x-25 hover:opacity-75">Print Nomor Tanding</a>
                                         <form action="{{ url('pertandingans/tanding-delete/') }}" method="post" class="delete-form">
@@ -64,6 +73,7 @@
                                             </div>
                                         </form>
                                     @endif
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -542,13 +552,16 @@
 
 
     </div><br>
+    @include('admin.pertandingan.modals_scoresheet_medali')
 <script>
-    const select = document.getElementById('kabupaten_select');
+  const select = document.getElementById('kabupaten_select');
   const form = document.getElementById('kabupaten_change');
 
-  select.addEventListener('change', function() {
-    form.submit(); // otomatis kirim form saat select berubah
-  });
+  if (select && form) {
+    select.addEventListener('change', function() {
+      form.submit(); // otomatis kirim form saat select berubah
+    });
+  }
   @section('script')
             $('.lihat_peserta').click(function() {
                 let kabupaten_id = $(this).attr('kabupaten_id');

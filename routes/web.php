@@ -78,5 +78,9 @@ Route::middleware('auth')->group(function () {
 
     // Route::resource('buku', BukuController::class);
 
-
+    // Fitur Baru Kempo
+    Route::get('/laporan-kegiatan/{kegiatan_id?}', [PertandinganController::class, 'laporanKegiatan'])->name('laporan.kegiatan');
+    Route::post('/pertandingan/{id}/simpan-pdf', [PertandinganController::class, 'simpanIsianPdf'])->name('pertandingan.simpan-pdf');
+    Route::get('/pertandingan/{id}/cetak-pdf', [PertandinganController::class, 'cetakPdf'])->name('pertandingan.cetak-pdf');
+    Route::post('/pertandingan/{id}/set-medali', [PertandinganController::class, 'setMedali'])->name('pertandingan.set-medali');
 });

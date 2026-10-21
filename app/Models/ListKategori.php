@@ -9,6 +9,11 @@ class ListKategori extends Model
     //
     protected $guarded = ['id'];
 
+    protected $casts = [
+        'data_scoresheet' => 'array',
+        'data_juara' => 'array',
+    ];
+
     public function kegiatan()
     {
         return $this->belongsTo(Kegiatan::class);
