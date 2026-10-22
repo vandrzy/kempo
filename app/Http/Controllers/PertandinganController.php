@@ -900,4 +900,189 @@ class PertandinganController extends Controller
 
         return $pesertas->pluck('Peserta.nama')->filter()->implode(', ');
     }
+
+    /**
+     * Menampilkan halaman Papan Skor Publik berdasarkan Kegiatan ID (Tanpa Login)
+     */
+    public function publicPapanSkor($id)
+    {
+        $kegiatan = Kegiatan::findOrFail($id);
+
+        // Ambil semua list_kategori dalam kegiatan ini beserta relasinya dari database
+        $listKategoris = ListKategori::with([
+            'kategori',
+            'pertandingan',
+            'list_kategori.Peserta.kabupaten'
+        ])
+        ->where('kegiatan_id', $id)
+        ->get();
+
+        $structuredData = [];
+        $groupedByKategori = $listKategoris->groupBy('kategori_id');
+
+        foreach ($groupedByKategori as $katId => $lks) {
+            $firstLk = $lks->first();
+            $kategori = $firstLk->kategori;
+            if (!$kategori) continue;
+
+            $tandingList = [];
+
+            foreach ($lks as $lk) {
+                $tanding = $lk->pertandingan;
+                if (!$tanding) continue;
+
+                $pesertaRows = $lk->list_kategori;
+                $groupedKabupaten = $pesertaRows->groupBy(function ($item) {
+                    return $item->Peserta?->kabupaten_id ?? ('p_' . $item->id);
+                });
+
+                $pesertaGroups = [];
+                $groupIndex = 0;
+
+                foreach ($groupedKabupaten as $kabIdKey => $items) {
+                    $names = $items->pluck('Peserta.nama')->filter()->implode(' / ');
+                    $kName = optional($items->first()->Peserta?->kabupaten)->name ?? '-';
+                    $urutan = $items->first()->urutan ?? ($groupIndex + 1);
+
+                    $pesertaGroups[] = [
+                        'row_index'     => $groupIndex,
+                        'urutan'        => is_numeric($urutan) ? (int)$urutan : ($groupIndex + 1),
+                        'nama_gabungan' => $names ?: ('Peserta #' . ($groupIndex + 1)),
+                        'kontingen'     => $kName,
+                    ];
+                    $groupIndex++;
+                }
+
+                $scoresheetData = $lk->data_scoresheet ?? ($tanding->data_scoresheet ?? []);
+
+                $isRandori = stripos($tanding->nama ?? '', 'randori') !== false ||
+                             stripos($kategori->nama ?? '', 'randori') !== false;
+
+                $tandingList[] = [
+                    'id'              => $lk->id,
+                    'pertandingan_id' => $tanding->id,
+                    'nama_tanding'    => $tanding->nama . ($tanding->kelas ? " ({$tanding->kelas})" : ''),
+                    'jenis'           => $isRandori ? 'randori' : 'embu',
+                    'scoresheet_data' => $scoresheetData,
+                    'peserta_groups'  => $pesertaGroups,
+                ];
+            }
+
+            $structuredData[] = [
+                'id'            => $kategori->id,
+                'nama_kategori' => $kategori->nama,
+                'tandings'      => $tandingList,
+            ];
+        }
+
+        return view('pages.papan_skor_publik', compact('kegiatan', 'structuredData'));
+    }
+
+    /**
+     * Mengambil data penilaian juri & denda (genten) terbaru langsung dari database
+     */
+    public function getPublicPapanSkorData($pertandingan_id)
+    {
+        $listKategori = ListKategori::with('pertandingan')->find($pertandingan_id);
+        if ($listKategori) {
+            $scoresheetData = $listKategori->data_scoresheet ?? ($listKategori->pertandingan?->data_scoresheet ?? []);
+        } else {
+            $pertandingan = Pertandingan::findOrFail($pertandingan_id);
+            $scoresheetData = $pertandingan->data_scoresheet ?? [];
+        }
+
+        return response()->json([
+            'status'          => 'success',
+            'pertandingan_id' => $pertandingan_id,
+            'scoresheet_data' => $scoresheetData,
+        ]);
+    }
+
+    /**
+     * Menyimpan / Memperbarui nilai Papan Skor Publik ke kolom data_scoresheet di database
+     */
+    public function savePublicPapanSkor(Request $request, $pertandingan_id)
+    {
+        $listKategori = ListKategori::find($pertandingan_id);
+        $pertandingan = null;
+
+        if ($listKategori) {
+            $pertandingan = Pertandingan::find($listKategori->pertandingan_id);
+            $scoresheetData = $listKategori->data_scoresheet ?? ($pertandingan?->data_scoresheet ?? []);
+        } else {
+            $pertandingan = Pertandingan::findOrFail($pertandingan_id);
+            $scoresheetData = $pertandingan->data_scoresheet ?? [];
+        }
+
+        $rowIndex = (int) $request->input('row_index', 0);
+        $wasit    = $request->input('wasit', [0, 0, 0, 0, 0]);
+        $waktu    = $request->input('waktu', '00:00');
+        $genten   = (float) $request->input('genten', 0);
+
+        if (!is_array($scoresheetData)) {
+            $scoresheetData = [];
+        }
+
+        if (!isset($scoresheetData['rows'])) {
+            $scoresheetData['rows'] = [];
+        }
+
+        $numericScores = array_map(function ($val) {
+            return is_numeric($val) ? (float) $val : 0;
+        }, (array) $wasit);
+
+        while (count($numericScores) < 5) {
+            $numericScores[] = 0;
+        }
+
+        $sorted = $numericScores;
+        sort($sorted);
+        // Ambil 3 nilai tengah (index 1, 2, 3) setelah diurutkan dari 5 nilai
+        $nilaiTengah = $sorted[1] + $sorted[2] + $sorted[3];
+        $totalNilai  = max(0, $nilaiTengah - $genten);
+
+        // Simpan ke struktur rows
+        $scoresheetData['rows'][$rowIndex] = [
+            'scores'       => $numericScores,
+            'total'        => $nilaiTengah,
+            'waktu'        => $waktu,
+            'genten'       => $genten,
+            'pengurangan'  => $genten,
+            'total_akhir'  => $totalNilai,
+        ];
+
+        // Simpan juga ke struktur peserta untuk kompatibilitas penuh dengan modal scoresheet
+        if (!isset($scoresheetData['peserta'])) {
+            $scoresheetData['peserta'] = [];
+        }
+        if (!isset($scoresheetData['peserta'][$rowIndex])) {
+            $scoresheetData['peserta'][$rowIndex] = [];
+        }
+        $scoresheetData['peserta'][$rowIndex]['juri_1'] = $numericScores[0];
+        $scoresheetData['peserta'][$rowIndex]['juri_2'] = $numericScores[1];
+        $scoresheetData['peserta'][$rowIndex]['juri_3'] = $numericScores[2];
+        $scoresheetData['peserta'][$rowIndex]['juri_4'] = $numericScores[3];
+        $scoresheetData['peserta'][$rowIndex]['juri_5'] = $numericScores[4];
+        $scoresheetData['peserta'][$rowIndex]['hukuman'] = $genten;
+        $scoresheetData['peserta'][$rowIndex]['waktu'] = $waktu;
+        $scoresheetData['peserta'][$rowIndex]['total'] = $totalNilai;
+
+        if ($listKategori) {
+            $listKategori->data_scoresheet = $scoresheetData;
+            $listKategori->save();
+        }
+
+        if ($pertandingan) {
+            $pertandingan->data_scoresheet = $scoresheetData;
+            $pertandingan->save();
+        }
+
+        return response()->json([
+            'status'          => 'success',
+            'message'         => 'Nilai papan skor berhasil disimpan ke database',
+            'nilai'           => $nilaiTengah,
+            'total_nilai'     => $totalNilai,
+            'scoresheet_data' => $scoresheetData,
+        ]);
+    }
 }

@@ -51,6 +51,11 @@ Route::post('teknik/cari_peserta/lagi', [HomePageController::class, 'teknik_cari
 
 Route::get('pendaftarans/{tanggal_lahir}/{jenis_kelamin}', [PertandinganController::class, 'get_pertandingan']);
 
+// Route Publik Papan Skor (Tanpa Login) - Ambil & Simpan Langsung ke Database
+Route::get('/kegiatan/{id}/papan-skor', [PertandinganController::class, 'publicPapanSkor'])->name('kegiatan.papan-skor');
+Route::get('/kegiatan/papan-skor/{pertandingan_id}/data', [PertandinganController::class, 'getPublicPapanSkorData'])->name('kegiatan.papan-skor.data');
+Route::post('/kegiatan/papan-skor/{pertandingan_id}/save', [PertandinganController::class, 'savePublicPapanSkor'])->name('kegiatan.papan-skor.save');
+
 Route::middleware('auth')->group(function () {
 
     Route::get('/logout', [HomePageController::class, 'logout']);
