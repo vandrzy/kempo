@@ -27,6 +27,14 @@
                 <p class="text-xs md:text-sm text-slate-500 mb-0 mt-1.5 font-medium">
                     {{ $pertandingan->kegiatan->nama ?? '' }} &bull; {{ $pertandingan->pertandingan->nama ?? '' }} (Kelas: {{ $pertandingan->pertandingan->kelas ?? '-' }}) &bull; Penilaian Berdasarkan Kontingen
                 </p>
+                <div id="scoresheetFilterBadge" style="display: none;" class="mt-2.5 flex items-center gap-2 flex-wrap">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-black bg-blue-100 text-blue-800 dark:bg-blue-900/60 dark:text-blue-200 rounded-full border border-blue-300">
+                        <i class="fa fa-filter text-blue-600"></i> Kontingen: <strong id="scoresheetFilterText">-</strong>
+                    </span>
+                    <button type="button" onclick="clearScoresheetFilter()" style="background: none; border: none;" class="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 hover:underline font-bold cursor-pointer p-0 ml-1">
+                        <i class="fa fa-refresh mr-1"></i> Tampilkan Semua Kontingen
+                    </button>
+                </div>
             </div>
             <button type="button" onclick="closeScoresheetModal()" class="text-slate-400 hover:text-slate-700 dark:hover:text-white text-3xl font-bold leading-none cursor-pointer border-0 bg-transparent p-1">&times;</button>
         </div>
@@ -71,7 +79,7 @@
             <!-- Footer Modal (Padding Lega) -->
             <div style="padding: 1.25rem 2.25rem; flex-shrink: 0;" class="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/70">
                 <div>
-                    <a href="{{ route('pertandingan.cetak-pdf', $pertandingan->id) }}" target="_blank" style="background-color: #059669 !important; color: #ffffff !important;" class="inline-flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold text-white uppercase rounded-lg shadow-md hover:opacity-90 transition-all cursor-pointer">
+                    <a href="{{ route('pertandingan.cetak-pdf', $pertandingan->id) }}" id="btnCetakPdfScoresheet" target="_blank" style="background-color: #059669 !important; color: #ffffff !important;" class="inline-flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold text-white uppercase rounded-lg shadow-md hover:opacity-90 transition-all cursor-pointer">
                         <i class="fa fa-print mr-1"></i> Cetak PDF Sekarang
                     </a>
                 </div>
@@ -157,9 +165,14 @@
 <!-- ============================================== -->
 <script>
     const DEFAULT_PERTANDINGAN_ID = {{ $pertandingan->id }};
+    window.currentScoresheetFilterKabId = null;
+    window.currentScoresheetFilterKabName = null;
 
-    window.openScoresheetModal = function(id) {
+    window.openScoresheetModal = function(id, filterKabupatenId = null, filterKabupatenName = null) {
         const targetId = id || DEFAULT_PERTANDINGAN_ID;
+        window.currentScoresheetFilterKabId = filterKabupatenId;
+        window.currentScoresheetFilterKabName = filterKabupatenName;
+
         const modal = document.getElementById('scoresheetModal');
         if (modal) {
             if (modal.parentElement !== document.body) {
@@ -169,6 +182,11 @@
         }
 
         document.getElementById('scoresheet_pertandingan_id').value = targetId;
+
+        // Update PDF Link & Filter Badge
+        updateScoresheetPdfLink(targetId, filterKabupatenId);
+        updateScoresheetFilterBadge(filterKabupatenName);
+
         const tbody = document.getElementById('scoresheetBody');
         tbody.innerHTML = '<tr><td colspan="12" class="text-center py-10 text-slate-500 font-semibold" style="padding: 2.5rem 1rem;">Memuat data kontingen &amp; peserta...</td></tr>';
 
@@ -181,6 +199,8 @@
                     return;
                 }
                 tbody.innerHTML = '';
+                let visibleCount = 0;
+
                 data.forEach((item, index) => {
                     const namaPeserta = item.nama || '-';
                     const kontingenName = item.kontingen || '-';
@@ -193,11 +213,26 @@
                     const genten = item.minus ?? 0;
                     const ppIdsString = item.pp_ids ? item.pp_ids.join(',') : item.id;
 
+                    const matchesFilter = !window.currentScoresheetFilterKabId ||
+                        String(item.kabupaten_id) === String(window.currentScoresheetFilterKabId) ||
+                        (window.currentScoresheetFilterKabName && kontingenName.toLowerCase().includes(window.currentScoresheetFilterKabName.toLowerCase()));
+
+                    if (matchesFilter) {
+                        visibleCount++;
+                    }
+
                     const tr = document.createElement('tr');
                     tr.className = 'scoresheet-row hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors';
                     tr.dataset.rowId = item.id;
+                    tr.dataset.kabupatenId = item.kabupaten_id || '';
+                    tr.dataset.kontingen = kontingenName;
+
+                    if (!matchesFilter) {
+                        tr.style.display = 'none';
+                    }
+
                     tr.innerHTML = `
-                        <td style="padding: 12px 10px; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #f1f5f9; text-align: center;" class="font-bold text-xs text-slate-500">${index + 1}</td>
+                        <td style="padding: 12px 10px; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #f1f5f9; text-align: center;" class="font-bold text-xs text-slate-500 row-number-cell">${index + 1}</td>
                         <td style="padding: 12px 14px; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #f1f5f9;" class="text-xs font-black text-blue-700 dark:text-blue-300">
                             <div class="text-sm font-extrabold text-blue-800 dark:text-blue-300">${kontingenName}</div>
                             <input type="hidden" name="scores[${item.id}][pp_ids]" value="${ppIdsString}">
@@ -233,12 +268,65 @@
                     `;
                     tbody.appendChild(tr);
                 });
+
+                if (window.currentScoresheetFilterKabId && visibleCount === 0) {
+                    const emptyMsg = document.createElement('tr');
+                    emptyMsg.id = 'scoresheetEmptyFilterRow';
+                    emptyMsg.innerHTML = `<td colspan="12" class="text-center py-6 text-amber-600 font-semibold" style="padding: 2rem 1rem;">
+                        Data untuk kontingen ini tidak ditemukan di pertandingan ini. 
+                        <button type="button" onclick="clearScoresheetFilter()" class="underline font-bold ml-1 text-blue-600 hover:text-blue-800 bg-transparent border-0 cursor-pointer">Tampilkan Semua</button>
+                    </td>`;
+                    tbody.appendChild(emptyMsg);
+                }
+
                 recalcScoresheet();
             })
             .catch(err => {
                 console.error(err);
                 tbody.innerHTML = '<tr><td colspan="12" class="text-center py-10 text-red-500 font-semibold" style="padding: 2.5rem 1rem;">Gagal memuat data peserta.</td></tr>';
             });
+    };
+
+    window.updateScoresheetPdfLink = function(targetId, filterKabupatenId) {
+        const btnPdf = document.getElementById('btnCetakPdfScoresheet');
+        if (btnPdf) {
+            let baseUrl = `/pertandingan/${targetId}/cetak-pdf`;
+            if (filterKabupatenId) {
+                baseUrl += `?kabupaten_id=${filterKabupatenId}`;
+            }
+            btnPdf.href = baseUrl;
+        }
+    };
+
+    window.updateScoresheetFilterBadge = function(filterKabupatenName) {
+        const badge = document.getElementById('scoresheetFilterBadge');
+        const text = document.getElementById('scoresheetFilterText');
+        if (badge && text) {
+            if (window.currentScoresheetFilterKabId) {
+                text.textContent = filterKabupatenName || 'Khusus Kontingen';
+                badge.style.display = 'inline-flex';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+    };
+
+    window.clearScoresheetFilter = function() {
+        window.currentScoresheetFilterKabId = null;
+        window.currentScoresheetFilterKabName = null;
+
+        const targetId = document.getElementById('scoresheet_pertandingan_id').value || DEFAULT_PERTANDINGAN_ID;
+        updateScoresheetPdfLink(targetId, null);
+        updateScoresheetFilterBadge(null);
+
+        const emptyMsg = document.getElementById('scoresheetEmptyFilterRow');
+        if (emptyMsg) {
+            emptyMsg.remove();
+        }
+
+        document.querySelectorAll('.scoresheet-row').forEach(row => {
+            row.style.display = '';
+        });
     };
 
     window.closeScoresheetModal = function() {

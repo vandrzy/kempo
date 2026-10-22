@@ -307,6 +307,11 @@
                                                 <td>
                                                     <a style="background-color: rgb(30, 120, 255);" class="text-white px-4 py-2 rounded" href="{{ url('pertandingan/'.$pertandingan->id.'?kegiatan_id='.$pertandingan->kegiatan->id.'&kabupaten_id='.($item->kabupaten->id ?? null) ) }}">Detail Kontigen</a>
                                                     <a href="{{ url('pertandingan/'.$pertandingan->id.'?kegiatan_id='.$pertandingan->kegiatan->id.'&kabupaten_id='.($item->kabupaten->id ?? null).'&status=print&kontigen_id_1='.$item->id.'&kontigen_id_2='. (isset($item->kabupaten->KontigenPertandinganKedua->id) ? $item->kabupaten->KontigenPertandinganKedua->id: $databye[$list_byte]->id) ) }}" target="_blank" style="background-color: rgb(76, 76, 76);" class="text-white px-4 py-2 rounded">Print Daftar Penilaian</a>
+                                                    @if(isset($item->kabupaten))
+                                                        <button type="button" onclick="openScoresheetModal({{ $pertandingan->id }}, {{ $item->kabupaten->id }}, '{{ addslashes($item->kabupaten->name) }}')" style="background-color: #0284c7;" class="text-white px-4 py-2 rounded cursor-pointer hover:opacity-90 transition">
+                                                            <i class="fa fa-file-pdf mr-1"></i> Score Sheet &amp; Cetak PDF
+                                                        </button>
+                                                    @endif
                                                     <button style="background-color: rgb(102, 233, 100);" status="-" total_peserta="{{ $total_peserta }}" index="{{ $index_list }}" kabupaten_id="{{ $item->kabupaten->id ?? "-" }}" class="lihat_peserta text-white px-4 py-2 rounded">Lihat Peserta</button>
 
                                                 </td>
@@ -436,6 +441,11 @@
                                                     </td>
                                                     <td>
                                                         <a style="background-color: rgb(30, 120, 255);" class="text-white px-4 py-2 rounded" href="{{ url('pertandingan/'.$pertandingan->id.'?kegiatan_id='.$pertandingan->kegiatan->id.'&kabupaten_id='.($kabupatenId ?? null) ) }}">Detail Kontigen</a>
+                                                        @if($kabupatenId)
+                                                            <button type="button" onclick="openScoresheetModal({{ $pertandingan->id }}, {{ $kabupatenId }}, '{{ addslashes($kabupatenName ?? '') }}')" style="background-color: #0284c7;" class="text-white px-4 py-2 rounded cursor-pointer hover:opacity-90 transition">
+                                                                <i class="fa fa-file-pdf mr-1"></i> Score Sheet &amp; Cetak PDF
+                                                            </button>
+                                                        @endif
                                                         <button style="background-color: rgb(102, 233, 100);" status="-" total_peserta="{{ $kabupatenTotalPeserta }}" index="{{ $kabId }}" kabupaten_id="{{ $kabupatenId ?? "-" }}" class="lihat_peserta text-white px-4 py-2 rounded">Lihat Peserta</button>
 
                                                     </td>

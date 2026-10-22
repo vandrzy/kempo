@@ -184,6 +184,13 @@
             <td class="info-colon">:</td>
             <td class="info-val">{{ $listKategori->pertandingan->jenis_kelamin ?? 'Campuran / Bebas' }}</td>
         </tr>
+        @if(!empty($filteredKabupaten))
+        <tr>
+            <td class="info-label">Kontingen Khusus</td>
+            <td class="info-colon">:</td>
+            <td class="info-val font-bold" colspan="4" style="color: #1e40af;">{{ $filteredKabupaten->name }}</td>
+        </tr>
+        @endif
     </table>
 
     <table class="data-table">

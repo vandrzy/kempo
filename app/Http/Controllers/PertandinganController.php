@@ -789,15 +789,53 @@ class PertandinganController extends Controller
             ->where('list_kategori_id', $id)
             ->get();
 
+        $kabupatenId = $request->query('kabupaten_id');
+        $filteredKabupaten = null;
+        if ($kabupatenId) {
+            $filteredKabupaten = Kabupaten::find($kabupatenId);
+            $filterName = $filteredKabupaten?->name;
+
+            // Filter peserta_list
+            $peserta_list = $peserta_list->filter(function ($item) use ($kabupatenId, $filterName) {
+                if ($item->Peserta?->kabupaten_id == $kabupatenId) {
+                    return true;
+                }
+                if ($filterName && !empty($item->Peserta?->kontigen) && strcasecmp(trim($item->Peserta->kontigen), trim($filterName)) === 0) {
+                    return true;
+                }
+                return false;
+            });
+
+            // Filter data scoresheet peserta jika ada
+            if (!empty($scoresheet['peserta']) && is_array($scoresheet['peserta'])) {
+                $scoresheet['peserta'] = array_values(array_filter($scoresheet['peserta'], function ($p) use ($filterName) {
+                    if (!$filterName) return true;
+                    return stripos($p['kontingen'] ?? '', $filterName) !== false;
+                }));
+            }
+
+            // Filter data scoresheet partai (untuk Randori) jika ada
+            if (!empty($scoresheet['partai']) && is_array($scoresheet['partai'])) {
+                $scoresheet['partai'] = array_values(array_filter($scoresheet['partai'], function ($p) use ($filterName) {
+                    if (!$filterName) return true;
+                    return (stripos($p['merah_kontingen'] ?? '', $filterName) !== false) ||
+                           (stripos($p['putih_kontingen'] ?? '', $filterName) !== false);
+                }));
+            }
+        }
+
         $namaPertandingan = $listKategori->pertandingan->nama ?? 'Pertandingan';
         $safeFileName = preg_replace('/[^A-Za-z0-9_\-]/', '_', $namaPertandingan);
+        if ($filteredKabupaten) {
+            $safeFileName .= '_' . preg_replace('/[^A-Za-z0-9_\-]/', '_', $filteredKabupaten->name);
+        }
 
         if ($isRandori && !empty($scoresheet['partai']) && empty($scoresheet['peserta'])) {
-            $pdf = Pdf::loadView('pertandingan.pdf_randori', compact('listKategori', 'scoresheet', 'juara', 'peserta_list'))
+            $pdf = Pdf::loadView('pertandingan.pdf_randori', compact('listKategori', 'scoresheet', 'juara', 'peserta_list', 'filteredKabupaten'))
                 ->setPaper('a4', 'landscape');
             return $pdf->stream('Randori_' . $safeFileName . '.pdf');
         } else {
-            $pdf = Pdf::loadView('pertandingan.pdf_embu', compact('listKategori', 'scoresheet', 'juara', 'peserta_list', 'isRandori'))
+            $pdf = Pdf::loadView('pertandingan.pdf_embu', compact('listKategori', 'scoresheet', 'juara', 'peserta_list', 'isRandori', 'filteredKabupaten'))
                 ->setPaper('a4', 'portrait');
             return $pdf->stream(($isRandori ? 'Randori_' : 'Embu_') . $safeFileName . '.pdf');
         }
