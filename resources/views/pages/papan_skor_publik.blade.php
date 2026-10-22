@@ -75,7 +75,7 @@
 
             <!-- Peserta -->
             <div>
-                <label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-0.5">Pilih Peserta (Urutan)</label>
+                <label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-0.5">Pilih Peserta</label>
                 <select id="selectPeserta" class="w-full px-2 py-1 text-xs font-semibold bg-slate-50 border border-slate-300 rounded-lg text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-colors" disabled>
                     <option value="">-- Pilih Peserta --</option>
                 </select>
@@ -305,7 +305,8 @@
                 currentTanding.peserta_groups.forEach(pg => {
                     const opt = document.createElement('option');
                     opt.value = pg.row_index;
-                    opt.textContent = `Urutan ${pg.urutan} - ${pg.nama_gabungan}`;
+                    const labelKontingen = (pg.kontingen && pg.kontingen !== '-') ? pg.kontingen : 'Kontingen';
+                    opt.textContent = `${labelKontingen} - ${pg.nama_gabungan}`;
                     selectPeserta.appendChild(opt);
                 });
                 selectPeserta.value = currentTanding.peserta_groups[0].row_index;
