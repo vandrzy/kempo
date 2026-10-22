@@ -161,17 +161,27 @@
             </div>
         </div>
 
-        <!-- TABEL 2: Daftar Juara per Kategori (Embu & Randori) -->
+        @php
+            $juaraEmbu = $daftar_juara_embu ?? array_values(array_filter($daftar_juara ?? [], fn($i) => ($i['jenis'] ?? '') === 'Embu'));
+            $juaraRandori = $daftar_juara_randori ?? array_values(array_filter($daftar_juara ?? [], fn($i) => ($i['jenis'] ?? '') === 'Randori'));
+        @endphp
+
+        <!-- TABEL 2: Daftar Juara Kategori Embu -->
         <div class="relative flex flex-col min-w-0 mb-6 break-words bg-white border-0 shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-            <div class="p-6 pb-2 border-b border-solid border-slate-100 dark:border-white/10 flex items-center justify-between">
+            <div class="p-6 pb-2 border-b border-solid border-slate-100 dark:border-white/10 flex flex-wrap items-center justify-between gap-3">
                 <div>
                     <h5 class="font-bold text-slate-800 dark:text-white mb-0 flex items-center gap-2">
-                        <span class="w-3 h-3 rounded-full bg-emerald-600 inline-block"></span>
-                        Tabel 2: Daftar Juara per Kategori (Embu &amp; Randori)
+                        <span class="w-3 h-3 rounded-full bg-blue-600 inline-block"></span>
+                        Tabel 2: Daftar Juara Kategori Embu
                     </h5>
                     <p class="text-xs text-slate-500 mb-0 mt-1">
-                        Daftar peraih Medali Emas, Perak, dan Perunggu untuk seluruh nomor pertandingan di event ini.
+                        Daftar peraih Medali Emas, Perak, dan Perunggu untuk seluruh nomor pertandingan Kategori Embu.
                     </p>
+                </div>
+                <div>
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold text-blue-700 bg-blue-100 rounded-full dark:bg-blue-900/40 dark:text-blue-300">
+                        <i class="fa fa-star text-blue-600"></i> {{ count($juaraEmbu) }} Nomor Pertandingan
+                    </span>
                 </div>
             </div>
 
@@ -179,9 +189,8 @@
                 <table class="items-center w-full mb-0 align-top border-collapse text-slate-600 dark:text-white/80">
                     <thead class="align-bottom bg-slate-50 dark:bg-slate-800/60">
                         <tr>
-                            <th class="px-3 py-3 font-bold text-center uppercase text-xs border-b border-slate-200 dark:border-white/10" style="width: 40px;">No</th>
-                            <th class="px-4 py-3 font-bold text-left uppercase text-xs border-b border-slate-200 dark:border-white/10" style="width: 25%;">Nama Kategori &amp; Nomor</th>
-                            <th class="px-3 py-3 font-bold text-center uppercase text-xs border-b border-slate-200 dark:border-white/10" style="width: 80px;">Jenis</th>
+                            <th class="px-3 py-3 font-bold text-center uppercase text-xs border-b border-slate-200 dark:border-white/10" style="width: 45px;">No</th>
+                            <th class="px-4 py-3 font-bold text-left uppercase text-xs border-b border-slate-200 dark:border-white/10" style="width: 28%;">Nomor &amp; Kategori Pertandingan</th>
                             <th class="px-4 py-3 font-bold text-left uppercase text-xs text-amber-700 dark:text-amber-400 border-b border-slate-200 dark:border-white/10" style="width: 22%;">🥇 Emas (Juara 1)</th>
                             <th class="px-4 py-3 font-bold text-left uppercase text-xs text-slate-600 dark:text-slate-300 border-b border-slate-200 dark:border-white/10" style="width: 22%;">🥈 Perak (Juara 2)</th>
                             <th class="px-4 py-3 font-bold text-left uppercase text-xs text-orange-600 dark:text-orange-400 border-b border-slate-200 dark:border-white/10" style="width: 22%;">🥉 Perunggu (Juara 3)</th>
@@ -189,7 +198,7 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 dark:divide-white/10">
-                        @forelse($daftar_juara as $index => $item)
+                        @forelse($juaraEmbu as $index => $item)
                             <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
                                 <td class="p-3 text-center align-middle text-sm font-bold text-slate-500">
                                     {{ $index + 1 }}
@@ -201,17 +210,6 @@
                                     <div class="text-xs text-slate-500 dark:text-slate-400">
                                         {{ $item['kategori_nama'] }} &bull; Kelas: {{ $item['kelas'] }}
                                     </div>
-                                </td>
-                                <td class="p-3 text-center align-middle">
-                                    @if($item['jenis'] == 'Randori')
-                                        <span class="inline-block px-2.5 py-1 text-xs font-bold text-red-700 bg-red-100 dark:bg-red-900/40 dark:text-red-300 rounded-md">
-                                            Randori
-                                        </span>
-                                    @else
-                                        <span class="inline-block px-2.5 py-1 text-xs font-bold text-blue-700 bg-blue-100 dark:bg-blue-900/40 dark:text-blue-300 rounded-md">
-                                            Embu
-                                        </span>
-                                    @endif
                                 </td>
                                 <td class="p-3 text-left align-middle">
                                     @if(!empty($item['emas']['kabupaten']))
@@ -257,8 +255,115 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="p-6 text-center text-slate-400">
-                                    Belum ada kategori yang terdaftar pada kegiatan ini.
+                                <td colspan="6" class="p-6 text-center text-slate-400">
+                                    Belum ada kategori Embu yang terdaftar pada kegiatan ini.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TABEL 3: Daftar Juara Kategori Randori -->
+        <div class="relative flex flex-col min-w-0 mb-6 break-words bg-white border-0 shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
+            <div class="p-6 pb-2 border-b border-solid border-slate-100 dark:border-white/10 flex flex-wrap items-center justify-between gap-3">
+                <div>
+                    <h5 class="font-bold text-slate-800 dark:text-white mb-0 flex items-center gap-2">
+                        <span class="w-3 h-3 rounded-full bg-red-600 inline-block"></span>
+                        Tabel 3: Daftar Juara Kategori Randori
+                    </h5>
+                    <p class="text-xs text-slate-500 mb-0 mt-1">
+                        Daftar peraih Medali Emas, Perak, dan Perunggu untuk seluruh nomor pertandingan Kategori Randori.
+                    </p>
+                </div>
+                <div>
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold text-red-700 bg-red-100 rounded-full dark:bg-red-900/40 dark:text-red-300">
+                        <i class="fa fa-shield text-red-600"></i> {{ count($juaraRandori) }} Nomor Pertandingan
+                    </span>
+                </div>
+            </div>
+
+            <div class="flex-auto p-4 overflow-x-auto">
+                <table class="items-center w-full mb-0 align-top border-collapse text-slate-600 dark:text-white/80">
+                    <thead class="align-bottom bg-slate-50 dark:bg-slate-800/60">
+                        <tr>
+                            <th class="px-3 py-3 font-bold text-center uppercase text-xs border-b border-slate-200 dark:border-white/10" style="width: 45px;">No</th>
+                            <th class="px-4 py-3 font-bold text-left uppercase text-xs border-b border-slate-200 dark:border-white/10" style="width: 28%;">Nomor &amp; Kategori Pertandingan</th>
+                            <th class="px-4 py-3 font-bold text-left uppercase text-xs text-amber-700 dark:text-amber-400 border-b border-slate-200 dark:border-white/10" style="width: 22%;">🥇 Emas (Juara 1)</th>
+                            <th class="px-4 py-3 font-bold text-left uppercase text-xs text-slate-600 dark:text-slate-300 border-b border-slate-200 dark:border-white/10" style="width: 22%;">🥈 Perak (Juara 2)</th>
+                            <th class="px-4 py-3 font-bold text-left uppercase text-xs text-orange-600 dark:text-orange-400 border-b border-slate-200 dark:border-white/10" style="width: 22%;">🥉 Perunggu (Juara 3)</th>
+                            <th class="px-3 py-3 font-bold text-center uppercase text-xs border-b border-slate-200 dark:border-white/10" style="width: 80px;">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 dark:divide-white/10">
+                        @forelse($juaraRandori as $index => $item)
+                            <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
+                                <td class="p-3 text-center align-middle text-sm font-bold text-slate-500">
+                                    {{ $index + 1 }}
+                                </td>
+                                <td class="p-3 text-left align-middle">
+                                    <div class="font-bold text-sm text-slate-800 dark:text-white">
+                                        {{ $item['pertandingan_nama'] }}
+                                    </div>
+                                    <div class="text-xs text-slate-500 dark:text-slate-400">
+                                        {{ $item['kategori_nama'] }} &bull; Kelas: {{ $item['kelas'] }}
+                                    </div>
+                                </td>
+                                <td class="p-3 text-left align-middle">
+                                    @if(!empty($item['emas']['kabupaten']))
+                                        <div class="font-bold text-sm text-amber-700 dark:text-amber-300">
+                                            {{ $item['emas']['kabupaten'] }}
+                                        </div>
+                                        @if(!empty($item['emas']['peserta']))
+                                            <div class="text-xs text-slate-500">{{ $item['emas']['peserta'] }}</div>
+                                        @endif
+                                    @else
+                                        <span class="text-xs italic text-slate-400">- Belum Ditentukan -</span>
+                                    @endif
+                                </td>
+                                <td class="p-3 text-left align-middle">
+                                    @if(!empty($item['perak']['kabupaten']))
+                                        <div class="font-bold text-sm text-slate-700 dark:text-slate-200">
+                                            {{ $item['perak']['kabupaten'] }}
+                                        </div>
+                                        @if(!empty($item['perak']['peserta']))
+                                            <div class="text-xs text-slate-500">{{ $item['perak']['peserta'] }}</div>
+                                        @endif
+                                    @else
+                                        <span class="text-xs italic text-slate-400">- Belum Ditentukan -</span>
+                                    @endif
+                                </td>
+                                <td class="p-3 text-left align-middle">
+                                    @if(!empty($item['perunggu']['kabupaten']))
+                                        <div class="font-bold text-sm text-orange-700 dark:text-orange-300">
+                                            {{ $item['perunggu']['kabupaten'] }}
+                                        </div>
+                                        @if(!empty($item['perunggu']['peserta']))
+                                            <div class="text-xs text-slate-500">{{ $item['perunggu']['peserta'] }}</div>
+                                        @endif
+                                        @if(!empty($item['perunggu_2']['kabupaten']))
+                                            <div class="mt-1 pt-1 border-t border-slate-100 dark:border-slate-700 font-bold text-sm text-orange-700 dark:text-orange-300">
+                                                {{ $item['perunggu_2']['kabupaten'] }} <span class="text-[10px] text-orange-500 font-normal">(Bersama)</span>
+                                            </div>
+                                            @if(!empty($item['perunggu_2']['peserta']))
+                                                <div class="text-xs text-slate-500">{{ $item['perunggu_2']['peserta'] }}</div>
+                                            @endif
+                                        @endif
+                                    @else
+                                        <span class="text-xs italic text-slate-400">- Belum Ditentukan -</span>
+                                    @endif
+                                </td>
+                                <td class="p-3 text-center align-middle">
+                                    <a href="{{ url('pertandingan/' . $item['list_kategori_id'] . '?kegiatan_id=' . $kegiatan_aktif->id) }}" class="inline-block px-3 py-1.5 text-xs font-bold text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-600 hover:text-white transition-colors" title="Buka detail pertandingan">
+                                        Kelola
+                                    </a>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="6" class="p-6 text-center text-slate-400">
+                                    Belum ada kategori Randori yang terdaftar pada kegiatan ini.
                                 </td>
                             </tr>
                         @endforelse

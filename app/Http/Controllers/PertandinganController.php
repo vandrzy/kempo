@@ -723,6 +723,13 @@ class PertandinganController extends Controller
                 }
                 return strcmp($a['nama'], $b['nama']);
             });
+
+            // Pecah daftar juara menjadi 2 kategori: Embu dan Randori
+            $daftar_juara_embu = array_values(array_filter($daftar_juara, fn($item) => $item['jenis'] === 'Embu'));
+            $daftar_juara_randori = array_values(array_filter($daftar_juara, fn($item) => $item['jenis'] === 'Randori'));
+        } else {
+            $daftar_juara_embu = [];
+            $daftar_juara_randori = [];
         }
 
         return view('admin.pertandingan.laporan_kegiatan', compact(
@@ -730,6 +737,8 @@ class PertandinganController extends Controller
             'kegiatan_aktif',
             'klasemen',
             'daftar_juara',
+            'daftar_juara_embu',
+            'daftar_juara_randori',
             'total_kategori',
             'total_medali_emas',
             'total_medali_perak',
