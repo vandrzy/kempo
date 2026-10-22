@@ -83,13 +83,12 @@
                     </div>
                 </div>
 
-                @if(!$isRandori)
-                <!-- ============================== -->
-                <!-- FORM KHUSUS EMBU (PENILAIAN)  -->
-                <!-- ============================== -->
+                <!-- ============================================== -->
+                <!-- FORM PENILAIAN (EMBU & RANDORI MENGGUNAKAN FORM EMBU) -->
+                <!-- ============================================== -->
                 <div>
                     <h6 class="text-xs font-bold uppercase text-slate-700 dark:text-white/80 mb-2 flex items-center justify-between">
-                        <span><i class="ni ni-bullet-list-67 text-blue-500"></i> Tabel Penilaian Peserta / Pasangan Embu</span>
+                        <span><i class="ni ni-bullet-list-67 text-blue-500"></i> Tabel Penilaian Peserta / Pasangan {{ $isRandori ? 'Randori' : 'Embu' }}</span>
                         <span class="text-[11px] font-normal lowercase text-slate-500">Nilai total dihitung dari jumlah nilai juri dikurangi hukuman</span>
                     </h6>
 
@@ -172,84 +171,6 @@
                         </table>
                     </div>
                 </div>
-                @else
-                <!-- ============================== -->
-                <!-- FORM KHUSUS RANDORI (BAGAN)    -->
-                <!-- ============================== -->
-                <div>
-                    <h6 class="text-xs font-bold uppercase text-slate-700 dark:text-white/80 mb-2 flex items-center justify-between">
-                        <span><i class="ni ni-sound-wave text-red-500"></i> Tabel Rekap Partai Pertandingan Randori</span>
-                        <span class="text-[11px] font-normal lowercase text-slate-500">Isi nomor partai, atlet sudut merah vs putih, perolehan skor, dan pemenang</span>
-                    </h6>
-
-                    <div class="overflow-x-auto border border-slate-200 dark:border-slate-700 rounded-xl">
-                        <table class="w-full text-xs text-left text-slate-600 dark:text-white/80 border-collapse">
-                            <thead class="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-white text-[11px] uppercase">
-                                <tr>
-                                    <th class="p-2 text-center" style="width: 45px;">Partai</th>
-                                    <th class="p-2 text-center" style="width: 90px;">Babak</th>
-                                    <th class="p-2 bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-300" style="width: 25%;">Sudut Merah (Kontingen &amp; Nama)</th>
-                                    <th class="p-2 text-center" style="width: 50px;">Skor M</th>
-                                    <th class="p-2 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200" style="width: 25%;">Sudut Putih (Kontingen &amp; Nama)</th>
-                                    <th class="p-2 text-center" style="width: 50px;">Skor P</th>
-                                    <th class="p-2 text-center" style="width: 110px;">Pemenang</th>
-                                    <th class="p-2" style="width: 120px;">Cara Menang</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-slate-200 dark:divide-slate-700">
-                                @php
-                                    $savedPartai = $scoresheet['partai'] ?? [];
-                                    $totalRows = max(count($savedPartai), 5);
-                                @endphp
-
-                                @for($i = 0; $i < $totalRows; $i++)
-                                    @php
-                                        $pRow = $savedPartai[$i] ?? [];
-                                        $defaultBabak = ($i == $totalRows - 1) ? 'Final' : (($i >= $totalRows - 3) ? 'Semifinal' : 'Penyisihan');
-                                    @endphp
-                                    <tr class="hover:bg-slate-50/60 dark:hover:bg-slate-800/30">
-                                        <td class="p-2 text-center">
-                                            <input type="text" name="partai[{{ $i }}][nomor]" value="{{ $pRow['nomor'] ?? ($i + 1) }}" class="w-10 text-center font-bold text-xs p-1 border rounded dark:bg-slate-800">
-                                        </td>
-                                        <td class="p-2 text-center">
-                                            <select name="partai[{{ $i }}][babak]" class="text-xs p-1 border rounded dark:bg-slate-800">
-                                                <option value="Penyisihan" {{ ($pRow['babak'] ?? $defaultBabak) == 'Penyisihan' ? 'selected' : '' }}>Penyisihan</option>
-                                                <option value="Perempat Final" {{ ($pRow['babak'] ?? '') == 'Perempat Final' ? 'selected' : '' }}>Perempat Final</option>
-                                                <option value="Semifinal" {{ ($pRow['babak'] ?? $defaultBabak) == 'Semifinal' ? 'selected' : '' }}>Semifinal</option>
-                                                <option value="Final" {{ ($pRow['babak'] ?? $defaultBabak) == 'Final' ? 'selected' : '' }}>Final</option>
-                                            </select>
-                                        </td>
-                                        <td class="p-2 bg-red-50/40 dark:bg-red-950/10">
-                                            <input type="text" name="partai[{{ $i }}][merah_kontingen]" value="{{ $pRow['merah_kontingen'] ?? '' }}" placeholder="Kontingen" class="w-full text-xs p-1 border rounded mb-1 dark:bg-slate-800">
-                                            <input type="text" name="partai[{{ $i }}][merah_nama]" value="{{ $pRow['merah_nama'] ?? '' }}" placeholder="Nama Atlet Merah" class="w-full text-xs p-1 border rounded dark:bg-slate-800">
-                                        </td>
-                                        <td class="p-1 text-center">
-                                            <input type="number" name="partai[{{ $i }}][merah_skor]" value="{{ $pRow['merah_skor'] ?? '' }}" placeholder="0" class="w-full text-center font-bold text-xs p-1 border rounded text-red-600 dark:bg-slate-800">
-                                        </td>
-                                        <td class="p-2 bg-slate-50/40 dark:bg-slate-800/20">
-                                            <input type="text" name="partai[{{ $i }}][putih_kontingen]" value="{{ $pRow['putih_kontingen'] ?? '' }}" placeholder="Kontingen" class="w-full text-xs p-1 border rounded mb-1 dark:bg-slate-800">
-                                            <input type="text" name="partai[{{ $i }}][putih_nama]" value="{{ $pRow['putih_nama'] ?? '' }}" placeholder="Nama Atlet Putih" class="w-full text-xs p-1 border rounded dark:bg-slate-800">
-                                        </td>
-                                        <td class="p-1 text-center">
-                                            <input type="number" name="partai[{{ $i }}][putih_skor]" value="{{ $pRow['putih_skor'] ?? '' }}" placeholder="0" class="w-full text-center font-bold text-xs p-1 border rounded dark:bg-slate-800">
-                                        </td>
-                                        <td class="p-2 text-center">
-                                            <select name="partai[{{ $i }}][pemenang]" class="w-full text-xs p-1 border rounded dark:bg-slate-800 font-semibold text-emerald-600">
-                                                <option value="">- Pilih Pemenang -</option>
-                                                <option value="Sudut Merah" {{ ($pRow['pemenang'] ?? '') == 'Sudut Merah' ? 'selected' : '' }}>Sudut Merah</option>
-                                                <option value="Sudut Putih" {{ ($pRow['pemenang'] ?? '') == 'Sudut Putih' ? 'selected' : '' }}>Sudut Putih</option>
-                                            </select>
-                                        </td>
-                                        <td class="p-2">
-                                            <input type="text" name="partai[{{ $i }}][cara_menang]" value="{{ $pRow['cara_menang'] ?? '' }}" placeholder="Ippon / Waza-ari / Angka" class="w-full text-xs p-1 border rounded dark:bg-slate-800">
-                                        </td>
-                                    </tr>
-                                @endfor
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                @endif
 
             </div>
 

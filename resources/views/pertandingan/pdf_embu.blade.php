@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Lembar Penilaian Embu - {{ $listKategori->pertandingan->nama ?? 'Pertandingan' }}</title>
+    <title>Lembar Penilaian {{ (!empty($isRandori)) ? 'Randori' : 'Embu' }} - {{ $listKategori->pertandingan->nama ?? 'Pertandingan' }}</title>
     <style>
         @page {
             margin: 1.2cm 1cm 1.2cm 1cm;
@@ -153,7 +153,7 @@
 
     <div class="header-title">
         <h2 class="uppercase">PERSAUDARAAN BELADIRI SHORINJI KEMPO (PERKEMI)</h2>
-        <h3>LEMBAR PENILAIAN PERTANDINGAN KERAPIAN TEKNIK (EMBUSHO)</h3>
+        <h3>LEMBAR PENILAIAN PERTANDINGAN {{ (!empty($isRandori)) ? 'RANDORI' : 'KERAPIAN TEKNIK (EMBUSHO)' }}</h3>
     </div>
 
     <table class="info-table">

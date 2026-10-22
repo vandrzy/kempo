@@ -792,14 +792,14 @@ class PertandinganController extends Controller
         $namaPertandingan = $listKategori->pertandingan->nama ?? 'Pertandingan';
         $safeFileName = preg_replace('/[^A-Za-z0-9_\-]/', '_', $namaPertandingan);
 
-        if ($isRandori) {
+        if ($isRandori && !empty($scoresheet['partai']) && empty($scoresheet['peserta'])) {
             $pdf = Pdf::loadView('pertandingan.pdf_randori', compact('listKategori', 'scoresheet', 'juara', 'peserta_list'))
                 ->setPaper('a4', 'landscape');
             return $pdf->stream('Randori_' . $safeFileName . '.pdf');
         } else {
-            $pdf = Pdf::loadView('pertandingan.pdf_embu', compact('listKategori', 'scoresheet', 'juara', 'peserta_list'))
+            $pdf = Pdf::loadView('pertandingan.pdf_embu', compact('listKategori', 'scoresheet', 'juara', 'peserta_list', 'isRandori'))
                 ->setPaper('a4', 'portrait');
-            return $pdf->stream('Embu_' . $safeFileName . '.pdf');
+            return $pdf->stream(($isRandori ? 'Randori_' : 'Embu_') . $safeFileName . '.pdf');
         }
     }
 
