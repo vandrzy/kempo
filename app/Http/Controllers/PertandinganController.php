@@ -956,24 +956,73 @@ class PertandinganController extends Controller
                 $tanding = $lk->pertandingan;
                 if (!$tanding) continue;
 
-                $pesertaRows = $lk->list_kategori;
-                $groupedKabupaten = $pesertaRows->groupBy(function ($item) {
-                    return $item->Peserta?->kabupaten_id ?? ('p_' . $item->id);
+                $allPeserta = PertandinganPeserta::with(['Peserta.kabupaten'])
+                    ->where(function ($q) use ($lk, $tanding) {
+                        $q->where('list_kategori_id', $lk->id)
+                          ->orWhere('pertandingan_id', $lk->id);
+                        if ($tanding && $tanding->id) {
+                            $q->orWhere('pertandingan_id', $tanding->id);
+                        }
+                    })
+                    ->orderBy('urutan')
+                    ->get();
+
+                $groupedKabupaten = $allPeserta->groupBy(function ($item) {
+                    if ($item->Peserta?->kabupaten_id) {
+                        return 'kab_' . $item->Peserta->kabupaten_id;
+                    }
+                    if (!empty($item->Peserta?->kontigen)) {
+                        return 'kontigen_' . trim(strtolower($item->Peserta->kontigen));
+                    }
+                    return 'peserta_' . $item->id;
                 });
 
                 $pesertaGroups = [];
                 $groupIndex = 0;
 
                 foreach ($groupedKabupaten as $kabIdKey => $items) {
+                    $first = $items->first();
                     $names = $items->pluck('Peserta.nama')->filter()->implode(' / ');
-                    $kName = optional($items->first()->Peserta?->kabupaten)->name ?? '-';
-                    $urutan = $items->first()->urutan ?? ($groupIndex + 1);
+                    $kName = optional($first->Peserta?->kabupaten)->name ?? ($first->Peserta?->kontigen ?? 'Tanpa Kontingen');
+                    $urutan = $first->urutan ?? ($groupIndex + 1);
+                    $kabId = $first->Peserta?->kabupaten_id;
+                    $ppIds = $items->pluck('id')->toArray();
+
+                    $waktu = $items->pluck('waktu')->filter()->first() ?? '';
+                    $n1 = $items->pluck('nilai_1')->filter(fn($v) => !is_null($v))->first();
+                    $n2 = $items->pluck('nilai_2')->filter(fn($v) => !is_null($v))->first();
+                    $n3 = $items->pluck('nilai_3')->filter(fn($v) => !is_null($v))->first();
+                    $n4 = $items->pluck('nilai_4')->filter(fn($v) => !is_null($v))->first();
+                    $n5 = $items->pluck('nilai_5')->filter(fn($v) => !is_null($v))->first();
+                    $minus = $items->pluck('minus')->filter(fn($v) => !is_null($v))->first() ?? 0;
+                    $totalNilai = $items->pluck('total_nilai')->filter(fn($v) => !is_null($v))->first();
+
+                    $scores = [
+                        floatval($n1 ?? 0),
+                        floatval($n2 ?? 0),
+                        floatval($n3 ?? 0),
+                        floatval($n4 ?? 0),
+                        floatval($n5 ?? 0)
+                    ];
 
                     $pesertaGroups[] = [
                         'row_index'     => $groupIndex,
+                        'id'            => $first->id,
+                        'pp_ids'        => $ppIds,
                         'urutan'        => is_numeric($urutan) ? (int)$urutan : ($groupIndex + 1),
                         'nama_gabungan' => $names ?: ('Peserta #' . ($groupIndex + 1)),
                         'kontingen'     => $kName,
+                        'kabupaten_id'  => $kabId,
+                        'waktu'         => $waktu,
+                        'scores'        => $scores,
+                        'nilai_1'       => $n1,
+                        'nilai_2'       => $n2,
+                        'nilai_3'       => $n3,
+                        'nilai_4'       => $n4,
+                        'nilai_5'       => $n5,
+                        'genten'        => floatval($minus ?? 0),
+                        'minus'         => floatval($minus ?? 0),
+                        'total_nilai'   => $totalNilai !== null ? floatval($totalNilai) : null,
                     ];
                     $groupIndex++;
                 }
@@ -1008,18 +1057,93 @@ class PertandinganController extends Controller
      */
     public function getPublicPapanSkorData($pertandingan_id)
     {
-        $listKategori = ListKategori::with('pertandingan')->find($pertandingan_id);
+        $listKategori = ListKategori::with(['pertandingan.kategori', 'kategori'])->find($pertandingan_id);
+        $pertandingan = null;
         if ($listKategori) {
-            $scoresheetData = $listKategori->data_scoresheet ?? ($listKategori->pertandingan?->data_scoresheet ?? []);
+            $pertandingan = $listKategori->pertandingan ?? Pertandingan::find($listKategori->pertandingan_id);
+            $scoresheetData = $listKategori->data_scoresheet ?? ($pertandingan?->data_scoresheet ?? []);
         } else {
-            $pertandingan = Pertandingan::findOrFail($pertandingan_id);
+            $pertandingan = Pertandingan::with('kategori')->find($pertandingan_id);
             $scoresheetData = $pertandingan->data_scoresheet ?? [];
+        }
+
+        $allPeserta = PertandinganPeserta::with(['Peserta.kabupaten'])
+            ->where(function ($q) use ($pertandingan_id, $listKategori, $pertandingan) {
+                $q->where('list_kategori_id', $pertandingan_id)
+                  ->orWhere('pertandingan_id', $pertandingan_id);
+                if ($listKategori && $listKategori->pertandingan_id) {
+                    $q->orWhere('pertandingan_id', $listKategori->pertandingan_id);
+                }
+                if ($pertandingan && $pertandingan->id) {
+                    $q->orWhere('pertandingan_id', $pertandingan->id);
+                }
+            })
+            ->orderBy('urutan')
+            ->get();
+
+        $grouped = $allPeserta->groupBy(function ($item) {
+            if ($item->Peserta?->kabupaten_id) {
+                return 'kab_' . $item->Peserta->kabupaten_id;
+            }
+            if (!empty($item->Peserta?->kontigen)) {
+                return 'kontigen_' . trim(strtolower($item->Peserta->kontigen));
+            }
+            return 'peserta_' . $item->id;
+        });
+
+        $pesertaGroups = [];
+        $groupIndex = 0;
+
+        foreach ($grouped as $kabId => $items) {
+            $first = $items->first();
+            $pNames = $items->pluck('Peserta.nama')->filter()->implode(', ');
+            $kName = optional($first->Peserta?->kabupaten)->name ?? ($first->Peserta?->kontigen ?? 'Tanpa Kontingen');
+            $ppIds = $items->pluck('id')->toArray();
+
+            $waktu = $items->pluck('waktu')->filter()->first() ?? '';
+            $n1 = $items->pluck('nilai_1')->filter(fn($v) => !is_null($v))->first();
+            $n2 = $items->pluck('nilai_2')->filter(fn($v) => !is_null($v))->first();
+            $n3 = $items->pluck('nilai_3')->filter(fn($v) => !is_null($v))->first();
+            $n4 = $items->pluck('nilai_4')->filter(fn($v) => !is_null($v))->first();
+            $n5 = $items->pluck('nilai_5')->filter(fn($v) => !is_null($v))->first();
+            $minus = $items->pluck('minus')->filter(fn($v) => !is_null($v))->first() ?? 0;
+            $totalNilai = $items->pluck('total_nilai')->filter(fn($v) => !is_null($v))->first();
+
+            $scores = [
+                floatval($n1 ?? 0),
+                floatval($n2 ?? 0),
+                floatval($n3 ?? 0),
+                floatval($n4 ?? 0),
+                floatval($n5 ?? 0)
+            ];
+
+            $pesertaGroups[] = [
+                'row_index'    => $groupIndex,
+                'id'           => $first->id,
+                'pp_ids'       => $ppIds,
+                'urutan'       => $first->urutan ?? ($groupIndex + 1),
+                'nama'         => $pNames ?: ($first->Peserta?->nama ?? '-'),
+                'kontingen'    => $kName,
+                'kabupaten_id' => $first->Peserta?->kabupaten_id,
+                'waktu'        => $waktu,
+                'scores'       => $scores,
+                'nilai_1'      => $n1,
+                'nilai_2'      => $n2,
+                'nilai_3'      => $n3,
+                'nilai_4'      => $n4,
+                'nilai_5'      => $n5,
+                'minus'        => floatval($minus ?? 0),
+                'genten'       => floatval($minus ?? 0),
+                'total_nilai'  => $totalNilai !== null ? floatval($totalNilai) : null,
+            ];
+            $groupIndex++;
         }
 
         return response()->json([
             'status'          => 'success',
             'pertandingan_id' => $pertandingan_id,
             'scoresheet_data' => $scoresheetData,
+            'peserta'         => $pesertaGroups,
         ]);
     }
 
@@ -1060,16 +1184,14 @@ class PertandinganController extends Controller
             $numericScores[] = 0;
         }
 
-        $sorted = $numericScores;
-        sort($sorted);
-        // Ambil 3 nilai tengah (index 1, 2, 3) setelah diurutkan dari 5 nilai
-        $nilaiTengah = $sorted[1] + $sorted[2] + $sorted[3];
-        $totalNilai  = max(0, $nilaiTengah - $genten);
+        // Rumus standar: jumlah seluruh nilai wasit (1-5) dikurangi genten
+        $nilai = array_sum($numericScores);
+        $totalNilai = max(0, $nilai - $genten);
 
         // Simpan ke struktur rows
         $scoresheetData['rows'][$rowIndex] = [
             'scores'       => $numericScores,
-            'total'        => $nilaiTengah,
+            'total'        => $nilai,
             'waktu'        => $waktu,
             'genten'       => $genten,
             'pengurangan'  => $genten,
@@ -1102,10 +1224,31 @@ class PertandinganController extends Controller
             $pertandingan->save();
         }
 
+        // Update ke tabel PertandinganPeserta jika ada pp_ids
+        $targetPpIds = $request->input('pp_ids');
+        if (!empty($targetPpIds)) {
+            $ids = is_array($targetPpIds) ? $targetPpIds : explode(',', $targetPpIds);
+            foreach ($ids as $ppId) {
+                $pp = PertandinganPeserta::find($ppId);
+                if ($pp) {
+                    $pp->update([
+                        'waktu'       => $waktu,
+                        'nilai_1'     => $numericScores[0],
+                        'nilai_2'     => $numericScores[1],
+                        'nilai_3'     => $numericScores[2],
+                        'nilai_4'     => $numericScores[3],
+                        'nilai_5'     => $numericScores[4],
+                        'minus'       => $genten,
+                        'total_nilai' => $totalNilai,
+                    ]);
+                }
+            }
+        }
+
         return response()->json([
             'status'          => 'success',
             'message'         => 'Nilai papan skor berhasil disimpan ke database',
-            'nilai'           => $nilaiTengah,
+            'nilai'           => $nilai,
             'total_nilai'     => $totalNilai,
             'scoresheet_data' => $scoresheetData,
         ]);

@@ -175,7 +175,7 @@
             <!-- NILAI -->
             <div class="col-span-5 sm:col-span-4 md:col-span-3 bg-white rounded-xl border border-amber-300 shadow-sm flex flex-col overflow-hidden">
                 <div class="py-1 px-2 text-center bg-amber-50 border-b border-amber-200 flex-shrink-0">
-                    <span class="text-[11px] sm:text-xs font-black tracking-wider text-amber-800 uppercase">NILAI (3 TENGAH)</span>
+                    <span class="text-[11px] sm:text-xs font-black tracking-wider text-amber-800 uppercase">JUMLAH NILAI WASIT</span>
                 </div>
                 <div class="flex-1 flex items-center justify-center p-1 min-h-0">
                     <div id="displayNilai" class="score-font font-black text-amber-600 text-3xl sm:text-4xl md:text-5xl lg:text-6xl">
@@ -365,6 +365,9 @@
                 if (refreshIcon) refreshIcon.classList.remove('fa-spin');
                 if (data.status === 'success') {
                     currentTanding.scoresheet_data = data.scoresheet_data || {};
+                    if (data.peserta && Array.isArray(data.peserta)) {
+                        currentTanding.peserta_db = data.peserta;
+                    }
                     saveStatus.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Live Sync';
                     saveStatus.className = 'inline-flex items-center gap-1.5 text-[11px] font-bold px-2 py-0.5 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200';
                     if (typeof callback === 'function') callback();
@@ -385,35 +388,89 @@
             const scoresheet = currentTanding.scoresheet_data || {};
             const rows = scoresheet.rows || [];
             const pesertaList = scoresheet.peserta || [];
+            const pesertaDbList = currentTanding.peserta_db || [];
 
+            // 1. Prioritaskan pencarian langsung dari tabel database (peserta_db)
+            let matchedDb = null;
+            if (pesertaDbList.length > 0) {
+                if (currentPesertaGroup.kabupaten_id) {
+                    matchedDb = pesertaDbList.find(p => String(p.kabupaten_id) === String(currentPesertaGroup.kabupaten_id));
+                }
+                if (!matchedDb && currentPesertaGroup.id) {
+                    matchedDb = pesertaDbList.find(p => p.id === currentPesertaGroup.id || (p.pp_ids && p.pp_ids.includes(currentPesertaGroup.id)));
+                }
+                if (!matchedDb && currentPesertaGroup.kontingen) {
+                    const kName = currentPesertaGroup.kontingen.trim().toLowerCase();
+                    matchedDb = pesertaDbList.find(p => p.kontingen && p.kontingen.trim().toLowerCase() === kName);
+                }
+                if (!matchedDb) {
+                    matchedDb = pesertaDbList[currentPesertaGroup.row_index] || null;
+                }
+            }
+
+            // 2. Cari dari data JSON scoresheet.peserta
+            let matchedPesertaData = null;
+            if (pesertaList.length > 0) {
+                if (currentPesertaGroup.kontingen) {
+                    const kName = currentPesertaGroup.kontingen.trim().toLowerCase();
+                    matchedPesertaData = pesertaList.find(p => p.kontingen && p.kontingen.trim().toLowerCase() === kName);
+                }
+                if (!matchedPesertaData) {
+                    matchedPesertaData = pesertaList[currentPesertaGroup.row_index] || null;
+                }
+            }
+
+            // 3. Fallback ke scoresheet.rows
             const rowData = rows[currentPesertaGroup.row_index] || null;
-            const pesertaData = pesertaList[currentPesertaGroup.row_index] || null;
 
             let scores = [0, 0, 0, 0, 0];
             let waktu = '00:00';
             let genten = 0;
+            let explicitTotal = null;
 
-            if (rowData || pesertaData) {
-                if (rowData && (rowData.scores || rowData.wasit)) {
-                    scores = rowData.scores || rowData.wasit;
-                } else if (pesertaData) {
-                    scores = [
-                        parseFloat(pesertaData.juri_1) || 0,
-                        parseFloat(pesertaData.juri_2) || 0,
-                        parseFloat(pesertaData.juri_3) || 0,
-                        parseFloat(pesertaData.juri_4) || 0,
-                        parseFloat(pesertaData.juri_5) || 0,
-                    ];
+            if (matchedDb) {
+                scores = [
+                    parseFloat(matchedDb.nilai_1) || 0,
+                    parseFloat(matchedDb.nilai_2) || 0,
+                    parseFloat(matchedDb.nilai_3) || 0,
+                    parseFloat(matchedDb.nilai_4) || 0,
+                    parseFloat(matchedDb.nilai_5) || 0,
+                ];
+                waktu = matchedDb.waktu || '00:00';
+                genten = parseFloat(matchedDb.genten ?? matchedDb.minus) || 0;
+                if (matchedDb.total_nilai !== null && matchedDb.total_nilai !== undefined) {
+                    explicitTotal = parseFloat(matchedDb.total_nilai);
                 }
-
-                waktu = (rowData && rowData.waktu) ? rowData.waktu : ((pesertaData && pesertaData.waktu) ? pesertaData.waktu : '00:00');
-
-                if (rowData) {
-                    genten = rowData.genten !== undefined ? rowData.genten : (rowData.pengurangan !== undefined ? rowData.pengurangan : (rowData.denda || 0));
-                } else if (pesertaData) {
-                    genten = pesertaData.hukuman !== undefined ? pesertaData.hukuman : (pesertaData.genten || 0);
+            } else if (matchedPesertaData) {
+                scores = [
+                    parseFloat(matchedPesertaData.juri_1) || 0,
+                    parseFloat(matchedPesertaData.juri_2) || 0,
+                    parseFloat(matchedPesertaData.juri_3) || 0,
+                    parseFloat(matchedPesertaData.juri_4) || 0,
+                    parseFloat(matchedPesertaData.juri_5) || 0,
+                ];
+                waktu = matchedPesertaData.waktu || '00:00';
+                genten = parseFloat(matchedPesertaData.hukuman ?? matchedPesertaData.genten) || 0;
+                if (matchedPesertaData.total !== null && matchedPesertaData.total !== undefined) {
+                    explicitTotal = parseFloat(matchedPesertaData.total);
+                }
+            } else if (rowData) {
+                scores = (rowData.scores || rowData.wasit || [0, 0, 0, 0, 0]).map(v => parseFloat(v) || 0);
+                waktu = rowData.waktu || '00:00';
+                genten = parseFloat(rowData.genten !== undefined ? rowData.genten : (rowData.pengurangan !== undefined ? rowData.pengurangan : (rowData.denda || 0))) || 0;
+                if (rowData.total_akhir !== null && rowData.total_akhir !== undefined) {
+                    explicitTotal = parseFloat(rowData.total_akhir);
+                }
+            } else if (currentPesertaGroup.scores) {
+                scores = currentPesertaGroup.scores;
+                waktu = currentPesertaGroup.waktu || '00:00';
+                genten = parseFloat(currentPesertaGroup.genten ?? currentPesertaGroup.minus) || 0;
+                if (currentPesertaGroup.total_nilai !== null && currentPesertaGroup.total_nilai !== undefined) {
+                    explicitTotal = parseFloat(currentPesertaGroup.total_nilai);
                 }
             }
+
+            while (scores.length < 5) scores.push(0);
 
             // Update UI Wasit 1 - 5
             wasitDisplays.forEach((el, idx) => {
@@ -425,15 +482,11 @@
             displayWaktu.textContent = waktu || '00:00';
             displayGenten.textContent = genten !== null && genten !== undefined ? genten : 0;
 
-            // Hitung Nilai (3 nilai tengah) & Total Nilai (Nilai - Genten)
-            const numScores = scores.map(s => parseFloat(s) || 0);
-            while (numScores.length < 5) numScores.push(0);
-            const sorted = [...numScores].sort((a, b) => a - b);
-            const nilai = sorted[1] + sorted[2] + sorted[3];
-            const g = parseFloat(genten) || 0;
-            const totalNilai = Math.max(0, nilai - g);
+            // Hitung Nilai (Jumlah seluruh nilai Wasit 1-5) & Total Nilai Akhir (Nilai - Genten)
+            const sumNilai = scores.reduce((sum, s) => sum + (parseFloat(s) || 0), 0);
+            const totalNilai = explicitTotal !== null ? explicitTotal : Math.max(0, sumNilai - genten);
 
-            displayNilai.textContent = Number.isInteger(nilai) ? nilai : nilai.toFixed(1);
+            displayNilai.textContent = Number.isInteger(sumNilai) ? sumNilai : sumNilai.toFixed(1);
             displayTotalNilai.textContent = Number.isInteger(totalNilai) ? totalNilai : totalNilai.toFixed(1);
         }
 
