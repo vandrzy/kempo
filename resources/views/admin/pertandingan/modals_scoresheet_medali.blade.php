@@ -5,449 +5,427 @@
     $juara = $pertandingan->data_juara ?? [];
 @endphp
 
-<!-- ========================================== -->
-<!-- MODAL 1: FORM SCORESHEET & CETAK PDF      -->
-<!-- ========================================== -->
-<div id="modalScoresheetPdf" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100vw; height: 100vh; z-index: 999999; background: rgba(0, 0, 0, 0.7); align-items: center; justify-content: center; padding: 1.5rem; overflow-y: auto;">
-    <div style="position: relative; width: 100%; max-width: 1000px; margin: auto; max-height: 90vh; background: #ffffff; border-radius: 1rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35); display: flex; flex-direction: column; overflow: hidden;" class="dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+<!-- ============================================== -->
+<!-- 1. MODAL SCORE SHEET PERTANDINGAN (MAX-W-7XL)  -->
+<!-- ============================================== -->
+<div id="scoresheetModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100vw; height: 100vh; z-index: 999999; background: rgba(0, 0, 0, 0.75); align-items: center; justify-content: center; padding: 2.5rem 1.5rem; overflow-y: auto;">
+    <div style="position: relative; width: 100%; max-width: 1320px; margin: auto; max-height: 92vh; background: #ffffff; border-radius: 1.25rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); display: flex; flex-direction: column; overflow: hidden;" class="dark:bg-slate-850 border border-slate-200 dark:border-slate-700">
         
-        <!-- Modal Header -->
-        <div class="flex items-center justify-between p-5 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50" style="flex-shrink: 0;">
+        <!-- Header Modal (Padding Lega) -->
+        <div style="padding: 1.5rem 2.25rem; flex-shrink: 0;" class="flex justify-between items-center border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/70">
             <div>
-                <div class="flex items-center gap-2">
-                    <h5 class="text-lg font-bold text-slate-800 dark:text-white mb-0 flex items-center">
-                        <i class="ni ni-paper-diploma text-blue-600 mr-2"></i> Form Scoresheet Pertandingan &amp; Cetak PDF
-                    </h5>
+                <div class="flex items-center gap-2.5">
+                    <h3 class="text-xl md:text-2xl font-black text-slate-800 dark:text-white flex items-center mb-0">
+                        <i class="ni ni-paper-diploma text-blue-600 mr-2.5"></i> Score Sheet Pertandingan
+                    </h3>
                     @if($isRandori)
-                        <span class="px-2.5 py-0.5 text-xs font-bold text-red-700 bg-red-100 dark:bg-red-900/40 dark:text-red-300 rounded-full">Kategori Randori</span>
+                        <span class="px-3 py-1 text-xs font-black text-red-700 bg-red-100 dark:bg-red-900/40 dark:text-red-300 rounded-full">Kategori Randori</span>
                     @else
-                        <span class="px-2.5 py-0.5 text-xs font-bold text-blue-700 bg-blue-100 dark:bg-blue-900/40 dark:text-blue-300 rounded-full">Kategori Embu</span>
+                        <span class="px-3 py-1 text-xs font-black text-blue-700 bg-blue-100 dark:bg-blue-900/40 dark:text-blue-300 rounded-full">Kategori Embu</span>
                     @endif
                 </div>
-                <p class="text-xs text-slate-500 mb-0 mt-1">
-                    {{ $pertandingan->kegiatan->nama }} &bull; {{ $pertandingan->pertandingan->nama }} (Kelas: {{ $pertandingan->pertandingan->kelas }})
+                <p class="text-xs md:text-sm text-slate-500 mb-0 mt-1.5 font-medium">
+                    {{ $pertandingan->kegiatan->nama ?? '' }} &bull; {{ $pertandingan->pertandingan->nama ?? '' }} (Kelas: {{ $pertandingan->pertandingan->kelas ?? '-' }}) &bull; Penilaian Berdasarkan Kontingen
                 </p>
             </div>
-            <button type="button" onclick="closeScoresheetModal()" class="text-slate-400 hover:text-slate-700 dark:hover:text-white text-3xl font-bold p-1 leading-none cursor-pointer">&times;</button>
+            <button type="button" onclick="closeScoresheetModal()" class="text-slate-400 hover:text-slate-700 dark:hover:text-white text-3xl font-bold leading-none cursor-pointer border-0 bg-transparent p-1">&times;</button>
         </div>
-
-        <!-- Modal Body Form -->
-        <form action="{{ route('pertandingan.simpan-pdf', $pertandingan->id) }}" method="POST" style="display: flex; flex-direction: column; flex: 1 1 auto; overflow: hidden; margin-bottom: 0;">
-            @csrf
-            <input type="hidden" name="kegiatan_id" value="{{ $pertandingan->kegiatan->id }}">
-
-            <div class="p-6 overflow-y-auto space-y-6" style="flex: 1 1 auto; max-height: calc(90vh - 140px);">
-                
-                <!-- Info Acara / Tatami / Wasit -->
-                <div class="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-200 dark:border-slate-700">
-                    <h6 class="text-xs font-bold uppercase text-slate-700 dark:text-white/80 mb-3 flex items-center gap-1">
-                        <i class="ni ni-badge text-blue-500"></i> Informasi Pelaksanaan &amp; Wasit
-                    </h6>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Nomor / Nama Tatami</label>
-                            <input type="text" name="tatami" value="{{ $scoresheet['tatami'] ?? 'Tatami 1' }}" placeholder="Contoh: Tatami 1" class="w-full text-sm rounded-lg border border-gray-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white p-2 focus:outline-none focus:border-blue-500">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Tanggal Pertandingan</label>
-                            <input type="date" name="tanggal" value="{{ $scoresheet['tanggal'] ?? date('Y-m-d') }}" class="w-full text-sm rounded-lg border border-gray-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white p-2 focus:outline-none focus:border-blue-500">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Wasit Kepala / Pengawas</label>
-                            <input type="text" name="wasit_kepala" value="{{ $scoresheet['wasit_kepala'] ?? '' }}" placeholder="Nama Wasit Kepala" class="w-full text-sm rounded-lg border border-gray-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white p-2 focus:outline-none focus:border-blue-500">
-                        </div>
-                    </div>
-
-                    <!-- Wasit / Juri 1 - 5 -->
-                    <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mt-3 pt-3 border-t border-slate-200 dark:border-slate-700">
-                        <div>
-                            <label class="block text-[11px] font-medium text-slate-500 mb-1">Wasit / Juri 1</label>
-                            <input type="text" name="wasit_1" value="{{ $scoresheet['wasit_1'] ?? '' }}" placeholder="Nama Juri 1" class="w-full text-xs rounded border border-gray-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white p-1.5 focus:outline-none focus:border-blue-500">
-                        </div>
-                        <div>
-                            <label class="block text-[11px] font-medium text-slate-500 mb-1">Wasit / Juri 2</label>
-                            <input type="text" name="wasit_2" value="{{ $scoresheet['wasit_2'] ?? '' }}" placeholder="Nama Juri 2" class="w-full text-xs rounded border border-gray-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white p-1.5 focus:outline-none focus:border-blue-500">
-                        </div>
-                        <div>
-                            <label class="block text-[11px] font-medium text-slate-500 mb-1">Wasit / Juri 3</label>
-                            <input type="text" name="wasit_3" value="{{ $scoresheet['wasit_3'] ?? '' }}" placeholder="Nama Juri 3" class="w-full text-xs rounded border border-gray-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white p-1.5 focus:outline-none focus:border-blue-500">
-                        </div>
-                        <div>
-                            <label class="block text-[11px] font-medium text-slate-500 mb-1">Wasit / Juri 4</label>
-                            <input type="text" name="wasit_4" value="{{ $scoresheet['wasit_4'] ?? '' }}" placeholder="Nama Juri 4" class="w-full text-xs rounded border border-gray-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white p-1.5 focus:outline-none focus:border-blue-500">
-                        </div>
-                        <div>
-                            <label class="block text-[11px] font-medium text-slate-500 mb-1">Wasit / Juri 5</label>
-                            <input type="text" name="wasit_5" value="{{ $scoresheet['wasit_5'] ?? '' }}" placeholder="Nama Juri 5" class="w-full text-xs rounded border border-gray-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white p-1.5 focus:outline-none focus:border-blue-500">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- ============================================== -->
-                <!-- FORM PENILAIAN (EMBU & RANDORI MENGGUNAKAN FORM EMBU) -->
-                <!-- ============================================== -->
-                <div>
-                    <h6 class="text-xs font-bold uppercase text-slate-700 dark:text-white/80 mb-2 flex items-center justify-between">
-                        <span><i class="ni ni-bullet-list-67 text-blue-500"></i> Tabel Penilaian Peserta / Pasangan {{ $isRandori ? 'Randori' : 'Embu' }}</span>
-                        <span class="text-[11px] font-normal lowercase text-slate-500">Nilai total dihitung dari jumlah nilai juri dikurangi hukuman</span>
-                    </h6>
-
-                    <div class="overflow-x-auto border border-slate-200 dark:border-slate-700 rounded-xl">
-                        <table class="w-full text-xs text-left text-slate-600 dark:text-white/80 border-collapse">
-                            <thead class="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-white text-[11px] uppercase">
-                                <tr>
-                                    <th class="p-2 text-center" style="width: 50px;">Undian</th>
-                                    <th class="p-2" style="width: 140px;">Kontingen</th>
-                                    <th class="p-2">Peserta / Pasangan</th>
-                                    <th class="p-2 text-center" style="width: 55px;">J-1</th>
-                                    <th class="p-2 text-center" style="width: 55px;">J-2</th>
-                                    <th class="p-2 text-center" style="width: 55px;">J-3</th>
-                                    <th class="p-2 text-center" style="width: 55px;">J-4</th>
-                                    <th class="p-2 text-center" style="width: 55px;">J-5</th>
-                                    <th class="p-2 text-center text-red-600" style="width: 60px;">Minus</th>
-                                    <th class="p-2 text-center font-bold" style="width: 70px;">Total</th>
-                                    <th class="p-2 text-center" style="width: 80px;">Peringkat</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-slate-200 dark:divide-slate-700">
-                                @php
-                                    $savedPeserta = $scoresheet['peserta'] ?? [];
-                                    $indexRow = 0;
-                                @endphp
-
-                                @if(!empty($savedPeserta))
-                                    @foreach($savedPeserta as $row)
-                                        <tr class="embu-row hover:bg-slate-50/60 dark:hover:bg-slate-800/30">
-                                            <td class="p-2 text-center">
-                                                <input type="text" name="peserta[{{ $indexRow }}][undian]" value="{{ $row['undian'] ?? ($indexRow + 1) }}" class="w-10 text-center font-bold text-xs p-1 border rounded dark:bg-slate-800 dark:border-slate-600">
-                                            </td>
-                                            <td class="p-2 font-bold">
-                                                <input type="text" name="peserta[{{ $indexRow }}][kontingen]" value="{{ $row['kontingen'] ?? '' }}" class="w-full text-xs p-1 border rounded dark:bg-slate-800 dark:border-slate-600">
-                                            </td>
-                                            <td class="p-2">
-                                                <input type="text" name="peserta[{{ $indexRow }}][peserta]" value="{{ $row['peserta'] ?? '' }}" class="w-full text-xs p-1 border rounded dark:bg-slate-800 dark:border-slate-600">
-                                            </td>
-                                            <td class="p-1"><input type="number" step="any" name="peserta[{{ $indexRow }}][juri_1]" value="{{ $row['juri_1'] ?? '' }}" class="score-input w-full text-center text-xs p-1 border rounded dark:bg-slate-800"></td>
-                                            <td class="p-1"><input type="number" step="any" name="peserta[{{ $indexRow }}][juri_2]" value="{{ $row['juri_2'] ?? '' }}" class="score-input w-full text-center text-xs p-1 border rounded dark:bg-slate-800"></td>
-                                            <td class="p-1"><input type="number" step="any" name="peserta[{{ $indexRow }}][juri_3]" value="{{ $row['juri_3'] ?? '' }}" class="score-input w-full text-center text-xs p-1 border rounded dark:bg-slate-800"></td>
-                                            <td class="p-1"><input type="number" step="any" name="peserta[{{ $indexRow }}][juri_4]" value="{{ $row['juri_4'] ?? '' }}" class="score-input w-full text-center text-xs p-1 border rounded dark:bg-slate-800"></td>
-                                            <td class="p-1"><input type="number" step="any" name="peserta[{{ $indexRow }}][juri_5]" value="{{ $row['juri_5'] ?? '' }}" class="score-input w-full text-center text-xs p-1 border rounded dark:bg-slate-800"></td>
-                                            <td class="p-1"><input type="number" step="any" name="peserta[{{ $indexRow }}][hukuman]" value="{{ $row['hukuman'] ?? 0 }}" class="hukuman-input w-full text-center text-xs p-1 border rounded text-red-600 dark:bg-slate-800"></td>
-                                            <td class="p-1"><input type="text" name="peserta[{{ $indexRow }}][total]" value="{{ $row['total'] ?? '' }}" class="total-input w-full text-center font-bold text-xs p-1 bg-slate-100 dark:bg-slate-700 border rounded" readonly></td>
-                                            <td class="p-1"><input type="text" name="peserta[{{ $indexRow }}][peringkat]" value="{{ $row['peringkat'] ?? '' }}" placeholder="1 / 2 / 3" class="w-full text-center text-xs p-1 border rounded dark:bg-slate-800"></td>
-                                        </tr>
-                                        @php $indexRow++; @endphp
-                                    @endforeach
-                                @else
-                                    {{-- Pre-fill otomatis dari kontingen yang bertanding --}}
-                                    @foreach($kabupaten as $kabId => $items)
-                                        @php
-                                            $kName = optional($items->first()->Peserta->Kabupaten)->name ?? 'Tanpa Kabupaten';
-                                            $pNames = $items->pluck('Peserta.nama')->implode(', ');
-                                        @endphp
-                                        <tr class="embu-row hover:bg-slate-50/60 dark:hover:bg-slate-800/30">
-                                            <td class="p-2 text-center">
-                                                <input type="text" name="peserta[{{ $indexRow }}][undian]" value="{{ $indexRow + 1 }}" class="w-10 text-center font-bold text-xs p-1 border rounded dark:bg-slate-800 dark:border-slate-600">
-                                            </td>
-                                            <td class="p-2 font-bold">
-                                                <input type="text" name="peserta[{{ $indexRow }}][kontingen]" value="{{ $kName }}" class="w-full text-xs p-1 border rounded dark:bg-slate-800 dark:border-slate-600">
-                                            </td>
-                                            <td class="p-2">
-                                                <input type="text" name="peserta[{{ $indexRow }}][peserta]" value="{{ $pNames }}" class="w-full text-xs p-1 border rounded dark:bg-slate-800 dark:border-slate-600">
-                                            </td>
-                                            <td class="p-1"><input type="number" step="any" name="peserta[{{ $indexRow }}][juri_1]" class="score-input w-full text-center text-xs p-1 border rounded dark:bg-slate-800"></td>
-                                            <td class="p-1"><input type="number" step="any" name="peserta[{{ $indexRow }}][juri_2]" class="score-input w-full text-center text-xs p-1 border rounded dark:bg-slate-800"></td>
-                                            <td class="p-1"><input type="number" step="any" name="peserta[{{ $indexRow }}][juri_3]" class="score-input w-full text-center text-xs p-1 border rounded dark:bg-slate-800"></td>
-                                            <td class="p-1"><input type="number" step="any" name="peserta[{{ $indexRow }}][juri_4]" class="score-input w-full text-center text-xs p-1 border rounded dark:bg-slate-800"></td>
-                                            <td class="p-1"><input type="number" step="any" name="peserta[{{ $indexRow }}][juri_5]" class="score-input w-full text-center text-xs p-1 border rounded dark:bg-slate-800"></td>
-                                            <td class="p-1"><input type="number" step="any" name="peserta[{{ $indexRow }}][hukuman]" value="0" class="hukuman-input w-full text-center text-xs p-1 border rounded text-red-600 dark:bg-slate-800"></td>
-                                            <td class="p-1"><input type="text" name="peserta[{{ $indexRow }}][total]" class="total-input w-full text-center font-bold text-xs p-1 bg-slate-100 dark:bg-slate-700 border rounded" readonly></td>
-                                            <td class="p-1"><input type="text" name="peserta[{{ $indexRow }}][peringkat]" placeholder="1 / 2 / 3" class="w-full text-center text-xs p-1 border rounded dark:bg-slate-800"></td>
-                                        </tr>
-                                        @php $indexRow++; @endphp
-                                    @endforeach
-                                @endif
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-            </div>
-
-            <!-- Modal Footer -->
-            <div class="flex flex-wrap items-center justify-between p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50" style="flex-shrink: 0;">
-                <a href="{{ route('pertandingan.cetak-pdf', $pertandingan->id) }}" target="_blank" class="inline-flex items-center gap-2 px-4 py-2 text-xs font-bold text-white uppercase bg-emerald-600 rounded-lg hover:bg-emerald-700 shadow-md transition-all">
-                    <i class="fa fa-print"></i> Cetak PDF Sekarang
-                </a>
-
-                <div class="flex items-center gap-2">
-                    <button type="button" onclick="closeScoresheetModal()" class="px-4 py-2 text-xs font-bold text-slate-600 uppercase bg-slate-200 hover:bg-slate-300 rounded-lg transition-all cursor-pointer">
-                        Tutup
-                    </button>
-                    <button type="submit" class="px-5 py-2 text-xs font-bold text-white uppercase bg-blue-600 hover:bg-blue-700 rounded-lg shadow-md transition-all cursor-pointer">
-                        <i class="fa fa-save mr-1"></i> Simpan Isian
-                    </button>
-                </div>
-            </div>
-        </form>
-
-    </div>
-</div>
-
-
-<!-- ========================================== -->
-<!-- MODAL 2: TENTUKAN PERAIH MEDALI           -->
-<!-- ========================================== -->
-<div id="modalSetMedali" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100vw; height: 100vh; z-index: 999999; background: rgba(0, 0, 0, 0.7); align-items: center; justify-content: center; padding: 1.5rem; overflow-y: auto;">
-    <div style="position: relative; width: 100%; max-width: 650px; margin: auto; max-height: 90vh; background: #ffffff; border-radius: 1rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35); display: flex; flex-direction: column; overflow: hidden;" class="dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
         
-        <!-- Modal Header -->
-        <div class="flex items-center justify-between p-5 border-b border-slate-200 dark:border-slate-800 bg-amber-50/50 dark:bg-amber-950/20" style="flex-shrink: 0;">
-            <div>
-                <h5 class="text-lg font-bold text-slate-800 dark:text-white mb-0 flex items-center gap-2">
-                    <i class="ni ni-trophy text-amber-500"></i> Tentukan Peraih Medali
-                </h5>
-                <p class="text-xs text-slate-500 mb-0 mt-1">
-                    {{ $pertandingan->pertandingan->nama }} (Kelas: {{ $pertandingan->pertandingan->kelas }}) &bull; {{ $isRandori ? 'Randori' : 'Embu' }}
-                </p>
-            </div>
-            <button type="button" onclick="closeMedaliModal()" class="text-slate-400 hover:text-slate-700 dark:hover:text-white text-3xl font-bold p-1 leading-none cursor-pointer">&times;</button>
-        </div>
-
-        <!-- Form Penentuan Medali -->
-        <form action="{{ route('pertandingan.set-medali', $pertandingan->id) }}" method="POST" style="display: flex; flex-direction: column; flex: 1 1 auto; overflow: hidden; margin-bottom: 0;">
+        <!-- Form Scoresheet -->
+        <form id="scoresheetForm" onsubmit="submitScoresheet(event)" class="flex flex-col flex-1 overflow-hidden mb-0">
             @csrf
-            <input type="hidden" name="kegiatan_id" value="{{ $pertandingan->kegiatan->id }}">
-
-            <div class="p-6 space-y-4 overflow-y-auto" style="flex: 1 1 auto; max-height: calc(90vh - 140px);">
-                <p class="text-xs text-slate-600 dark:text-slate-300 mb-4">
-                    Pilih kontingen yang berhasil meraih medali pada nomor pertandingan ini. Data yang tersimpan akan langsung terakumulasi pada <strong>Klasemen Perolehan Medali Kegiatan</strong>.
-                </p>
-
-                <!-- Medali Emas -->
-                <div class="p-3 bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/40 rounded-xl">
-                    <label class="block text-xs font-bold text-amber-800 dark:text-amber-300 uppercase mb-1 flex items-center gap-1">
-                        <span>🥇</span> Medali Emas (Juara 1)
-                    </label>
-                    <select name="emas_kabupaten_id" class="w-full text-sm rounded-lg border border-amber-300 dark:border-amber-700/60 dark:bg-slate-800 dark:text-white p-2.5 focus:outline-none focus:border-amber-500">
-                        <option value="">-- Pilih Kontingen Pemenang Emas --</option>
-                        @foreach($kabupaten as $kabId => $items)
-                            @php
-                                $kId = optional($items->first()->Peserta->Kabupaten)->id;
-                                $kName = optional($items->first()->Peserta->Kabupaten)->name;
-                                $pNames = $items->pluck('Peserta.nama')->implode(', ');
-                            @endphp
-                            @if($kName)
-                                <option value="{{ $kId }}" {{ ($juara['emas']['kabupaten_id'] ?? null) == $kId ? 'selected' : '' }}>
-                                    {{ $kName }} &bull; ({{ $pNames }})
-                                </option>
-                            @endif
-                        @endforeach
-                    </select>
+            <input type="hidden" id="scoresheet_pertandingan_id" value="{{ $pertandingan->id }}">
+            <input type="hidden" name="kegiatan_id" value="{{ $pertandingan->kegiatan->id ?? '' }}">
+            
+            <!-- Container Tabel dengan Padding Lega -->
+            <div style="padding: 1.5rem 2.25rem; flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column;">
+                
+                <!-- Wrapper Scrollable Tabel dengan Header Solid Opaque (Tidak Tembus) -->
+                <div style="overflow-x: auto; overflow-y: auto; max-height: calc(90vh - 230px); border: 1.5px solid #cbd5e1; border-radius: 0.75rem; background-color: #ffffff;" class="dark:bg-slate-800 dark:border-slate-700 shadow-xs">
+                    <table style="width: 100%; border-collapse: separate !important; border-spacing: 0 !important; text-align: left; background-color: #ffffff;" class="dark:bg-slate-800 text-sm">
+                        <thead>
+                            <tr class="uppercase text-xs font-bold text-slate-700 dark:text-white">
+                                <th style="position: sticky !important; top: 0 !important; z-index: 50 !important; background-color: #f1f5f9 !important; background-clip: padding-box !important; border-bottom: 2px solid #94a3b8 !important; border-right: 1px solid #cbd5e1 !important; width: 45px; padding: 14px 10px; text-align: center;">No</th>
+                                <th style="position: sticky !important; top: 0 !important; z-index: 50 !important; background-color: #f1f5f9 !important; background-clip: padding-box !important; border-bottom: 2px solid #94a3b8 !important; border-right: 1px solid #cbd5e1 !important; min-width: 170px; padding: 14px 14px;">Kontingen</th>
+                                <th style="position: sticky !important; top: 0 !important; z-index: 50 !important; background-color: #f1f5f9 !important; background-clip: padding-box !important; border-bottom: 2px solid #94a3b8 !important; border-right: 1px solid #cbd5e1 !important; min-width: 200px; padding: 14px 14px;">Nama Atlet / Anggota</th>
+                                <th style="position: sticky !important; top: 0 !important; z-index: 50 !important; background-color: #f1f5f9 !important; background-clip: padding-box !important; border-bottom: 2px solid #94a3b8 !important; border-right: 1px solid #cbd5e1 !important; width: 95px; padding: 14px 10px; text-align: center;">Waktu</th>
+                                <th style="position: sticky !important; top: 0 !important; z-index: 50 !important; background-color: #f8fafc !important; background-clip: padding-box !important; border-bottom: 2px solid #94a3b8 !important; border-right: 1px solid #cbd5e1 !important; width: 85px; padding: 14px 8px; text-align: center;">Wasit 1</th>
+                                <th style="position: sticky !important; top: 0 !important; z-index: 50 !important; background-color: #f8fafc !important; background-clip: padding-box !important; border-bottom: 2px solid #94a3b8 !important; border-right: 1px solid #cbd5e1 !important; width: 85px; padding: 14px 8px; text-align: center;">Wasit 2</th>
+                                <th style="position: sticky !important; top: 0 !important; z-index: 50 !important; background-color: #f8fafc !important; background-clip: padding-box !important; border-bottom: 2px solid #94a3b8 !important; border-right: 1px solid #cbd5e1 !important; width: 85px; padding: 14px 8px; text-align: center;">Wasit 3</th>
+                                <th style="position: sticky !important; top: 0 !important; z-index: 50 !important; background-color: #f8fafc !important; background-clip: padding-box !important; border-bottom: 2px solid #94a3b8 !important; border-right: 1px solid #cbd5e1 !important; width: 85px; padding: 14px 8px; text-align: center;">Wasit 4</th>
+                                <th style="position: sticky !important; top: 0 !important; z-index: 50 !important; background-color: #f8fafc !important; background-clip: padding-box !important; border-bottom: 2px solid #94a3b8 !important; border-right: 1px solid #cbd5e1 !important; width: 85px; padding: 14px 8px; text-align: center;">Wasit 5</th>
+                                <th style="position: sticky !important; top: 0 !important; z-index: 50 !important; background-color: #dbeafe !important; background-clip: padding-box !important; border-bottom: 2px solid #60a5fa !important; border-right: 1px solid #cbd5e1 !important; color: #1e40af !important; width: 95px; padding: 14px 10px; text-align: center; font-weight: 900;">Nilai</th>
+                                <th style="position: sticky !important; top: 0 !important; z-index: 50 !important; background-color: #fee2e2 !important; background-clip: padding-box !important; border-bottom: 2px solid #f87171 !important; border-right: 1px solid #cbd5e1 !important; color: #dc2626 !important; width: 85px; padding: 14px 8px; text-align: center;">Genten</th>
+                                <th style="position: sticky !important; top: 0 !important; z-index: 50 !important; background-color: #d1fae5 !important; background-clip: padding-box !important; border-bottom: 2px solid #34d399 !important; color: #065f46 !important; width: 130px; padding: 14px 10px; text-align: center; font-weight: 900;">Total Nilai Akhir</th>
+                            </tr>
+                        </thead>
+                        <tbody id="scoresheetBody" class="bg-white dark:bg-slate-800">
+                            <tr>
+                                <td colspan="12" class="text-center py-10 text-slate-400 font-semibold" style="padding: 2.5rem 1rem;">Memuat data kontingen &amp; peserta...</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
-
-                <!-- Medali Perak -->
-                <div class="p-3 bg-slate-50 dark:bg-slate-800/40 border border-slate-300 dark:border-slate-700 rounded-xl">
-                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-200 uppercase mb-1 flex items-center gap-1">
-                        <span>🥈</span> Medali Perak (Juara 2)
-                    </label>
-                    <select name="perak_kabupaten_id" class="w-full text-sm rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white p-2.5 focus:outline-none focus:border-slate-500">
-                        <option value="">-- Pilih Kontingen Pemenang Perak --</option>
-                        @foreach($kabupaten as $kabId => $items)
-                            @php
-                                $kId = optional($items->first()->Peserta->Kabupaten)->id;
-                                $kName = optional($items->first()->Peserta->Kabupaten)->name;
-                                $pNames = $items->pluck('Peserta.nama')->implode(', ');
-                            @endphp
-                            @if($kName)
-                                <option value="{{ $kId }}" {{ ($juara['perak']['kabupaten_id'] ?? null) == $kId ? 'selected' : '' }}>
-                                    {{ $kName }} &bull; ({{ $pNames }})
-                                </option>
-                            @endif
-                        @endforeach
-                    </select>
-                </div>
-
-                <!-- Medali Perunggu 1 -->
-                <div class="p-3 bg-orange-50/60 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800/40 rounded-xl">
-                    <label class="block text-xs font-bold text-orange-800 dark:text-orange-300 uppercase mb-1 flex items-center gap-1">
-                        <span>🥉</span> Medali Perunggu {{ $isRandori ? '1 (Juara 3 Bersama)' : '(Juara 3)' }}
-                    </label>
-                    <select name="perunggu_kabupaten_id" class="w-full text-sm rounded-lg border border-orange-300 dark:border-orange-700/60 dark:bg-slate-800 dark:text-white p-2.5 focus:outline-none focus:border-orange-500">
-                        <option value="">-- Pilih Kontingen Pemenang Perunggu --</option>
-                        @foreach($kabupaten as $kabId => $items)
-                            @php
-                                $kId = optional($items->first()->Peserta->Kabupaten)->id;
-                                $kName = optional($items->first()->Peserta->Kabupaten)->name;
-                                $pNames = $items->pluck('Peserta.nama')->implode(', ');
-                            @endphp
-                            @if($kName)
-                                <option value="{{ $kId }}" {{ ($juara['perunggu']['kabupaten_id'] ?? null) == $kId ? 'selected' : '' }}>
-                                    {{ $kName }} &bull; ({{ $pNames }})
-                                </option>
-                            @endif
-                        @endforeach
-                    </select>
-                </div>
-
-                @if($isRandori)
-                <!-- Medali Perunggu 2 (Khusus Randori Juara 3 Bersama) -->
-                <div class="p-3 bg-orange-50/60 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800/40 rounded-xl">
-                    <label class="block text-xs font-bold text-orange-800 dark:text-orange-300 uppercase mb-1 flex items-center gap-1">
-                        <span>🥉</span> Medali Perunggu 2 (Juara 3 Bersama)
-                    </label>
-                    <select name="perunggu_2_kabupaten_id" class="w-full text-sm rounded-lg border border-orange-300 dark:border-orange-700/60 dark:bg-slate-800 dark:text-white p-2.5 focus:outline-none focus:border-orange-500">
-                        <option value="">-- Pilih Kontingen Pemenang Perunggu Kedua (Opsional) --</option>
-                        @foreach($kabupaten as $kabId => $items)
-                            @php
-                                $kId = optional($items->first()->Peserta->Kabupaten)->id;
-                                $kName = optional($items->first()->Peserta->Kabupaten)->name;
-                                $pNames = $items->pluck('Peserta.nama')->implode(', ');
-                            @endphp
-                            @if($kName)
-                                <option value="{{ $kId }}" {{ ($juara['perunggu_2']['kabupaten_id'] ?? null) == $kId ? 'selected' : '' }}>
-                                    {{ $kName }} &bull; ({{ $pNames }})
-                                </option>
-                            @endif
-                        @endforeach
-                    </select>
-                </div>
-                @endif
-
             </div>
 
-            <!-- Modal Footer -->
-            <div class="flex items-center justify-end gap-2 p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50" style="flex-shrink: 0;">
-                <button type="button" onclick="closeMedaliModal()" class="px-4 py-2 text-xs font-bold text-slate-600 uppercase bg-slate-200 hover:bg-slate-300 rounded-lg transition-all cursor-pointer">
-                    Batal
-                </button>
-                <button type="submit" class="px-5 py-2 text-xs font-bold text-white uppercase bg-amber-500 hover:bg-amber-600 rounded-lg shadow-md transition-all cursor-pointer">
-                    <i class="fa fa-medal mr-1"></i> Simpan Medali
-                </button>
+            <!-- Footer Modal (Padding Lega) -->
+            <div style="padding: 1.25rem 2.25rem; flex-shrink: 0;" class="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/70">
+                <div>
+                    <a href="{{ route('pertandingan.cetak-pdf', $pertandingan->id) }}" target="_blank" style="background-color: #059669 !important; color: #ffffff !important;" class="inline-flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold text-white uppercase rounded-lg shadow-md hover:opacity-90 transition-all cursor-pointer">
+                        <i class="fa fa-print mr-1"></i> Cetak PDF Sekarang
+                    </a>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <button type="button" onclick="closeScoresheetModal()" style="background-color: #e2e8f0 !important; color: #334155 !important;" class="px-5 py-2.5 text-xs font-bold text-slate-700 uppercase rounded-lg transition cursor-pointer border-0 hover:bg-slate-300">
+                        Batal
+                    </button>
+                    <button type="submit" id="btnSimpanScoresheet" style="background-color: #2563eb !important; color: #ffffff !important;" class="px-6 py-2.5 text-xs font-bold text-white uppercase rounded-lg shadow-md hover:opacity-90 transition cursor-pointer border-0">
+                        <i class="fa fa-save mr-1.5"></i> Simpan Nilai
+                    </button>
+                </div>
             </div>
         </form>
-
     </div>
 </div>
 
-<!-- ========================================== -->
-<!-- SCRIPT JS MODAL & OTOMATISASI NILAI       -->
-<!-- ========================================== -->
+<!-- ============================================== -->
+<!-- 2. MODAL PERAIH MEDALI (MAX-W-2XL, PADDING LEGA)-->
+<!-- ============================================== -->
+<div id="medaliModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100vw; height: 100vh; z-index: 999999; background: rgba(0, 0, 0, 0.75); align-items: center; justify-content: center; padding: 2.5rem 1.5rem; overflow-y: auto;">
+    <div style="position: relative; width: 100%; max-width: 700px; margin: auto; max-height: 90vh; background: #ffffff; border-radius: 1.25rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); display: flex; flex-direction: column; overflow: hidden;" class="dark:bg-slate-850 border border-slate-200 dark:border-slate-700">
+        
+        <!-- Header Modal (Padding Lega) -->
+        <div style="padding: 1.5rem 2rem; flex-shrink: 0;" class="flex justify-between items-center border-b border-slate-200 dark:border-slate-700 bg-amber-50/70 dark:bg-amber-950/20">
+            <div>
+                <h3 class="text-xl md:text-2xl font-black text-slate-800 dark:text-white flex items-center gap-2 mb-0">
+                    <i class="ni ni-trophy text-amber-500"></i> Peraih Medali
+                </h3>
+                <p class="text-xs md:text-sm text-slate-500 mb-0 mt-1.5 font-medium">
+                    {{ $pertandingan->pertandingan->nama ?? '' }} (Kelas: {{ $pertandingan->pertandingan->kelas ?? '-' }}) &bull; Penilaian Berdasarkan Kontingen
+                </p>
+            </div>
+            <button type="button" onclick="closeMedaliModal()" class="text-slate-400 hover:text-slate-700 dark:hover:text-white text-3xl font-bold leading-none cursor-pointer border-0 bg-transparent p-1">&times;</button>
+        </div>
+
+        <!-- Form Konten Medali (Padding Lega & Spasi Antar Card) -->
+        <div id="medaliForm" style="padding: 2rem; flex: 1 1 auto; max-height: calc(90vh - 170px); overflow-y: auto;">
+            <input type="hidden" id="medali_pertandingan_id" value="{{ $pertandingan->id }}">
+            
+            <!-- Emas -->
+            <div style="padding: 1.25rem 1.5rem; margin-bottom: 1.25rem; border: 1.5px solid #fde68a;" class="bg-amber-50/70 dark:bg-amber-950/20 rounded-xl shadow-xs">
+                <label class="block text-sm font-black mb-2 text-yellow-700 dark:text-yellow-400 flex items-center gap-2">
+                    <span class="text-xl">🥇</span> Medali Emas (Juara 1)
+                </label>
+                <select id="medali_emas" disabled class="w-full border border-amber-300 rounded-lg px-3.5 py-2.5 text-sm bg-white dark:bg-slate-800 text-slate-800 dark:text-white font-bold cursor-not-allowed">
+                    <option value="">-- Belum Ditentukan --</option>
+                </select>
+            </div>
+
+            <!-- Perak -->
+            <div style="padding: 1.25rem 1.5rem; margin-bottom: 1.25rem; border: 1.5px solid #cbd5e1;" class="bg-slate-50 dark:bg-slate-800/40 rounded-xl shadow-xs">
+                <label class="block text-sm font-black mb-2 text-slate-700 dark:text-slate-200 flex items-center gap-2">
+                    <span class="text-xl">🥈</span> Medali Perak (Juara 2)
+                </label>
+                <select id="medali_perak" disabled class="w-full border border-slate-300 rounded-lg px-3.5 py-2.5 text-sm bg-white dark:bg-slate-800 text-slate-800 dark:text-white font-bold cursor-not-allowed">
+                    <option value="">-- Belum Ditentukan --</option>
+                </select>
+            </div>
+
+            <!-- Perunggu 1 -->
+            <div style="padding: 1.25rem 1.5rem; margin-bottom: 1.25rem; border: 1.5px solid #fed7aa;" class="bg-orange-50/70 dark:bg-orange-950/20 rounded-xl shadow-xs">
+                <label class="block text-sm font-black mb-2 text-amber-700 dark:text-amber-400 flex items-center gap-2">
+                    <span class="text-xl">🥉</span> Medali Perunggu 1 (Juara 3)
+                </label>
+                <select id="medali_perunggu1" disabled class="w-full border border-orange-300 rounded-lg px-3.5 py-2.5 text-sm bg-white dark:bg-slate-800 text-slate-800 dark:text-white font-bold cursor-not-allowed">
+                    <option value="">-- Belum Ditentukan --</option>
+                </select>
+            </div>
+
+            <!-- Perunggu 2 -->
+            <div style="padding: 1.25rem 1.5rem; border: 1.5px solid #fed7aa;" class="bg-orange-50/70 dark:bg-orange-950/20 rounded-xl shadow-xs">
+                <label class="block text-sm font-black mb-2 text-amber-700 dark:text-amber-400 flex items-center gap-2">
+                    <span class="text-xl">🥉</span> Medali Perunggu 2 (Juara 3 Bersama)
+                </label>
+                <select id="medali_perunggu2" disabled class="w-full border border-orange-300 rounded-lg px-3.5 py-2.5 text-sm bg-white dark:bg-slate-800 text-slate-800 dark:text-white font-bold cursor-not-allowed">
+                    <option value="">-- Belum Ditentukan --</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Footer Modal Medali (Padding Lega) -->
+        <div style="padding: 1.25rem 2rem; flex-shrink: 0;" class="flex justify-end border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/70">
+            <button type="button" onclick="closeMedaliModal()" style="background-color: #e2e8f0 !important; color: #334155 !important;" class="px-6 py-2.5 text-xs font-bold text-slate-700 uppercase rounded-lg transition cursor-pointer border-0 hover:bg-slate-300">
+                Tutup
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================== -->
+<!-- 3. JAVASCRIPT LOGIKA PENILAIAN PER KONTINGEN   -->
+<!-- ============================================== -->
 <script>
-    window.openScoresheetModal = function() {
-        var modal = document.getElementById('modalScoresheetPdf');
+    const DEFAULT_PERTANDINGAN_ID = {{ $pertandingan->id }};
+
+    window.openScoresheetModal = function(id) {
+        const targetId = id || DEFAULT_PERTANDINGAN_ID;
+        const modal = document.getElementById('scoresheetModal');
         if (modal) {
             if (modal.parentElement !== document.body) {
                 document.body.appendChild(modal);
             }
             modal.style.display = 'flex';
-            if (typeof calculateAllEmbuTotals === 'function') {
-                calculateAllEmbuTotals();
-            }
         }
+
+        document.getElementById('scoresheet_pertandingan_id').value = targetId;
+        const tbody = document.getElementById('scoresheetBody');
+        tbody.innerHTML = '<tr><td colspan="12" class="text-center py-10 text-slate-500 font-semibold" style="padding: 2.5rem 1rem;">Memuat data kontingen &amp; peserta...</td></tr>';
+
+        fetch(`/pertandingan/${targetId}/peserta`)
+            .then(res => res.json())
+            .then(res => {
+                const data = res.peserta || [];
+                if (data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="12" class="text-center py-10 text-slate-400 font-semibold" style="padding: 2.5rem 1rem;">Belum ada peserta di nomor pertandingan ini.</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = '';
+                data.forEach((item, index) => {
+                    const namaPeserta = item.nama || '-';
+                    const kontingenName = item.kontingen || '-';
+                    const waktu = item.waktu ?? '';
+                    const n1 = item.nilai_1 ?? '';
+                    const n2 = item.nilai_2 ?? '';
+                    const n3 = item.nilai_3 ?? '';
+                    const n4 = item.nilai_4 ?? '';
+                    const n5 = item.nilai_5 ?? '';
+                    const genten = item.minus ?? 0;
+                    const ppIdsString = item.pp_ids ? item.pp_ids.join(',') : item.id;
+
+                    const tr = document.createElement('tr');
+                    tr.className = 'scoresheet-row hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors';
+                    tr.dataset.rowId = item.id;
+                    tr.innerHTML = `
+                        <td style="padding: 12px 10px; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #f1f5f9; text-align: center;" class="font-bold text-xs text-slate-500">${index + 1}</td>
+                        <td style="padding: 12px 14px; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #f1f5f9;" class="text-xs font-black text-blue-700 dark:text-blue-300">
+                            <div class="text-sm font-extrabold text-blue-800 dark:text-blue-300">${kontingenName}</div>
+                            <input type="hidden" name="scores[${item.id}][pp_ids]" value="${ppIdsString}">
+                            <input type="hidden" name="scores[${item.id}][kontingen]" value="${kontingenName}">
+                            <input type="hidden" name="scores[${item.id}][nama]" value="${namaPeserta}">
+                        </td>
+                        <td style="padding: 12px 14px; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #f1f5f9;" class="font-medium text-xs text-slate-700 dark:text-slate-200">
+                            ${namaPeserta}
+                        </td>
+                        <td style="padding: 12px 10px; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #f1f5f9; text-align: center;">
+                            <input type="text" placeholder="00:00" name="scores[${item.id}][waktu]" value="${waktu}" style="width: 82px; padding: 7px 8px; border: 1.5px solid #cbd5e1; border-radius: 8px; text-align: center; font-size: 0.85rem;" class="font-semibold dark:bg-slate-800 dark:border-slate-600 dark:text-white">
+                        </td>
+                        <td style="padding: 12px 6px; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #f1f5f9; text-align: center;">
+                            <input type="number" step="0.01" placeholder="Wasit 1" title="Wasit 1" name="scores[${item.id}][nilai_1]" value="${n1}" oninput="recalcScoresheet()" style="width: 78px; padding: 7px 6px; border: 1.5px solid #cbd5e1; border-radius: 8px; text-align: center; font-size: 0.85rem;" class="score-input n1 font-bold dark:bg-slate-800 dark:border-slate-600 dark:text-white">
+                        </td>
+                        <td style="padding: 12px 6px; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #f1f5f9; text-align: center;">
+                            <input type="number" step="0.01" placeholder="Wasit 2" title="Wasit 2" name="scores[${item.id}][nilai_2]" value="${n2}" oninput="recalcScoresheet()" style="width: 78px; padding: 7px 6px; border: 1.5px solid #cbd5e1; border-radius: 8px; text-align: center; font-size: 0.85rem;" class="score-input n2 font-bold dark:bg-slate-800 dark:border-slate-600 dark:text-white">
+                        </td>
+                        <td style="padding: 12px 6px; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #f1f5f9; text-align: center;">
+                            <input type="number" step="0.01" placeholder="Wasit 3" title="Wasit 3" name="scores[${item.id}][nilai_3]" value="${n3}" oninput="recalcScoresheet()" style="width: 78px; padding: 7px 6px; border: 1.5px solid #cbd5e1; border-radius: 8px; text-align: center; font-size: 0.85rem;" class="score-input n3 font-bold dark:bg-slate-800 dark:border-slate-600 dark:text-white">
+                        </td>
+                        <td style="padding: 12px 6px; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #f1f5f9; text-align: center;">
+                            <input type="number" step="0.01" placeholder="Wasit 4" title="Wasit 4" name="scores[${item.id}][nilai_4]" value="${n4}" oninput="recalcScoresheet()" style="width: 78px; padding: 7px 6px; border: 1.5px solid #cbd5e1; border-radius: 8px; text-align: center; font-size: 0.85rem;" class="score-input n4 font-bold dark:bg-slate-800 dark:border-slate-600 dark:text-white">
+                        </td>
+                        <td style="padding: 12px 6px; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #f1f5f9; text-align: center;">
+                            <input type="number" step="0.01" placeholder="Wasit 5" title="Wasit 5" name="scores[${item.id}][nilai_5]" value="${n5}" oninput="recalcScoresheet()" style="width: 78px; padding: 7px 6px; border: 1.5px solid #cbd5e1; border-radius: 8px; text-align: center; font-size: 0.85rem;" class="score-input n5 font-bold dark:bg-slate-800 dark:border-slate-600 dark:text-white">
+                        </td>
+                        <td style="padding: 12px 10px; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #f1f5f9; text-align: center; background-color: #eff6ff;" class="font-black text-blue-700 dark:text-blue-300 dark:bg-slate-700/60 text-sm nilai-sum">0</td>
+                        <td style="padding: 12px 6px; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #f1f5f9; text-align: center;">
+                            <input type="number" step="0.01" placeholder="0" title="Genten (Minus)" name="scores[${item.id}][minus]" value="${genten}" oninput="recalcScoresheet()" style="width: 78px; padding: 7px 6px; border: 1.5px solid #fca5a5; border-radius: 8px; text-align: center; font-size: 0.85rem;" class="score-input genten font-bold text-red-600 dark:bg-slate-800 dark:border-red-500">
+                        </td>
+                        <td style="padding: 12px 10px; border-bottom: 1px solid #e2e8f0; text-align: center; background-color: #ecfdf5;" class="font-black text-emerald-700 dark:text-emerald-300 dark:bg-slate-700/60 text-sm total-akhir-cell">0</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+                recalcScoresheet();
+            })
+            .catch(err => {
+                console.error(err);
+                tbody.innerHTML = '<tr><td colspan="12" class="text-center py-10 text-red-500 font-semibold" style="padding: 2.5rem 1rem;">Gagal memuat data peserta.</td></tr>';
+            });
     };
 
     window.closeScoresheetModal = function() {
-        var modal = document.getElementById('modalScoresheetPdf');
+        const modal = document.getElementById('scoresheetModal');
         if (modal) {
             modal.style.display = 'none';
         }
     };
 
-    window.openMedaliModal = function() {
-        var modal = document.getElementById('modalSetMedali');
+    window.recalcScoresheet = function() {
+        const rows = document.querySelectorAll('.scoresheet-row');
+
+        rows.forEach(row => {
+            const v1 = row.querySelector('.n1').value;
+            const v2 = row.querySelector('.n2').value;
+            const v3 = row.querySelector('.n3').value;
+            const v4 = row.querySelector('.n4').value;
+            const v5 = row.querySelector('.n5').value;
+            const gentenVal = parseFloat(row.querySelector('.genten').value) || 0;
+
+            const hasAnyInput = [v1, v2, v3, v4, v5].some(v => v !== '');
+            if (!hasAnyInput) {
+                row.querySelector('.nilai-sum').textContent = '-';
+                row.querySelector('.total-akhir-cell').textContent = '-';
+                return;
+            }
+
+            const n1 = parseFloat(v1) || 0;
+            const n2 = parseFloat(v2) || 0;
+            const n3 = parseFloat(v3) || 0;
+            const n4 = parseFloat(v4) || 0;
+            const n5 = parseFloat(v5) || 0;
+
+            // Rumus: Jumlahkan ke-5 nilai wasit lalu dikurangi genten
+            const jumlahNilai = n1 + n2 + n3 + n4 + n5;
+            const totalNilaiAkhir = jumlahNilai - gentenVal;
+
+            row.querySelector('.nilai-sum').textContent = Number.isInteger(jumlahNilai) ? jumlahNilai : jumlahNilai.toFixed(2);
+            row.querySelector('.total-akhir-cell').textContent = Number.isInteger(totalNilaiAkhir) ? totalNilaiAkhir : totalNilaiAkhir.toFixed(2);
+        });
+    };
+
+    window.submitScoresheet = function(event) {
+        event.preventDefault();
+        const id = document.getElementById('scoresheet_pertandingan_id').value || DEFAULT_PERTANDINGAN_ID;
+        const form = document.getElementById('scoresheetForm');
+        const formData = new FormData(form);
+        const submitBtn = document.getElementById('btnSimpanScoresheet');
+
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fa fa-spinner fa-spin mr-1.5"></i> Menyimpan...';
+
+        fetch(`/pertandingan/${id}/scoresheet`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Accept': 'application/json'
+            },
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fa fa-save mr-1.5"></i> Simpan Nilai';
+
+            if (data.status === 'success') {
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil',
+                        text: 'Nilai scoresheet kontingen dan peraih medali berhasil disimpan!',
+                        timer: 1800,
+                        showConfirmButton: false
+                    });
+                } else {
+                    alert('Nilai scoresheet kontingen dan peraih medali berhasil disimpan!');
+                }
+                closeScoresheetModal();
+            } else {
+                alert('Gagal menyimpan nilai.');
+            }
+        })
+        .catch(err => {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fa fa-save mr-1.5"></i> Simpan Nilai';
+            console.error(err);
+            alert('Terjadi kesalahan saat menyimpan nilai.');
+        });
+    };
+
+    window.openMedaliModal = function(id) {
+        const targetId = id || DEFAULT_PERTANDINGAN_ID;
+        const modal = document.getElementById('medaliModal');
         if (modal) {
             if (modal.parentElement !== document.body) {
                 document.body.appendChild(modal);
             }
             modal.style.display = 'flex';
         }
+
+        document.getElementById('medali_pertandingan_id').value = targetId;
+        const selects = ['medali_emas', 'medali_perak', 'medali_perunggu1', 'medali_perunggu2'];
+        selects.forEach(s => {
+            document.getElementById(s).innerHTML = '<option value="">Memuat data...</option>';
+        });
+
+        fetch(`/pertandingan/${targetId}/peserta`)
+            .then(res => res.json())
+            .then(res => {
+                const pert = res.pertandingan || {};
+                const data = res.peserta || [];
+
+                let optionsHtml = '<option value="">-- Belum Ditentukan --</option>';
+
+                // Opsi penilaian langsung berdasarkan kontingen
+                data.forEach(item => {
+                    const label = `${item.kontingen} (${item.nama})`;
+                    const val = item.kontingen;
+                    optionsHtml += `<option value="${val}">${label}</option>`;
+                });
+
+                selects.forEach(s => {
+                    document.getElementById(s).innerHTML = optionsHtml;
+                });
+
+                // Urutkan kontingen berdasarkan total_nilai tertinggi untuk pengisian otomatis
+                const scoredPeserta = data
+                    .filter(item => item.total_nilai !== null && item.total_nilai !== undefined)
+                    .sort((a, b) => parseFloat(b.total_nilai) - parseFloat(a.total_nilai));
+
+                const autoCandidates = [];
+                scoredPeserta.forEach(item => {
+                    const val = item.kontingen;
+                    if (val && !autoCandidates.includes(val)) {
+                        autoCandidates.push(val);
+                    }
+                });
+
+                // Isi otomatis berdasarkan nilai akhir tertinggi
+                document.getElementById('medali_emas').value = autoCandidates[0] || pert.emas || '';
+                document.getElementById('medali_perak').value = autoCandidates[1] || pert.perak || '';
+                document.getElementById('medali_perunggu1').value = autoCandidates[2] || pert.perunggu1 || pert.perunggu || '';
+                document.getElementById('medali_perunggu2').value = autoCandidates[3] || pert.perunggu2 || '';
+            })
+            .catch(err => {
+                console.error(err);
+                selects.forEach(s => {
+                    document.getElementById(s).innerHTML = '<option value="">Gagal memuat</option>';
+                });
+            });
     };
 
     window.closeMedaliModal = function() {
-        var modal = document.getElementById('modalSetMedali');
+        const modal = document.getElementById('medaliModal');
         if (modal) {
             modal.style.display = 'none';
         }
     };
 
-    // Auto-calculate Total Nilai Embu
-    function calculateEmbuRow(row) {
-        var sum = 0;
-        var count = 0;
-        var scoreInputs = row.querySelectorAll('.score-input');
-        scoreInputs.forEach(function(input) {
-            var val = parseFloat(input.value);
-            if (!isNaN(val)) {
-                sum += val;
-                count++;
-            }
-        });
-
-        var hukumanInput = row.querySelector('.hukuman-input');
-        var hukuman = parseFloat(hukumanInput ? hukumanInput.value : 0) || 0;
-
-        var totalInput = row.querySelector('.total-input');
-        if (totalInput) {
-            if (count > 0) {
-                var total = Math.max(0, sum - hukuman);
-                totalInput.value = Number.isInteger(total) ? total : total.toFixed(2);
-            } else {
-                totalInput.value = '';
-            }
-        }
-    }
-
-    function calculateAllEmbuTotals() {
-        document.querySelectorAll('.embu-row').forEach(function(row) {
-            calculateEmbuRow(row);
-        });
-    }
-
-    // Attach listeners
-    (function() {
-        function initModalEvents() {
-            // Embu inputs
-            document.querySelectorAll('.embu-row').forEach(function(row) {
-                row.querySelectorAll('.score-input, .hukuman-input').forEach(function(input) {
-                    input.addEventListener('input', function() {
-                        calculateEmbuRow(row);
-                    });
-                });
-            });
-
-            // Close on click backdrop
-            var modal1 = document.getElementById('modalScoresheetPdf');
-            if (modal1) {
-                modal1.addEventListener('click', function(e) {
-                    if (e.target === modal1) {
-                        window.closeScoresheetModal();
+    // Close modal on click backdrop & ESC
+    document.addEventListener('DOMContentLoaded', function() {
+        ['scoresheetModal', 'medaliModal'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.addEventListener('click', function(e) {
+                    if (e.target === el) {
+                        el.style.display = 'none';
                     }
                 });
             }
+        });
 
-            var modal2 = document.getElementById('modalSetMedali');
-            if (modal2) {
-                modal2.addEventListener('click', function(e) {
-                    if (e.target === modal2) {
-                        window.closeMedaliModal();
-                    }
-                });
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeScoresheetModal();
+                closeMedaliModal();
             }
-
-            // Close on ESC
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape') {
-                    window.closeScoresheetModal();
-                    window.closeMedaliModal();
-                }
-            });
-        }
-
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initModalEvents);
-        } else {
-            initModalEvents();
-        }
-    })();
+        });
+    });
 </script>

@@ -88,4 +88,6 @@ Route::middleware('auth')->group(function () {
     Route::post('/pertandingan/{id}/simpan-pdf', [PertandinganController::class, 'simpanIsianPdf'])->name('pertandingan.simpan-pdf');
     Route::get('/pertandingan/{id}/cetak-pdf', [PertandinganController::class, 'cetakPdf'])->name('pertandingan.cetak-pdf');
     Route::post('/pertandingan/{id}/set-medali', [PertandinganController::class, 'setMedali'])->name('pertandingan.set-medali');
+    Route::get('/pertandingan/{id}/peserta', [PertandinganController::class, 'getPesertaPertandingan'])->name('pertandingan.peserta');
+    Route::post('/pertandingan/{id}/scoresheet', [PertandinganController::class, 'saveScoresheet'])->name('pertandingan.scoresheet');
 });

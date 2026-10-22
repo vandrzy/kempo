@@ -6,12 +6,24 @@ use Illuminate\Database\Eloquent\Model;
 
 class PertandinganPeserta extends Model
 {
-    //
-    protected $guarded = ['id'];
-
-    // public function Pertandingan() {
-    //     return $this->belongsTo(Pertandingan::class);
-    // }
+    protected $fillable = [
+        'pertandingan_id',
+        'peserta_id',
+        'main_kegiatan_id',
+        'list_kategori_id',
+        'kegiatan_id',
+        'sudah_terpilih',
+        'urutan',
+        'waktu',
+        'nilai_1',
+        'nilai_2',
+        'nilai_3',
+        'nilai_4',
+        'nilai_5',
+        'minus',
+        'total_nilai',
+        'medali',
+    ];
 
     public function Peserta() {
         return $this->belongsTo(Peserta::class);
@@ -24,5 +36,4 @@ class PertandinganPeserta extends Model
     public function UrutanKomposisiPeserta() {
         return $this->hasOne(UrutanKomposisiPeserta::class);
     }
-
 }

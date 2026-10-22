@@ -40,11 +40,11 @@
                             <div>
                                 <div class="flex items-center justify-between mb-4 p-3 flex-wrap gap-2">
                                     <div class="flex items-center gap-2 flex-wrap">
-                                        <button type="button" onclick="openScoresheetModal()" style="border: solid 2px #2563eb; color: #2563eb;" class="inline-block px-4 py-2 mb-0 text-xs font-bold leading-normal text-center text-blue-600 align-middle transition-all ease-in bg-transparent border border-solid rounded-lg shadow-none cursor-pointer bg-150 active:opacity-85 hover:-translate-y-px tracking-tight-rem bg-x-25 hover:bg-blue-50">
-                                            <i class="fa fa-file-pdf mr-1"></i> Isi / Cetak PDF
+                                        <button type="button" onclick="openScoresheetModal({{ $pertandingan->id }})" style="background-color: #2563eb !important; color: #ffffff !important; border: 2px solid #2563eb !important;" class="inline-block px-4 py-2 mb-0 text-xs font-bold leading-normal text-center text-white align-middle transition-all ease-in rounded-lg shadow-md hover:opacity-90 transition cursor-pointer">
+                                            <i class="fa fa-file-pdf mr-1"></i> Score Sheet &amp; Cetak PDF
                                         </button>
-                                        <button type="button" onclick="openMedaliModal()" style="border: solid 2px #d97706; color: #d97706;" class="inline-block px-4 py-2 mb-0 text-xs font-bold leading-normal text-center text-amber-600 align-middle transition-all ease-in bg-transparent border border-solid rounded-lg shadow-none cursor-pointer bg-150 active:opacity-85 hover:-translate-y-px tracking-tight-rem bg-x-25 hover:bg-amber-50">
-                                            <i class="fa fa-medal mr-1"></i> Tentukan Peraih Medali
+                                        <button type="button" onclick="openMedaliModal({{ $pertandingan->id }})" style="background-color: #f59e0b !important; color: #ffffff !important; border: 2px solid #f59e0b !important;" class="inline-block px-4 py-2 mb-0 text-xs font-bold leading-normal text-center text-white align-middle transition-all ease-in rounded-lg shadow-md hover:opacity-90 transition cursor-pointer">
+                                            <i class="fa fa-medal mr-1"></i> Peraih Medali
                                         </button>
                                     </div>
                                     <div class="flex items-center gap-2 flex-wrap">
