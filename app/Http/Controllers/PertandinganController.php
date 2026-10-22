@@ -566,6 +566,59 @@ class PertandinganController extends Controller
         $active_kegiatan_id = $kegiatan_id ?: ($request->kegiatan_id ?: optional($semua_kegiatan->first())->id);
         $kegiatan_aktif = Kegiatan::find($active_kegiatan_id);
 
+        $rekap = $this->getRekapitulasiData($active_kegiatan_id);
+
+        return view('admin.pertandingan.laporan_kegiatan', array_merge([
+            'semua_kegiatan' => $semua_kegiatan,
+            'kegiatan_aktif' => $kegiatan_aktif,
+        ], $rekap));
+    }
+
+    /**
+     * Cetak PDF Buku Laporan Hasil Pertandingan Kejuaraan Shorinji Kempo
+     */
+    public function cetakLaporanPdf(Request $request, $kegiatan_id = null)
+    {
+        if (Auth::user()->role === 'wasit') {
+            return redirect('/kegiatan');
+        }
+
+        $semua_kegiatan = Kegiatan::orderBy('created_at', 'DESC')->get();
+        $active_kegiatan_id = $kegiatan_id ?: ($request->kegiatan_id ?: optional($semua_kegiatan->first())->id);
+        $kegiatan_aktif = Kegiatan::findOrFail($active_kegiatan_id);
+
+        $rekap = $this->getRekapitulasiData($active_kegiatan_id);
+
+        $bulanIndo = [
+            1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+            5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+            9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
+        ];
+        $now = \Carbon\Carbon::now('Asia/Makassar');
+        $timestamp_cetak = (int)$now->format('d') . ' ' . $bulanIndo[(int)$now->format('m')] . ' ' . $now->format('Y, H:i') . ' WITA';
+        $tanggal_penetapan = (int)$now->format('d') . ' ' . $bulanIndo[(int)$now->format('m')] . ' ' . $now->format('Y');
+
+        $kota_penetapan = 'Samarinda';
+        if (!empty($kegiatan_aktif->nama) && stripos($kegiatan_aktif->nama, 'Paser') !== false) {
+            $kota_penetapan = 'Paser';
+        }
+
+        $pdf = Pdf::loadView('admin.pertandingan.pdf_laporan_kegiatan', array_merge([
+            'kegiatan_aktif'    => $kegiatan_aktif,
+            'timestamp_cetak'   => $timestamp_cetak,
+            'tanggal_penetapan' => $tanggal_penetapan,
+            'kota_penetapan'    => $kota_penetapan,
+        ], $rekap))->setPaper('a4', 'portrait');
+
+        $safeTitle = preg_replace('/[^A-Za-z0-9_\-]/', '_', $kegiatan_aktif->nama ?? 'Laporan_Hasil_Pertandingan');
+        return $pdf->stream('Buku_Laporan_Hasil_Pertandingan_' . $safeTitle . '.pdf');
+    }
+
+    /**
+     * Helper untuk mengambil seluruh data rekapitulasi kegiatan (Klasemen & Daftar Juara Embu/Randori)
+     */
+    private function getRekapitulasiData($active_kegiatan_id)
+    {
         $klasemen = [];
         $daftar_juara = [];
         $total_kategori = 0;
@@ -573,177 +626,185 @@ class PertandinganController extends Controller
         $total_medali_perak = 0;
         $total_medali_perunggu = 0;
 
-        if ($kegiatan_aktif) {
-            // Ambil semua list kategori pada kegiatan ini
-            $listKategori = ListKategori::with(['kategori', 'pertandingan', 'list_kategori.Peserta.kabupaten'])
-                ->where('kegiatan_id', $active_kegiatan_id)
-                ->get();
-
-            $total_kategori = $listKategori->count();
-
-            // Ambil semua kabupaten / kontingen yang terlibat
-            $kabupatenIds = PertandinganPeserta::where('kegiatan_id', $active_kegiatan_id)
-                ->orWhereIn('list_kategori_id', $listKategori->pluck('id'))
-                ->with('Peserta')
-                ->get()
-                ->pluck('Peserta.kabupaten_id')
-                ->filter()
-                ->unique();
-
-            // Inisialisasi klasemen per kabupaten
-            $semuaKabupaten = Kabupaten::whereIn('id', $kabupatenIds)->get();
-            foreach ($semuaKabupaten as $kab) {
-                $klasemen[$kab->id] = [
-                    'id' => $kab->id,
-                    'nama' => $kab->name,
-                    'emas' => 0,
-                    'perak' => 0,
-                    'perunggu' => 0,
-                    'total' => 0,
-                ];
-            }
-
-            // Proses setiap kategori untuk mendapatkan juara dan klasemen medali
-            foreach ($listKategori as $lk) {
-                $isRandori = stripos($lk->pertandingan->nama ?? '', 'randori') !== false || stripos($lk->kategori->nama ?? '', 'randori') !== false;
-                $jenis = $isRandori ? 'Randori' : 'Embu';
-
-                $juara = $lk->data_juara ?? [];
-
-                $emas_kab_id = $juara['emas']['kabupaten_id'] ?? null;
-                $emas_kab_nama = $juara['emas']['kabupaten_nama'] ?? null;
-                $emas_peserta = $juara['emas']['peserta_nama'] ?? null;
-
-                $perak_kab_id = $juara['perak']['kabupaten_id'] ?? null;
-                $perak_kab_nama = $juara['perak']['kabupaten_nama'] ?? null;
-                $perak_peserta = $juara['perak']['peserta_nama'] ?? null;
-
-                $perunggu_kab_id = $juara['perunggu']['kabupaten_id'] ?? null;
-                $perunggu_kab_nama = $juara['perunggu']['kabupaten_nama'] ?? null;
-                $perunggu_peserta = $juara['perunggu']['peserta_nama'] ?? null;
-
-                $perunggu2_kab_id = $juara['perunggu_2']['kabupaten_id'] ?? null;
-                $perunggu2_kab_nama = $juara['perunggu_2']['kabupaten_nama'] ?? null;
-                $perunggu2_peserta = $juara['perunggu_2']['peserta_nama'] ?? null;
-
-                // Hitung medali ke klasemen
-                if ($emas_kab_id) {
-                    if (!isset($klasemen[$emas_kab_id])) {
-                        $klasemen[$emas_kab_id] = [
-                            'id' => $emas_kab_id,
-                            'nama' => $emas_kab_nama ?: optional(Kabupaten::find($emas_kab_id))->name,
-                            'emas' => 0, 'perak' => 0, 'perunggu' => 0, 'total' => 0,
-                        ];
-                    }
-                    $klasemen[$emas_kab_id]['emas'] += 1;
-                    $total_medali_emas += 1;
-                }
-
-                if ($perak_kab_id) {
-                    if (!isset($klasemen[$perak_kab_id])) {
-                        $klasemen[$perak_kab_id] = [
-                            'id' => $perak_kab_id,
-                            'nama' => $perak_kab_nama ?: optional(Kabupaten::find($perak_kab_id))->name,
-                            'emas' => 0, 'perak' => 0, 'perunggu' => 0, 'total' => 0,
-                        ];
-                    }
-                    $klasemen[$perak_kab_id]['perak'] += 1;
-                    $total_medali_perak += 1;
-                }
-
-                if ($perunggu_kab_id) {
-                    if (!isset($klasemen[$perunggu_kab_id])) {
-                        $klasemen[$perunggu_kab_id] = [
-                            'id' => $perunggu_kab_id,
-                            'nama' => $perunggu_kab_nama ?: optional(Kabupaten::find($perunggu_kab_id))->name,
-                            'emas' => 0, 'perak' => 0, 'perunggu' => 0, 'total' => 0,
-                        ];
-                    }
-                    $klasemen[$perunggu_kab_id]['perunggu'] += 1;
-                    $total_medali_perunggu += 1;
-                }
-
-                if ($perunggu2_kab_id) {
-                    if (!isset($klasemen[$perunggu2_kab_id])) {
-                        $klasemen[$perunggu2_kab_id] = [
-                            'id' => $perunggu2_kab_id,
-                            'nama' => $perunggu2_kab_nama ?: optional(Kabupaten::find($perunggu2_kab_id))->name,
-                            'emas' => 0, 'perak' => 0, 'perunggu' => 0, 'total' => 0,
-                        ];
-                    }
-                    $klasemen[$perunggu2_kab_id]['perunggu'] += 1;
-                    $total_medali_perunggu += 1;
-                }
-
-                $daftar_juara[] = [
-                    'list_kategori_id' => $lk->id,
-                    'pertandingan_id' => $lk->pertandingan_id,
-                    'kategori_nama' => $lk->kategori->nama ?? '-',
-                    'pertandingan_nama' => $lk->pertandingan->nama ?? '-',
-                    'kelas' => $lk->pertandingan->kelas ?? '-',
-                    'jenis' => $jenis,
-                    'emas' => [
-                        'kabupaten' => $emas_kab_nama,
-                        'peserta' => $emas_peserta,
-                    ],
-                    'perak' => [
-                        'kabupaten' => $perak_kab_nama,
-                        'peserta' => $perak_peserta,
-                    ],
-                    'perunggu' => [
-                        'kabupaten' => $perunggu_kab_nama,
-                        'peserta' => $perunggu_peserta,
-                    ],
-                    'perunggu_2' => [
-                        'kabupaten' => $perunggu2_kab_nama,
-                        'peserta' => $perunggu2_peserta,
-                    ],
-                    'is_set' => !empty($emas_kab_id),
-                ];
-            }
-
-            // Hitung total medali per kabupaten & urutkan klasemen
-            foreach ($klasemen as $kId => $v) {
-                $klasemen[$kId]['total'] = $v['emas'] + $v['perak'] + $v['perunggu'];
-            }
-
-            // Urutkan: Emas DESC, Perak DESC, Perunggu DESC, Total DESC, Nama ASC
-            usort($klasemen, function ($a, $b) {
-                if ($a['emas'] !== $b['emas']) {
-                    return $b['emas'] <=> $a['emas'];
-                }
-                if ($a['perak'] !== $b['perak']) {
-                    return $b['perak'] <=> $a['perak'];
-                }
-                if ($a['perunggu'] !== $b['perunggu']) {
-                    return $b['perunggu'] <=> $a['perunggu'];
-                }
-                if ($a['total'] !== $b['total']) {
-                    return $b['total'] <=> $a['total'];
-                }
-                return strcmp($a['nama'], $b['nama']);
-            });
-
-            // Pecah daftar juara menjadi 2 kategori: Embu dan Randori
-            $daftar_juara_embu = array_values(array_filter($daftar_juara, fn($item) => $item['jenis'] === 'Embu'));
-            $daftar_juara_randori = array_values(array_filter($daftar_juara, fn($item) => $item['jenis'] === 'Randori'));
-        } else {
-            $daftar_juara_embu = [];
-            $daftar_juara_randori = [];
+        if (!$active_kegiatan_id) {
+            return [
+                'klasemen'              => [],
+                'daftar_juara'          => [],
+                'daftar_juara_embu'     => [],
+                'daftar_juara_randori'  => [],
+                'total_kategori'        => 0,
+                'total_medali_emas'     => 0,
+                'total_medali_perak'    => 0,
+                'total_medali_perunggu' => 0,
+                'total_seluruh_medali'  => 0,
+            ];
         }
 
-        return view('admin.pertandingan.laporan_kegiatan', compact(
-            'semua_kegiatan',
-            'kegiatan_aktif',
-            'klasemen',
-            'daftar_juara',
-            'daftar_juara_embu',
-            'daftar_juara_randori',
-            'total_kategori',
-            'total_medali_emas',
-            'total_medali_perak',
-            'total_medali_perunggu'
-        ));
+        // Ambil semua list kategori pada kegiatan ini
+        $listKategori = ListKategori::with(['kategori', 'pertandingan', 'list_kategori.Peserta.kabupaten'])
+            ->where('kegiatan_id', $active_kegiatan_id)
+            ->get();
+
+        $total_kategori = $listKategori->count();
+
+        // Ambil semua kabupaten / kontingen yang terlibat
+        $kabupatenIds = PertandinganPeserta::where('kegiatan_id', $active_kegiatan_id)
+            ->orWhereIn('list_kategori_id', $listKategori->pluck('id'))
+            ->with('Peserta')
+            ->get()
+            ->pluck('Peserta.kabupaten_id')
+            ->filter()
+            ->unique();
+
+        // Inisialisasi klasemen per kabupaten
+        $semuaKabupaten = Kabupaten::whereIn('id', $kabupatenIds)->get();
+        foreach ($semuaKabupaten as $kab) {
+            $klasemen[$kab->id] = [
+                'id' => $kab->id,
+                'nama' => $kab->name,
+                'emas' => 0,
+                'perak' => 0,
+                'perunggu' => 0,
+                'total' => 0,
+            ];
+        }
+
+        // Proses setiap kategori untuk mendapatkan juara dan klasemen medali
+        foreach ($listKategori as $lk) {
+            $isRandori = stripos($lk->pertandingan->nama ?? '', 'randori') !== false || stripos($lk->kategori->nama ?? '', 'randori') !== false;
+            $jenis = $isRandori ? 'Randori' : 'Embu';
+
+            $juara = $lk->data_juara ?? [];
+
+            $emas_kab_id = $juara['emas']['kabupaten_id'] ?? null;
+            $emas_kab_nama = $juara['emas']['kabupaten_nama'] ?? null;
+            $emas_peserta = $juara['emas']['peserta_nama'] ?? null;
+
+            $perak_kab_id = $juara['perak']['kabupaten_id'] ?? null;
+            $perak_kab_nama = $juara['perak']['kabupaten_nama'] ?? null;
+            $perak_peserta = $juara['perak']['peserta_nama'] ?? null;
+
+            $perunggu_kab_id = $juara['perunggu']['kabupaten_id'] ?? null;
+            $perunggu_kab_nama = $juara['perunggu']['kabupaten_nama'] ?? null;
+            $perunggu_peserta = $juara['perunggu']['peserta_nama'] ?? null;
+
+            $perunggu2_kab_id = $juara['perunggu_2']['kabupaten_id'] ?? null;
+            $perunggu2_kab_nama = $juara['perunggu_2']['kabupaten_nama'] ?? null;
+            $perunggu2_peserta = $juara['perunggu_2']['peserta_nama'] ?? null;
+
+            // Hitung medali ke klasemen
+            if ($emas_kab_id) {
+                if (!isset($klasemen[$emas_kab_id])) {
+                    $klasemen[$emas_kab_id] = [
+                        'id' => $emas_kab_id,
+                        'nama' => $emas_kab_nama ?: optional(Kabupaten::find($emas_kab_id))->name,
+                        'emas' => 0, 'perak' => 0, 'perunggu' => 0, 'total' => 0,
+                    ];
+                }
+                $klasemen[$emas_kab_id]['emas'] += 1;
+                $total_medali_emas += 1;
+            }
+
+            if ($perak_kab_id) {
+                if (!isset($klasemen[$perak_kab_id])) {
+                    $klasemen[$perak_kab_id] = [
+                        'id' => $perak_kab_id,
+                        'nama' => $perak_kab_nama ?: optional(Kabupaten::find($perak_kab_id))->name,
+                        'emas' => 0, 'perak' => 0, 'perunggu' => 0, 'total' => 0,
+                    ];
+                }
+                $klasemen[$perak_kab_id]['perak'] += 1;
+                $total_medali_perak += 1;
+            }
+
+            if ($perunggu_kab_id) {
+                if (!isset($klasemen[$perunggu_kab_id])) {
+                    $klasemen[$perunggu_kab_id] = [
+                        'id' => $perunggu_kab_id,
+                        'nama' => $perunggu_kab_nama ?: optional(Kabupaten::find($perunggu_kab_id))->name,
+                        'emas' => 0, 'perak' => 0, 'perunggu' => 0, 'total' => 0,
+                    ];
+                }
+                $klasemen[$perunggu_kab_id]['perunggu'] += 1;
+                $total_medali_perunggu += 1;
+            }
+
+            if ($perunggu2_kab_id) {
+                if (!isset($klasemen[$perunggu2_kab_id])) {
+                    $klasemen[$perunggu2_kab_id] = [
+                        'id' => $perunggu2_kab_id,
+                        'nama' => $perunggu2_kab_nama ?: optional(Kabupaten::find($perunggu2_kab_id))->name,
+                        'emas' => 0, 'perak' => 0, 'perunggu' => 0, 'total' => 0,
+                    ];
+                }
+                $klasemen[$perunggu2_kab_id]['perunggu'] += 1;
+                $total_medali_perunggu += 1;
+            }
+
+            $daftar_juara[] = [
+                'list_kategori_id' => $lk->id,
+                'pertandingan_id' => $lk->pertandingan_id,
+                'kategori_nama' => $lk->kategori->nama ?? '-',
+                'pertandingan_nama' => $lk->pertandingan->nama ?? '-',
+                'kelas' => $lk->pertandingan->kelas ?? '-',
+                'jenis' => $jenis,
+                'emas' => [
+                    'kabupaten' => $emas_kab_nama,
+                    'peserta' => $emas_peserta,
+                ],
+                'perak' => [
+                    'kabupaten' => $perak_kab_nama,
+                    'peserta' => $perak_peserta,
+                ],
+                'perunggu' => [
+                    'kabupaten' => $perunggu_kab_nama,
+                    'peserta' => $perunggu_peserta,
+                ],
+                'perunggu_2' => [
+                    'kabupaten' => $perunggu2_kab_nama,
+                    'peserta' => $perunggu2_peserta,
+                ],
+                'is_set' => !empty($emas_kab_id),
+            ];
+        }
+
+        // Hitung total medali per kabupaten & urutkan klasemen
+        foreach ($klasemen as $kId => $v) {
+            $klasemen[$kId]['total'] = $v['emas'] + $v['perak'] + $v['perunggu'];
+        }
+
+        // Urutkan: Emas DESC, Perak DESC, Perunggu DESC, Total DESC, Nama ASC
+        usort($klasemen, function ($a, $b) {
+            if ($a['emas'] !== $b['emas']) {
+                return $b['emas'] <=> $a['emas'];
+            }
+            if ($a['perak'] !== $b['perak']) {
+                return $b['perak'] <=> $a['perak'];
+            }
+            if ($a['perunggu'] !== $b['perunggu']) {
+                return $b['perunggu'] <=> $a['perunggu'];
+            }
+            if ($a['total'] !== $b['total']) {
+                return $b['total'] <=> $a['total'];
+            }
+            return strcmp($a['nama'], $b['nama']);
+        });
+
+        // Pecah daftar juara menjadi 2 kategori: Embu dan Randori
+        $daftar_juara_embu = array_values(array_filter($daftar_juara, fn($item) => $item['jenis'] === 'Embu'));
+        $daftar_juara_randori = array_values(array_filter($daftar_juara, fn($item) => $item['jenis'] === 'Randori'));
+
+        return [
+            'klasemen'              => $klasemen,
+            'daftar_juara'          => $daftar_juara,
+            'daftar_juara_embu'     => $daftar_juara_embu,
+            'daftar_juara_randori'  => $daftar_juara_randori,
+            'total_kategori'        => $total_kategori,
+            'total_medali_emas'     => $total_medali_emas,
+            'total_medali_perak'    => $total_medali_perak,
+            'total_medali_perunggu' => $total_medali_perunggu,
+            'total_seluruh_medali'  => $total_medali_emas + $total_medali_perak + $total_medali_perunggu,
+        ];
     }
 
     /**

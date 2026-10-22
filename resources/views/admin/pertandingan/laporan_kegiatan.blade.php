@@ -30,10 +30,13 @@
                             </select>
                         </div>
 
-                        <!-- Print Button -->
-                        <button onclick="window.print()" class="inline-flex items-center gap-2 px-4 py-2 text-xs font-bold text-white uppercase transition-all bg-emerald-600 rounded-lg shadow-md hover:bg-emerald-700 active:opacity-85">
-                            <i class="fa fa-print"></i> Cetak Laporan
-                        </button>
+                        @if(isset($kegiatan_aktif) && $kegiatan_aktif)
+                        <!-- Cetak Buku PDF Laporan Button -->
+                        <a href="{{ route('laporan.kegiatan.pdf', $kegiatan_aktif->id) }}" target="_blank" style="background-color: #5d71e3 !important; color: #ffffff !important; border: 1.5px solid #5d71e3 !important;" class="inline-flex items-center gap-2 px-4 py-2.5 text-xs font-bold uppercase rounded-lg shadow-md hover:opacity-90 active:opacity-85 transition-all cursor-pointer" title="Cetak Buku Laporan Hasil Pertandingan (PDF)">
+                            <i class="fa fa-file-pdf-o text-sm" style="color: #ffffff !important;"></i>
+                            <span style="color: #ffffff !important;">Cetak PDF Buku Laporan</span>
+                        </a>
+                        @endif
                     </div>
                 </div>
             </div>
