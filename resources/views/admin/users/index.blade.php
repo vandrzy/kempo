@@ -44,7 +44,16 @@
                                 <p class="mb-0 text-3xl  font-semibold leading-tight dark:text-white {{ $a->email_verified_at ? 'text-blue-500' : 'text-red-500' }}  dark:opacity-80">{{ $a->email_verified_at ? 'Telah diverifikasi' : 'Belum Diverifikasi' }}</p>
                             </td>
                             <td class="p-2 text-center align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-                                <p class="mb-0 text-3xl  font-semibold leading-tight dark:text-white dark:opacity-80">{{ (($a->role == 1) ? 'Admin' : 'Operator') ?? "-" }}</p>
+                                @php
+                                    $displayRole = match($a->role) {
+                                        'admin', 1, '1' => 'Super Admin',
+                                        'operator', 2, '2' => 'Operator',
+                                        'wasit' => 'Wasit',
+                                        'user', 0, '0' => 'User / Kontingen',
+                                        default => ucfirst($a->role ?? '-'),
+                                    };
+                                @endphp
+                                <p class="mb-0 text-3xl  font-semibold leading-tight dark:text-white dark:opacity-80">{{ $displayRole }}</p>
                             </td>
                             <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
                                 <div class="flex justify-center items-center space-x-4">

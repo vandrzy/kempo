@@ -24,11 +24,12 @@
 <div class="mb-4">
     <label for="">Role Pengguna : <span style="color: red;">*</span></label>
     <select name="role" id="" class="w-full pl-9 text-sm focus:shadow-primary-outline ease leading-5.6 relative -ml-px block min-w-0 flex-auto rounded-lg border border-solid border-gray-300 dark:bg-slate-850 dark:text-white bg-white bg-clip-padding py-2 pr-3 text-gray-700 transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:transition-shadow">
-        <option value="" disabled selected>Pilih Role Pengguna</option>
-        <option value="1" {{ @$user->role == 1 ? 'selected' : '' }}>Super Admin</option>
-        <option value="2" {{ @$user->role == 2 ? 'selected' : '' }}>Operator</option>
+        <option value="" disabled {{ !isset($user) && !old('role') ? 'selected' : '' }}>Pilih Role Pengguna</option>
+        <option value="admin" {{ (old('role', @$user->role) == 'admin' || old('role', @$user->role) == '1') ? 'selected' : '' }}>Super Admin</option>
+        <option value="operator" {{ (old('role', @$user->role) == 'operator' || old('role', @$user->role) == '2') ? 'selected' : '' }}>Operator</option>
+        <option value="wasit" {{ old('role', @$user->role) == 'wasit' ? 'selected' : '' }}>Wasit</option>
     </select>
-    @error('no_wa')
+    @error('role')
         <span class="text-red" style="color: red;">{{ $message }}</span>
     @enderror
 </div>

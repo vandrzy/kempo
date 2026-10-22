@@ -69,9 +69,8 @@
         <div class="items-center block w-auto max-h-screen overflow-visible h-sidenav grow basis-full">
 
             <ul class="flex flex-col pl-0 mb-0">
+            @if(Auth::user()->role !== 'wasit')
             <li class="mt-0.5 w-full">
-                        {{-- <a href="{{ url('dashboard') }}" class="block p-2 rounded {{ request()->is('dashboard*') ? 'bg-blue-100 text-blue-700 font-semibold' : 'hover:bg-blue-100' }}">Dashboard</a> --}}
-
                 <a class="py-2.7 {{ request()->is('dashboard*') ? 'bg-blue-500/13' : '' }} dark:text-white dark:opacity-80 text-sm ease-nav-brand my-0 mx-2 flex items-center whitespace-nowrap rounded-lg px-4 font-semibold text-slate-700 transition-colors" href="{{ url('dashboard') }}">
                 <div class="mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-center stroke-0 text-center xl:p-2.5">
                     <i class="relative top-0 text-sm leading-normal text-blue-500 ni ni-tv-2"></i>
@@ -79,24 +78,28 @@
                 <span class="ml-1 duration-300 opacity-100 pointer-events-none ease">Dashboard</span>
                 </a>
             </li>
+            @endif
 
+            @if(Auth::user()->role !== 'wasit')
             <li class="w-full mt-4">
                 <h6 class="pl-6 ml-2 text-xs font-bold leading-tight uppercase dark:text-white opacity-60">Master Data</h6>
             </li>
+            @endif
 
+            {{-- MENU PENGGUNA (Khusus Super Admin) --}}
+            @if(in_array(Auth::user()->role, ['admin', 1, '1']))
             <li class="mt-0.5 w-full">
-                @if(Auth::user()->role == 1)
-                    <a class=" dark:text-white dark:opacity-80 {{ request()->is('users*') ? 'bg-blue-500/13' : '' }} py-2.7 text-sm ease-nav-brand my-0 mx-2 flex items-center whitespace-nowrap px-4 transition-colors" href="{{ url('users') }}">
-                    <div class="mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-center stroke-0 text-center xl:p-2.5">
-                        <i class="relative top-0 text-sm leading-normal text-slate-700 ni ni-single-02"></i>
-                    </div>
-                    <span class="ml-1 duration-300 opacity-100 pointer-events-none ease">Pengguna</span>
-                    </a>
-                @endif
-
+                <a class=" dark:text-white dark:opacity-80 {{ request()->is('users*') ? 'bg-blue-500/13' : '' }} py-2.7 text-sm ease-nav-brand my-0 mx-2 flex items-center whitespace-nowrap px-4 transition-colors" href="{{ url('users') }}">
+                <div class="mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-center stroke-0 text-center xl:p-2.5">
+                    <i class="relative top-0 text-sm leading-normal text-slate-700 ni ni-single-02"></i>
+                </div>
+                <span class="ml-1 duration-300 opacity-100 pointer-events-none ease">Pengguna</span>
+                </a>
             </li>
+            @endif
 
-
+            {{-- KATEGORI & TANDING (Bisa diakses Super Admin & Operator, Dilarang untuk Wasit) --}}
+            @if(Auth::user()->role !== 'wasit')
             <li class="mt-0.5 w-full">
                 <a class=" dark:text-white {{ request()->is('kategori*') ? 'bg-blue-500/13' : '' }} dark:opacity-80 py-2.7 text-sm ease-nav-brand my-0 mx-2 flex items-center whitespace-nowrap px-4 transition-colors" href="{{ url('kategori') }}">
                 <div class="mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-center stroke-0 text-center xl:p-2.5">
@@ -114,19 +117,14 @@
                 <span class="ml-1 duration-300 opacity-100 pointer-events-none ease">Tanding</span>
                 </a>
             </li>
-
-            {{-- <li class="mt-0.5 w-full">
-                <a class=" dark:text-white dark:opacity-80 py-2.7 text-sm ease-nav-brand my-0 mx-2 flex items-center whitespace-nowrap px-4 transition-colors" href="./pages/sign-up.html">
-                <div class="mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-center stroke-0 text-center xl:p-2.5">
-                    <i class="relative top-0 text-sm leading-normal text-cyan-500 ni ni-collection"></i>
-                </div>
-                <span class="ml-1 duration-300 opacity-100 pointer-events-none ease">Sign Up</span>
-                </a>
-            </li> --}}
+            @endif
 
             <li class="w-full mt-4">
                 <h6 class="pl-6 ml-2 text-xs font-bold leading-tight uppercase dark:text-white opacity-60">Data Utama</h6>
             </li>
+
+            {{-- MENU KEGIATAN (Bisa diakses Admin, Wasit, dan User) --}}
+            @if(in_array(Auth::user()->role, ['admin', 'wasit', 'user', 'operator', 1, '1', 0, '0', 2, '2']))
             <li class="mt-0.5 w-full">
                 <a class=" dark:text-white  {{ request()->is('kegiatan*') ? 'bg-blue-500/13' : '' }} dark:opacity-80 py-2.7 text-sm ease-nav-brand my-0 mx-2 flex items-center whitespace-nowrap px-4 transition-colors" href="{{ url('kegiatan') }}">
                 <div class="mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-center stroke-0 text-center xl:p-2.5">
@@ -135,7 +133,10 @@
                 <span class="ml-1 duration-300 opacity-100 pointer-events-none ease">Kegiatan</span>
                 </a>
             </li>
+            @endif
 
+            {{-- MENU LAINNYA (Dilarang untuk Wasit) --}}
+            @if(Auth::user()->role !== 'wasit')
             <li class="mt-0.5 w-full">
                 <a class=" dark:text-white dark:opacity-80 {{ request()->is('peserta*') ? 'bg-blue-500/13' : '' }} py-2.7 text-sm ease-nav-brand my-0 mx-2 flex items-center whitespace-nowrap px-4 transition-colors" href="{{ url('peserta') }}">
                 <div class="mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-center stroke-0 text-center xl:p-2.5">
@@ -168,6 +169,7 @@
                 <span class="ml-1 duration-300 opacity-100 pointer-events-none ease">Laporan Kegiatan</span>
                 </a>
             </li>
+            @endif
             </ul>
         </div>
 

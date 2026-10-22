@@ -6,6 +6,7 @@ use App\Models\Kabupaten;
 use App\Models\Kegiatan;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class KontigenController extends Controller
@@ -15,7 +16,10 @@ class KontigenController extends Controller
      */
     public function index()
     {
-        //
+        if (Auth::user()->role === 'wasit') {
+            abort(403, 'Unauthorized');
+        }
+
         $kegiatan_id = $_GET['kegiatan_id'] ?? 0;
         $data['kabupatens'] = Kabupaten::with(['peserta' => function($q) use ($kegiatan_id) {
             $q->whereHas('PertandinganPeserta', function($qq) {

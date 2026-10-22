@@ -16,8 +16,8 @@ class UsersController extends Controller
      */
     public function index()
     {
-        if(Auth::user()->role != 1) {
-            return redirect('/');
+        if (Auth::user()->role !== 'admin' && Auth::user()->role != 1) {
+            abort(403, 'Unauthorized');
         }
         if(isset($_GET['cari'])) {
             $data['users'] = User::where('name','like','%'.$_GET['cari'].'%')->orWhere('email','like','%'.$_GET['cari'].'%')->paginate(10);
@@ -34,9 +34,8 @@ class UsersController extends Controller
      */
     public function create()
     {
-        //
-       if(Auth::user()->role != 1) {
-            return redirect('/');
+        if (Auth::user()->role !== 'admin' && Auth::user()->role != 1) {
+            abort(403, 'Unauthorized');
         }
         return view('admin.users.tambah');
     }
@@ -46,21 +45,22 @@ class UsersController extends Controller
      */
     public function store(Request $request)
     {
-        //
-        if(Auth::user()->role != 1) {
-            return redirect('/');
+        if (Auth::user()->role !== 'admin' && Auth::user()->role != 1) {
+            abort(403, 'Unauthorized');
         }
         $validator = Validator::make($request->all(), [
             'name' => ['required'],
             'email' => ['required', 'email'],
             'no_wa' => ['required', 'numeric'],
+            'role' => ['required', 'in:admin,operator,wasit,1,2,user'],
         ],[
             'name.required' => 'Nama Lengkap wajib diisi!',
             'email.required' => 'Email wajib diisi!',
             'email.email' => 'Email harus diisi dengan format email diisi!',
-
             'no_wa.required' => 'Nomor Whatsapp wajib diisi!',
             'no_wa.numeric' => 'Nomor Whatsapp harus pake angka!',
+            'role.required' => 'Role Pengguna wajib dipilih!',
+            'role.in' => 'Role Pengguna tidak valid!',
         ]);
 
         if ($validator->fails()) {
@@ -75,13 +75,13 @@ class UsersController extends Controller
                 'name' => $request->name,
                 'email' => $request->email,
                 'no_wa' => $request->no_wa,
+                'role' => $request->role,
                 'email_verified_at' => $request->verifikasi == 1 ? date('Y-m-d h:i:s') : null,
                 'password' => Hash::make($request->password),
             ]);
 
             return redirect('users')->with('success', 'Data Berhasil Disimpan');
         } catch (\Throwable $th) {
-            //throw $th;
             return redirect()->back()
                 ->with('gagal', 'Terjadi kesalahan saat menyimpan data!')
                 ->withInput();
@@ -93,7 +93,9 @@ class UsersController extends Controller
      */
     public function show(string $id)
     {
-        //
+        if (Auth::user()->role !== 'admin' && Auth::user()->role != 1) {
+            abort(403, 'Unauthorized');
+        }
     }
 
     /**
@@ -101,9 +103,8 @@ class UsersController extends Controller
      */
     public function edit(string $id)
     {
-        //
-        if(Auth::user()->role != 1) {
-            return redirect('/');
+        if (Auth::user()->role !== 'admin' && Auth::user()->role != 1) {
+            abort(403, 'Unauthorized');
         }
         $data['user'] = User::find($id);
         return view('admin.users.edit', $data);
@@ -115,24 +116,23 @@ class UsersController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
-        if(Auth::user()->role != 1) {
-            return redirect('/');
+        if (Auth::user()->role !== 'admin' && Auth::user()->role != 1) {
+            abort(403, 'Unauthorized');
         }
         $validator = Validator::make($request->all(), [
             'name' => ['required'],
             'email' => ['required', 'email'],
             'no_wa' => ['required', 'numeric'],
+            'role' => ['required', 'in:admin,operator,wasit,1,2,user'],
         ],[
             'name.required' => 'Nama Lengkap wajib diisi!',
             'email.required' => 'Email wajib diisi!',
             'email.email' => 'Email harus diisi dengan format email diisi!',
-
             'no_wa.required' => 'Nomor Whatsapp wajib diisi!',
             'no_wa.numeric' => 'Nomor Whatsapp harus pake angka!',
+            'role.required' => 'Role Pengguna wajib dipilih!',
+            'role.in' => 'Role Pengguna tidak valid!',
         ]);
-
-
 
         if ($validator->fails()) {
             return redirect()->back()
@@ -141,30 +141,25 @@ class UsersController extends Controller
                 ->with('gagal', 'Data Gagal Disimpan!');
         }
 
-
-
-
+        try {
             $checkValidasi = null;
             $user = User::find($id);
-
 
             $user->name = $request->name;
             $user->email = $request->email;
             $user->no_wa = $request->no_wa;
             $user->role = $request->role;
 
-
             if($user->email_verified_at != null) {
                 $checkValidasi = 1;
             } else {
                 $checkValidasi = 0;
-
             }
 
             $user->email_verified_at = $request->verifikasi == 1 ? date('Y-m-d h:i:s') : null;
 
             if($request->password) {
-                $user->password = $request->password;
+                $user->password = Hash::make($request->password);
             }
             $user->save();
 
@@ -179,7 +174,6 @@ class UsersController extends Controller
             }
 
             return redirect('users')->with('success', 'Data Berhasil Diubah');
-                    try {
         } catch (\Throwable $th) {
             return redirect()->back()
                 ->with('gagal', 'Terjadi kesalahan saat menyimpan data!')
@@ -192,8 +186,8 @@ class UsersController extends Controller
      */
     public function destroy(string $id)
     {
-        if(Auth::user()->role != 1) {
-            return redirect('/');
+        if (Auth::user()->role !== 'admin' && Auth::user()->role != 1) {
+            abort(403, 'Unauthorized');
         }
         try {
             $user = User::find($id);
@@ -201,7 +195,7 @@ class UsersController extends Controller
 
             return redirect('users')->with('success', 'Data Berhasil Dihapus');
         } catch (\Throwable $th) {
-            //throw $th;
+            return redirect()->back()->with('gagal', 'Terjadi kesalahan saat menghapus data!');
         }
     }
 }

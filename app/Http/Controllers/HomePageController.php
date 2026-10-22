@@ -374,6 +374,9 @@ class HomePageController extends Controller
 
 
     public function home() {
+        if (Auth::user()->role === 'wasit') {
+            return redirect('/kegiatan');
+        }
         return view('admin.dashboard');
     }
 
@@ -393,7 +396,7 @@ class HomePageController extends Controller
             $user = Auth::user();
 
             // Cek apakah email sudah diverifikasi
-            if (is_null($user->email_verified_at) && $user->role != 0) {
+            if (is_null($user->email_verified_at) && $user->role != 0 && $user->role !== 'user') {
                 Auth::logout(); // langsung logout
                 return back()->withErrors([
                     'error' => 'Email Anda belum diverifikasi. Mohon bersabar untuk menerima konfirmasi Whatsapp yang akan diberikan kepada anda!.',
@@ -402,7 +405,14 @@ class HomePageController extends Controller
 
             // Kalau verified, lanjut
             $request->session()->regenerate();
-            return redirect()->intended('/dashboard');
+
+            if ($user->role === 'wasit') {
+                return redirect('/kegiatan');
+            } elseif ($user->role === 'admin' || $user->role == 1) {
+                return redirect()->intended('/dashboard');
+            } else {
+                return redirect()->intended('/dashboard');
+            }
         }
 
         return back()->withErrors([
@@ -454,7 +464,7 @@ class HomePageController extends Controller
                 'email' => $request->email,
                 'no_wa' => $request->no_wa,
                 'password' => Hash::make($request->password),
-                'role' => 0,
+                'role' => 'user',
             ]);
             return redirect('/')->with('success', 'Registrasi telah Berhasil mohon tunggu akan dikonfirmasi ke Whatsapp anda!!');
         } catch (\Throwable $th) {

@@ -34,7 +34,9 @@ class KegiatanController extends Controller
      */
     public function create()
     {
-        //
+        if (!in_array(Auth::user()->role, ['admin', 'operator', 1, '1', 2, '2'])) {
+            abort(403, 'Unauthorized');
+        }
 
         $data['main_kategori'] = Kategori::get();
 
@@ -46,7 +48,9 @@ class KegiatanController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        if (!in_array(Auth::user()->role, ['admin', 'operator', 1, '1', 2, '2'])) {
+            abort(403, 'Unauthorized');
+        }
 
         $validator = Validator::make($request->all(), [
             'nama' => 'required',
@@ -122,11 +126,12 @@ class KegiatanController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        if (!in_array(Auth::user()->role, ['admin', 'operator', 1, '1', 2, '2'])) {
+            abort(403, 'Unauthorized');
+        }
         $data['kegiatan'] = Kegiatan::find($id);
         $data['main_kategori'] = Kategori::get();
         return view('admin.kegiatan.edit', $data);
-
     }
 
     /**
@@ -134,7 +139,9 @@ class KegiatanController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        if (!in_array(Auth::user()->role, ['admin', 'operator', 1, '1', 2, '2'])) {
+            abort(403, 'Unauthorized');
+        }
         $validator = Validator::make($request->all(), [
             'nama' => 'required',
         ], [
@@ -148,14 +155,10 @@ class KegiatanController extends Controller
                 ->with('gagal', 'Data Gagal Disimpan!');
         }
 
-
-            // dd($idLah);
-
         try {
             $kegiatan = Kegiatan::find($id);
             $kegiatan->nama = $request->nama;
             $kegiatan->user_id = Auth::user()->id;
-
 
             ListKategori::where('kegiatan_id', $kegiatan->id)->delete();
             foreach($request->list_kategori_id as $index => $a) {
@@ -185,13 +188,16 @@ class KegiatanController extends Controller
      */
     public function destroy(string $id)
     {
+        if (!in_array(Auth::user()->role, ['admin', 'operator', 1, '1', 2, '2'])) {
+            abort(403, 'Unauthorized');
+        }
         try {
             $kegiatan = Kegiatan::find($id);
             $kegiatan->delete();
 
             return redirect('kegiatan')->with('success', 'Data Berhasil Dihapus');
         } catch (\Throwable $th) {
-            //throw $th;
+            return redirect()->back()->with('gagal', 'Terjadi kesalahan saat menghapus data!');
         }
     }
 }

@@ -17,6 +17,9 @@ class KategoriController extends Controller
      */
     public function index()
     {
+        if (!in_array(Auth::user()->role, ['admin', 'operator', 1, '1', 2, '2'])) {
+            abort(403, 'Unauthorized');
+        }
         if(isset($_GET['cari'])) {
             $cari = $_GET['cari'];
             $data['kategori'] = Kategori::where('nama','like','%'.$cari.'%')->paginate(10);
@@ -24,7 +27,6 @@ class KategoriController extends Controller
             $data['kategori'] = Kategori::paginate(10);
         }
 
-        // dd(count($data['kategori']));
         return view('admin.kategori.index', $data);
     }
 
@@ -33,8 +35,9 @@ class KategoriController extends Controller
      */
     public function create()
     {
-        //
-        // $data['kegiatan'] = Kegiatan::get();
+        if (!in_array(Auth::user()->role, ['admin', 'operator', 1, '1', 2, '2'])) {
+            abort(403, 'Unauthorized');
+        }
         return view('admin.kategori.tambah');
     }
 
@@ -43,6 +46,9 @@ class KategoriController extends Controller
      */
     public function store(Request $request)
     {
+        if (!in_array(Auth::user()->role, ['admin', 'operator', 1, '1', 2, '2'])) {
+            abort(403, 'Unauthorized');
+        }
         //
         $validator = Validator::make($request->all(), [
             'nama' => 'required',
@@ -90,7 +96,9 @@ class KategoriController extends Controller
      */
     public function show(string $id)
     {
-        //
+        if (!in_array(Auth::user()->role, ['admin', 'operator', 1, '1', 2, '2'])) {
+            abort(403, 'Unauthorized');
+        }
     }
 
     /**
@@ -98,7 +106,9 @@ class KategoriController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        if (!in_array(Auth::user()->role, ['admin', 'operator', 1, '1', 2, '2'])) {
+            abort(403, 'Unauthorized');
+        }
         $data['kegiatan'] = Kegiatan::get();
         $data['kategori'] = Kategori::find($id);
         return view('admin.kategori.edit', $data);
@@ -110,7 +120,9 @@ class KategoriController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        if (!in_array(Auth::user()->role, ['admin', 'operator', 1, '1', 2, '2'])) {
+            abort(403, 'Unauthorized');
+        }
         $validator = Validator::make($request->all(), [
             'nama' => 'required',
             // 'kegiatan_id' => 'required',
@@ -125,7 +137,6 @@ class KategoriController extends Controller
                 ->withInput()
                 ->with('gagal', 'Data Gagal Disimpan!');
         }
-
 
         try {
             $kategori = Kategori::find($id);
@@ -152,6 +163,9 @@ class KategoriController extends Controller
      */
     public function destroy(string $id)
     {
+        if (!in_array(Auth::user()->role, ['admin', 'operator', 1, '1', 2, '2'])) {
+            abort(403, 'Unauthorized');
+        }
         try {
             $kategori = Kategori::find($id);
             $kategori->delete();

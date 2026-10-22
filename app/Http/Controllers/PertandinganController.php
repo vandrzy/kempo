@@ -24,23 +24,10 @@ class PertandinganController extends Controller
      */
     public function index()
     {
+        if (Auth::user()->role === 'wasit') {
+            return redirect('/kegiatan');
+        }
         $data['pertandingan'] = Pertandingan::whereNotNull('created_at');
-        // if(isset($_GET['kegiatan_id'])  && $_GET['kegiatan_id'] != "") {
-        //     $kegiatan = Kegiatan::find($_GET['kegiatan_id']);
-        //     $data['kategori'] = Kategori::where('kegiatan_id', $kegiatan->id)->get();
-
-        //     $kegiatan_id = $kegiatan->id;
-        //     $data['pertandingan'] = $data['pertandingan']->WhereHas('kategori', function ($q3) use ($kegiatan_id) {
-        //         $q3->where('kegiatan_id', $kegiatan_id);
-        //     });
-        // } else {
-        //     $data['kegiatan_get'] = Kegiatan::orderBy('created_at', 'DESC')->first();
-        //     $kegiatan_id = $data['kegiatan_get']->id;
-        //     $data['pertandingan'] = $data['pertandingan']->WhereHas('kategori', function ($q3) use ($kegiatan_id) {
-        //         $q3->where('kegiatan_id', $kegiatan_id);
-        //     });
-
-        // }
 
         if(isset($_GET['kategori_id'])  && $_GET['kategori_id'] != "") {
             $data['pertandingan'] = $data['pertandingan']->where('kategori_id', $_GET['kategori_id']);
@@ -52,7 +39,6 @@ class PertandinganController extends Controller
 
         $data['pertandingan'] = $data['pertandingan']->orderBy('kategori_id', 'ASC')->orderBy('jenis_kelamin','DESC')->paginate(10);
         $data['kategori'] = Kategori::get();
-        // dd(count($data['kategori']));
         return view('admin.pertandingan.index', $data);
     }
 
@@ -61,10 +47,11 @@ class PertandinganController extends Controller
      */
     public function create()
     {
-        // $data['kegiatan'] = Kegiatan::find($_GET['kegiatan_id']);
+        if (!in_array(Auth::user()->role, ['admin', 'operator', 1, '1', 2, '2'])) {
+            abort(403, 'Unauthorized');
+        }
         $data['kategori'] = Kategori::get();
         return view('admin.pertandingan.tambah', $data);
-
     }
 
     /**
@@ -72,6 +59,9 @@ class PertandinganController extends Controller
      */
     public function store(Request $request)
     {
+        if (!in_array(Auth::user()->role, ['admin', 'operator', 1, '1', 2, '2'])) {
+            abort(403, 'Unauthorized');
+        }
         $validator = Validator::make($request->all(), [
             'nama' => 'required',
             'kelas' => 'required',
@@ -84,8 +74,6 @@ class PertandinganController extends Controller
             'jenis_kelamin.required' => 'Jenis Kelamin Wajib Diisi!',
         ]);
 
-
-
         if ($validator->fails()) {
             return redirect()->back()
                 ->withErrors($validator)
@@ -94,8 +82,6 @@ class PertandinganController extends Controller
         }
 
         try {
-
-
             Pertandingan::create([
                 'nama' => $request->nama,
                 'kelas' => $request->kelas,
@@ -121,6 +107,9 @@ class PertandinganController extends Controller
      */
     public function show(string $id)
     {
+        if (!in_array(Auth::user()->role, ['admin', 'operator', 'wasit', 1, '1', 2, '2'])) {
+            return redirect()->back()->with('error', 'Akses ditolak');
+        }
 
         $data['peserta_ready'] = PertandinganPeserta::where('sudah_terpilih', 'false')->where('kegiatan_id', $_GET['kegiatan_id'])->where('list_kategori_id', $id)->count();
         $data['peserta_lawan'] = PesertaTerpilih::where('list_kategori_id', $id)->where('kegiatan_id', $_GET['kegiatan_id'])->paginate(10);
@@ -245,9 +234,9 @@ class PertandinganController extends Controller
     }
 
     public function tanding(Request $request,$id) {
-
-
-        // $kontigen_tersedia = KontigenPertandingan::where('list_kategori_id', $id)->('urutan')
+        if (!in_array(Auth::user()->role, ['admin', 'operator', 'wasit', 1, '1', 2, '2'])) {
+            return redirect()->back()->with('error', 'Akses ditolak');
+        }
 
         $check = Pertandingan::find($request->pertandingan_id);
         $kontigen_delete = KontigenPertandingan::where('list_kategori_id', $id)->where('urutan', 1)->delete();
@@ -489,7 +478,9 @@ class PertandinganController extends Controller
      */
     public function edit(string $id)
     {
-        // $data['kegiatan'] = Kegiatan::find($_GET['kegiatan_id']);
+        if (!in_array(Auth::user()->role, ['admin', 'operator', 1, '1', 2, '2'])) {
+            abort(403, 'Unauthorized');
+        }
         $data['kategori'] = Kategori::get();
         $data['pertandingan'] = Pertandingan::find($id);
 
@@ -501,6 +492,9 @@ class PertandinganController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        if (!in_array(Auth::user()->role, ['admin', 'operator', 1, '1', 2, '2'])) {
+            abort(403, 'Unauthorized');
+        }
         $validator = Validator::make($request->all(), [
             'nama' => 'required',
             'kelas' => 'required',
@@ -520,7 +514,6 @@ class PertandinganController extends Controller
                 ->with('gagal', 'Data Gagal Disimpan!');
         }
 
-
         try {
             $pertandingan = Pertandingan::find($id);
             $pertandingan->kategori_id = $request->kategori_id;
@@ -532,7 +525,6 @@ class PertandinganController extends Controller
             $pertandingan->perunggu = $request->perunggu;
             $pertandingan->user_id = Auth::user()->id;
             $pertandingan->bagan = $request->bagan;
-
 
             $pertandingan->save();
 
@@ -549,13 +541,16 @@ class PertandinganController extends Controller
      */
     public function destroy(string $id)
     {
+        if (!in_array(Auth::user()->role, ['admin', 'operator', 1, '1', 2, '2'])) {
+            abort(403, 'Unauthorized');
+        }
         try {
             $pertandingan = Pertandingan::find($id);
             $pertandingan->delete();
 
             return redirect('pertandingan?kegiatan_id='.Request('kegiatan_id'))->with('success', 'Data Berhasil Dihapus');
         } catch (\Throwable $th) {
-            //throw $th;
+            return redirect()->back()->with('gagal', 'Terjadi kesalahan saat menghapus data!');
         }
     }
 
@@ -564,6 +559,9 @@ class PertandinganController extends Controller
      */
     public function laporanKegiatan(Request $request, $kegiatan_id = null)
     {
+        if (Auth::user()->role === 'wasit') {
+            return redirect('/kegiatan');
+        }
         $semua_kegiatan = Kegiatan::orderBy('created_at', 'DESC')->get();
         $active_kegiatan_id = $kegiatan_id ?: ($request->kegiatan_id ?: optional($semua_kegiatan->first())->id);
         $kegiatan_aktif = Kegiatan::find($active_kegiatan_id);
@@ -744,6 +742,10 @@ class PertandinganController extends Controller
      */
     public function simpanIsianPdf(Request $request, string $id)
     {
+        if (!in_array(Auth::user()->role, ['admin', 'operator', 'wasit', 1, '1', 2, '2'])) {
+            return redirect()->back()->with('error', 'Akses ditolak');
+        }
+
         $listKategori = ListKategori::findOrFail($id);
         $pertandingan = Pertandingan::find($listKategori->pertandingan_id);
 
@@ -770,6 +772,10 @@ class PertandinganController extends Controller
      */
     public function cetakPdf(Request $request, string $id)
     {
+        if (!in_array(Auth::user()->role, ['admin', 'operator', 'wasit', 1, '1', 2, '2'])) {
+            return redirect()->back()->with('error', 'Akses ditolak');
+        }
+
         $listKategori = ListKategori::with(['kegiatan', 'kategori', 'pertandingan'])->findOrFail($id);
 
         $isRandori = stripos($listKategori->pertandingan->nama ?? '', 'randori') !== false ||
@@ -802,6 +808,10 @@ class PertandinganController extends Controller
      */
     public function setMedali(Request $request, string $id)
     {
+        if (!in_array(Auth::user()->role, ['admin', 'operator', 'wasit', 1, '1', 2, '2'])) {
+            return redirect()->back()->with('error', 'Akses ditolak');
+        }
+
         $listKategori = ListKategori::with(['list_kategori.Peserta.kabupaten'])->findOrFail($id);
 
         $emas_kab_id = $request->emas_kabupaten_id;

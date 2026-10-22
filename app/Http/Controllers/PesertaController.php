@@ -12,6 +12,7 @@ use App\Models\PertandinganPeserta;
 use App\Models\Peserta;
 use App\Models\UrutanKomposisiPeserta;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Intervention\Image\ImageManager;
 use Maatwebsite\Excel\Facades\Excel;
@@ -25,8 +26,9 @@ class PesertaController extends Controller
      */
     public function index()
     {
-        //
-
+        if (Auth::user()->role === 'wasit') {
+            abort(403, 'Unauthorized');
+        }
 
         $data['peserta'] = Peserta::where('status', 'P')->whereNotNull('created_at');
 
