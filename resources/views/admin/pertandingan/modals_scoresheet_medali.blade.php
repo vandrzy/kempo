@@ -132,22 +132,12 @@
                 </select>
             </div>
 
-            <!-- Perunggu 1 -->
-            <div style="padding: 1.25rem 1.5rem; margin-bottom: 1.25rem; border: 1.5px solid #fed7aa;" class="bg-orange-50/70 dark:bg-orange-950/20 rounded-xl shadow-xs">
-                <label class="block text-sm font-black mb-2 text-amber-700 dark:text-amber-400 flex items-center gap-2">
-                    <span class="text-xl">🥉</span> Medali Perunggu 1 (Juara 3)
-                </label>
-                <select id="medali_perunggu1" disabled class="w-full border border-orange-300 rounded-lg px-3.5 py-2.5 text-sm bg-white dark:bg-slate-800 text-slate-800 dark:text-white font-bold cursor-not-allowed">
-                    <option value="">-- Belum Ditentukan --</option>
-                </select>
-            </div>
-
-            <!-- Perunggu 2 -->
+            <!-- Perunggu -->
             <div style="padding: 1.25rem 1.5rem; border: 1.5px solid #fed7aa;" class="bg-orange-50/70 dark:bg-orange-950/20 rounded-xl shadow-xs">
                 <label class="block text-sm font-black mb-2 text-amber-700 dark:text-amber-400 flex items-center gap-2">
-                    <span class="text-xl">🥉</span> Medali Perunggu 2 (Juara 3 Bersama)
+                    <span class="text-xl">🥉</span> Medali Perunggu (Juara 3)
                 </label>
-                <select id="medali_perunggu2" disabled class="w-full border border-orange-300 rounded-lg px-3.5 py-2.5 text-sm bg-white dark:bg-slate-800 text-slate-800 dark:text-white font-bold cursor-not-allowed">
+                <select id="medali_perunggu1" disabled class="w-full border border-orange-300 rounded-lg px-3.5 py-2.5 text-sm bg-white dark:bg-slate-800 text-slate-800 dark:text-white font-bold cursor-not-allowed">
                     <option value="">-- Belum Ditentukan --</option>
                 </select>
             </div>
@@ -350,7 +340,7 @@
         }
 
         document.getElementById('medali_pertandingan_id').value = targetId;
-        const selects = ['medali_emas', 'medali_perak', 'medali_perunggu1', 'medali_perunggu2'];
+        const selects = ['medali_emas', 'medali_perak', 'medali_perunggu1'];
         selects.forEach(s => {
             document.getElementById(s).innerHTML = '<option value="">Memuat data...</option>';
         });
@@ -391,7 +381,6 @@
                 document.getElementById('medali_emas').value = autoCandidates[0] || pert.emas || '';
                 document.getElementById('medali_perak').value = autoCandidates[1] || pert.perak || '';
                 document.getElementById('medali_perunggu1').value = autoCandidates[2] || pert.perunggu1 || pert.perunggu || '';
-                document.getElementById('medali_perunggu2').value = autoCandidates[3] || pert.perunggu2 || '';
             })
             .catch(err => {
                 console.error(err);

@@ -245,18 +245,7 @@
                                         @if(!empty($item['perunggu']['peserta']))
                                             <div class="text-xs text-slate-500">{{ $item['perunggu']['peserta'] }}</div>
                                         @endif
-                                    @endif
-
-                                    @if(!empty($item['perunggu_2']['kabupaten']))
-                                        <div class="font-bold text-sm text-orange-700 dark:text-orange-300 mt-1 pt-1 border-t border-slate-100 dark:border-slate-800">
-                                            {{ $item['perunggu_2']['kabupaten'] }} <span class="text-xs font-normal text-slate-400">(Juara 3 Bersama)</span>
-                                        </div>
-                                        @if(!empty($item['perunggu_2']['peserta']))
-                                            <div class="text-xs text-slate-500">{{ $item['perunggu_2']['peserta'] }}</div>
-                                        @endif
-                                    @endif
-
-                                    @if(empty($item['perunggu']['kabupaten']) && empty($item['perunggu_2']['kabupaten']))
+                                    @else
                                         <span class="text-xs italic text-slate-400">- Belum Ditentukan -</span>
                                     @endif
                                 </td>

@@ -817,7 +817,6 @@ class PertandinganController extends Controller
         $emas_kab_id = $request->emas_kabupaten_id;
         $perak_kab_id = $request->perak_kabupaten_id;
         $perunggu_kab_id = $request->perunggu_kabupaten_id;
-        $perunggu2_kab_id = $request->perunggu_2_kabupaten_id;
 
         $dataJuara = [
             'emas' => [
@@ -834,11 +833,6 @@ class PertandinganController extends Controller
                 'kabupaten_id' => $perunggu_kab_id,
                 'kabupaten_nama' => $perunggu_kab_id ? optional(Kabupaten::find($perunggu_kab_id))->name : null,
                 'peserta_nama' => $this->getPesertaNamesByKabupaten($listKategori, $perunggu_kab_id),
-            ],
-            'perunggu_2' => [
-                'kabupaten_id' => $perunggu2_kab_id,
-                'kabupaten_nama' => $perunggu2_kab_id ? optional(Kabupaten::find($perunggu2_kab_id))->name : null,
-                'peserta_nama' => $this->getPesertaNamesByKabupaten($listKategori, $perunggu2_kab_id),
             ],
         ];
 
@@ -866,13 +860,6 @@ class PertandinganController extends Controller
             PertandinganPeserta::where('list_kategori_id', $id)
                 ->whereHas('Peserta', function ($q) use ($perunggu_kab_id) {
                     $q->where('kabupaten_id', $perunggu_kab_id);
-                })->update(['medali' => 'perunggu']);
-        }
-
-        if ($perunggu2_kab_id) {
-            PertandinganPeserta::where('list_kategori_id', $id)
-                ->whereHas('Peserta', function ($q) use ($perunggu2_kab_id) {
-                    $q->where('kabupaten_id', $perunggu2_kab_id);
                 })->update(['medali' => 'perunggu']);
         }
 
@@ -1307,7 +1294,7 @@ class PertandinganController extends Controller
                     'perak'     => $candidates[1] ?? null,
                     'perunggu'  => $candidates[2] ?? null,
                     'perunggu1' => $candidates[2] ?? null,
-                    'perunggu2' => $candidates[3] ?? null,
+                    'perunggu2' => null,
                 ]);
             }
 
@@ -1328,11 +1315,6 @@ class PertandinganController extends Controller
                         'kabupaten_id'   => $candidatesKab[2] ?? null,
                         'kabupaten_nama' => optional(\App\Models\Kabupaten::find($candidatesKab[2] ?? null))->name,
                         'peserta_nama'   => $this->getPesertaNamesByKabupaten($listKategori, $candidatesKab[2] ?? null),
-                    ],
-                    'perunggu_2' => [
-                        'kabupaten_id'   => $candidatesKab[3] ?? null,
-                        'kabupaten_nama' => optional(\App\Models\Kabupaten::find($candidatesKab[3] ?? null))->name,
-                        'peserta_nama'   => $this->getPesertaNamesByKabupaten($listKategori, $candidatesKab[3] ?? null),
                     ],
                 ];
                 $listKategori->data_juara = $juaraData;
