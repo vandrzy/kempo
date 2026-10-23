@@ -119,35 +119,41 @@
                             <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors {{ $index < 3 ? 'font-semibold' : '' }}">
                                 <td class="p-3 text-center align-middle">
                                     @if($index == 0)
-                                        <span class="inline-flex items-center justify-center w-7 h-7 text-xs font-bold text-white bg-amber-500 rounded-full shadow-sm">1</span>
+                                        <span style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 9999px; background: linear-gradient(135deg, #f59e0b, #d97706); color: #ffffff !important; font-size: 13px; font-weight: 800; box-shadow: 0 2px 4px rgba(217, 119, 6, 0.4);" title="Juara 1 (Emas)">
+                                            1
+                                        </span>
                                     @elseif($index == 1)
-                                        <span class="inline-flex items-center justify-center w-7 h-7 text-xs font-bold text-white bg-slate-400 rounded-full shadow-sm">2</span>
+                                        <span style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 9999px; background: linear-gradient(135deg, #94a3b8, #64748b); color: #ffffff !important; font-size: 13px; font-weight: 800; box-shadow: 0 2px 4px rgba(100, 116, 139, 0.4);" title="Juara 2 (Perak)">
+                                            2
+                                        </span>
                                     @elseif($index == 2)
-                                        <span class="inline-flex items-center justify-center w-7 h-7 text-xs font-bold text-white bg-orange-500 rounded-full shadow-sm">3</span>
+                                        <span style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 9999px; background: linear-gradient(135deg, #f97316, #ea580c); color: #ffffff !important; font-size: 13px; font-weight: 800; box-shadow: 0 2px 4px rgba(234, 88, 12, 0.4);" title="Juara 3 (Perunggu)">
+                                            3
+                                        </span>
                                     @else
-                                        <span class="text-sm text-slate-500">{{ $index + 1 }}</span>
+                                        <span class="text-sm font-semibold text-slate-500 dark:text-slate-400">{{ $index + 1 }}</span>
                                     @endif
                                 </td>
                                 <td class="p-3 text-left align-middle">
                                     <span class="text-sm font-bold text-slate-800 dark:text-white">{{ $row['nama'] }}</span>
                                 </td>
                                 <td class="p-3 text-center align-middle">
-                                    <span class="inline-block px-3 py-1 text-sm font-bold rounded-lg {{ $row['emas'] > 0 ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300' : 'text-slate-400' }}">
+                                    <span class="inline-block px-3 py-1 text-sm font-bold rounded-lg" style="{{ $row['emas'] > 0 ? 'background-color: #fef3c7; color: #92400e; border: 1px solid #fde68a;' : 'color: #94a3b8;' }}">
                                         {{ $row['emas'] }}
                                     </span>
                                 </td>
                                 <td class="p-3 text-center align-middle">
-                                    <span class="inline-block px-3 py-1 text-sm font-bold rounded-lg {{ $row['perak'] > 0 ? 'bg-slate-200 text-slate-800 dark:bg-slate-700 dark:text-slate-200' : 'text-slate-400' }}">
+                                    <span class="inline-block px-3 py-1 text-sm font-bold rounded-lg" style="{{ $row['perak'] > 0 ? 'background-color: #f1f5f9; color: #334155; border: 1px solid #e2e8f0;' : 'color: #94a3b8;' }}">
                                         {{ $row['perak'] }}
                                     </span>
                                 </td>
                                 <td class="p-3 text-center align-middle">
-                                    <span class="inline-block px-3 py-1 text-sm font-bold rounded-lg {{ $row['perunggu'] > 0 ? 'bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-300' : 'text-slate-400' }}">
+                                    <span class="inline-block px-3 py-1 text-sm font-bold rounded-lg" style="{{ $row['perunggu'] > 0 ? 'background-color: #ffedd5; color: #9a3412; border: 1px solid #fed7aa;' : 'color: #94a3b8;' }}">
                                         {{ $row['perunggu'] }}
                                     </span>
                                 </td>
                                 <td class="p-3 text-center align-middle">
-                                    <span class="inline-block px-3 py-1 text-base font-extrabold text-blue-700 bg-blue-50 dark:bg-blue-900/40 dark:text-blue-300 rounded-lg">
+                                    <span class="inline-block px-3 py-1 text-base font-extrabold rounded-lg" style="background-color: #eff6ff; color: #1d4ed8; border: 1px solid #dbeafe;">
                                         {{ $row['total'] }}
                                     </span>
                                 </td>
