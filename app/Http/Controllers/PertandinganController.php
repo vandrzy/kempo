@@ -1447,9 +1447,9 @@ class PertandinganController extends Controller
                 $n3 = $hasN3 ? max(0, min(100, floatval($val['nilai_3']))) : null;
                 $n4 = $hasN4 ? max(0, min(100, floatval($val['nilai_4']))) : null;
                 $n5 = $hasN5 ? max(0, min(100, floatval($val['nilai_5']))) : null;
-                $genten = $hasGenten ? max(0, min(100, floatval($val['minus']))) : null;
-
                 $hasAnyScore = $hasN1 || $hasN2 || $hasN3 || $hasN4 || $hasN5 || $hasGenten;
+                $genten = $hasGenten ? max(0, min(100, floatval($val['minus']))) : ($hasAnyScore ? 0 : null);
+
                 if ($hasAnyScore) {
                     $nilai = ($n1 ?? 0) + ($n2 ?? 0) + ($n3 ?? 0) + ($n4 ?? 0) + ($n5 ?? 0);
                     $totalNilaiAkhir = $nilai - ($genten ?? 0);

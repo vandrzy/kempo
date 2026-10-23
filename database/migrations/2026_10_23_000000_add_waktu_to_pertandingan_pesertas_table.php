@@ -28,7 +28,7 @@ return new class extends Migration
                 $table->decimal('nilai_5', 8, 2)->nullable();
             }
             if (!Schema::hasColumn('pertandingan_pesertas', 'minus')) {
-                $table->decimal('minus', 8, 2)->default(0);
+                $table->decimal('minus', 8, 2)->nullable()->default(0);
             }
             if (!Schema::hasColumn('pertandingan_pesertas', 'total_nilai')) {
                 $table->decimal('total_nilai', 8, 2)->nullable();
