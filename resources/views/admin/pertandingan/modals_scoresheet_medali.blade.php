@@ -406,14 +406,31 @@
                 }
                 closeScoresheetModal();
             } else {
-                alert('Gagal menyimpan nilai.');
+                const msg = data.message || 'Gagal menyimpan nilai.';
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal Menyimpan',
+                        text: msg
+                    });
+                } else {
+                    alert(msg);
+                }
             }
         })
         .catch(err => {
             submitBtn.disabled = false;
             submitBtn.innerHTML = '<i class="fa fa-save mr-1.5"></i> Simpan Nilai';
             console.error(err);
-            alert('Terjadi kesalahan saat menyimpan nilai.');
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Kesalahan Sistem',
+                    text: 'Terjadi kesalahan saat memproses data.'
+                });
+            } else {
+                alert('Terjadi kesalahan saat menyimpan nilai.');
+            }
         });
     };
 

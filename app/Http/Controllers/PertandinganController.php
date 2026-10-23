@@ -1411,168 +1411,231 @@ class PertandinganController extends Controller
      */
     public function saveScoresheet(Request $request, $id)
     {
-        $listKategori = ListKategori::find($id);
-        $pertandingan = null;
-        if ($listKategori) {
-            $pertandingan = Pertandingan::find($listKategori->pertandingan_id);
-        } else {
-            $pertandingan = Pertandingan::find($id);
-        }
-
-        $scores = $request->input('scores', []);
-
-        $scoresheetData = ($listKategori && $listKategori->data_scoresheet) ? $listKategori->data_scoresheet : ($pertandingan?->data_scoresheet ?? []);
-        if (!is_array($scoresheetData)) {
-            $scoresheetData = [];
-        }
-        $scoresheetData['peserta'] = [];
-        $scoresheetData['rows'] = [];
-
-        $rIdx = 0;
-        foreach ($scores as $rowId => $val) {
-            $waktu = $val['waktu'] ?? '00:00';
-            $n1 = isset($val['nilai_1']) && $val['nilai_1'] !== '' ? floatval($val['nilai_1']) : 0;
-            $n2 = isset($val['nilai_2']) && $val['nilai_2'] !== '' ? floatval($val['nilai_2']) : 0;
-            $n3 = isset($val['nilai_3']) && $val['nilai_3'] !== '' ? floatval($val['nilai_3']) : 0;
-            $n4 = isset($val['nilai_4']) && $val['nilai_4'] !== '' ? floatval($val['nilai_4']) : 0;
-            $n5 = isset($val['nilai_5']) && $val['nilai_5'] !== '' ? floatval($val['nilai_5']) : 0;
-            $genten = isset($val['minus']) && $val['minus'] !== '' ? floatval($val['minus']) : 0;
-
-            // Rumus: Jumlahkan ke-5 nilai wasit lalu dikurangi genten (minus)
-            $nilai = $n1 + $n2 + $n3 + $n4 + $n5;
-            $totalNilaiAkhir = $nilai - $genten;
-
-            // Kumpulkan ID seluruh peserta dalam kontingen tersebut
-            $targetIds = [];
-            if (!empty($val['pp_ids'])) {
-                $targetIds = is_array($val['pp_ids']) ? $val['pp_ids'] : explode(',', $val['pp_ids']);
-            }
-            if (empty($targetIds)) {
-                $targetIds = [$rowId];
-            }
-
-            // Seluruh peserta dari satu kontingen mendapatkan nilai yang sama persis
-            foreach ($targetIds as $ppId) {
-                $pp = PertandinganPeserta::find($ppId);
-                if ($pp) {
-                    $pp->update([
-                        'waktu'       => $waktu,
-                        'nilai_1'     => $val['nilai_1'] !== '' ? $n1 : null,
-                        'nilai_2'     => $val['nilai_2'] !== '' ? $n2 : null,
-                        'nilai_3'     => $val['nilai_3'] !== '' ? $n3 : null,
-                        'nilai_4'     => $val['nilai_4'] !== '' ? $n4 : null,
-                        'nilai_5'     => $val['nilai_5'] !== '' ? $n5 : null,
-                        'minus'       => $val['minus'] !== '' ? $genten : 0,
-                        'total_nilai' => $totalNilaiAkhir
-                    ]);
-                }
-            }
-
-            // Rekam ke scoresheetData untuk cetak PDF & Papan Skor
-            $kontingenText = $val['kontingen'] ?? '';
-            $namaPesertaText = $val['nama'] ?? '';
-
-            $scoresheetData['peserta'][$rIdx] = [
-                'undian'    => $rIdx + 1,
-                'kontingen' => $kontingenText,
-                'peserta'   => $namaPesertaText,
-                'waktu'     => $waktu,
-                'juri_1'    => $n1,
-                'juri_2'    => $n2,
-                'juri_3'    => $n3,
-                'juri_4'    => $n4,
-                'juri_5'    => $n5,
-                'hukuman'   => $genten,
-                'total'     => $totalNilaiAkhir,
-            ];
-
-            $scoresheetData['rows'][$rIdx] = [
-                'scores'      => [$n1, $n2, $n3, $n4, $n5],
-                'total'       => $nilai,
-                'waktu'       => $waktu,
-                'genten'      => $genten,
-                'pengurangan' => $genten,
-                'total_akhir' => $totalNilaiAkhir,
-            ];
-            $rIdx++;
-        }
-
-        if ($listKategori) {
-            $listKategori->data_scoresheet = $scoresheetData;
-            $listKategori->save();
-        }
-        if ($pertandingan) {
-            $pertandingan->data_scoresheet = $scoresheetData;
-            $pertandingan->save();
-        }
-
-        // Otomatis tentukan Peraih Medali berdasarkan total_nilai akhir tertinggi per kontingen
-        $ranked = PertandinganPeserta::with('Peserta.kabupaten')
-            ->where(function ($q) use ($id, $listKategori) {
-                $q->where('list_kategori_id', $id)
-                  ->orWhere('pertandingan_id', $id);
-                if ($listKategori && $listKategori->pertandingan_id) {
-                    $q->orWhere('pertandingan_id', $listKategori->pertandingan_id);
-                }
-            })
-            ->whereNotNull('total_nilai')
-            ->orderByDesc('total_nilai')
-            ->get();
-
-        $targetPertandingan = $pertandingan ?: ($listKategori ? $listKategori->pertandingan : null);
-        $kategori = $listKategori ? $listKategori->kategori : ($targetPertandingan ? $targetPertandingan->kategori : null);
-
-        if ($ranked->count() > 0) {
-            $candidates = [];
-            $candidatesKab = [];
-            foreach ($ranked as $item) {
-                if (!$item->Peserta) continue;
-                $kontigenVal = optional($item->Peserta->kabupaten)->name ?? ($item->Peserta->kontigen ?? '');
-                $kabId = optional($item->Peserta)->kabupaten_id;
-                // Penilaian langsung berdasarkan kontingen
-                $val = $kontigenVal ?: ($item->Peserta->nama ?? ('Peserta #' . $item->id));
-                if ($val && !in_array($val, $candidates)) {
-                    $candidates[] = $val;
-                }
-                if ($kabId && !in_array($kabId, $candidatesKab)) {
-                    $candidatesKab[] = $kabId;
-                }
-            }
-
-            if ($targetPertandingan) {
-                $targetPertandingan->update([
-                    'emas'      => $candidates[0] ?? null,
-                    'perak'     => $candidates[1] ?? null,
-                    'perunggu'  => $candidates[2] ?? null,
-                    'perunggu1' => $candidates[2] ?? null,
-                    'perunggu2' => null,
-                ]);
-            }
-
-            // Simpan juga ke data_juara pada list_kategori
+        try {
+            $listKategori = ListKategori::find($id);
+            $pertandingan = null;
             if ($listKategori) {
-                $juaraData = [
-                    'emas' => [
-                        'kabupaten_id'   => $candidatesKab[0] ?? null,
-                        'kabupaten_nama' => optional(\App\Models\Kabupaten::find($candidatesKab[0] ?? null))->name,
-                        'peserta_nama'   => $this->getPesertaNamesByKabupaten($listKategori, $candidatesKab[0] ?? null),
-                    ],
-                    'perak' => [
-                        'kabupaten_id'   => $candidatesKab[1] ?? null,
-                        'kabupaten_nama' => optional(\App\Models\Kabupaten::find($candidatesKab[1] ?? null))->name,
-                        'peserta_nama'   => $this->getPesertaNamesByKabupaten($listKategori, $candidatesKab[1] ?? null),
-                    ],
-                    'perunggu' => [
-                        'kabupaten_id'   => $candidatesKab[2] ?? null,
-                        'kabupaten_nama' => optional(\App\Models\Kabupaten::find($candidatesKab[2] ?? null))->name,
-                        'peserta_nama'   => $this->getPesertaNamesByKabupaten($listKategori, $candidatesKab[2] ?? null),
-                    ],
+                $pertandingan = Pertandingan::find($listKategori->pertandingan_id);
+            } else {
+                $pertandingan = Pertandingan::find($id);
+            }
+
+            $scores = $request->input('scores', []);
+
+            $scoresheetData = ($listKategori && $listKategori->data_scoresheet) ? $listKategori->data_scoresheet : ($pertandingan?->data_scoresheet ?? []);
+            if (!is_array($scoresheetData)) {
+                $scoresheetData = [];
+            }
+            $scoresheetData['peserta'] = [];
+            $scoresheetData['rows'] = [];
+
+            $rIdx = 0;
+            foreach ($scores as $rowId => $val) {
+                $waktu = $val['waktu'] ?? '00:00';
+                $n1 = isset($val['nilai_1']) && $val['nilai_1'] !== '' ? floatval($val['nilai_1']) : 0;
+                $n2 = isset($val['nilai_2']) && $val['nilai_2'] !== '' ? floatval($val['nilai_2']) : 0;
+                $n3 = isset($val['nilai_3']) && $val['nilai_3'] !== '' ? floatval($val['nilai_3']) : 0;
+                $n4 = isset($val['nilai_4']) && $val['nilai_4'] !== '' ? floatval($val['nilai_4']) : 0;
+                $n5 = isset($val['nilai_5']) && $val['nilai_5'] !== '' ? floatval($val['nilai_5']) : 0;
+                $genten = isset($val['minus']) && $val['minus'] !== '' ? floatval($val['minus']) : 0;
+
+                // Rumus: Jumlahkan ke-5 nilai wasit lalu dikurangi genten (minus)
+                $nilai = $n1 + $n2 + $n3 + $n4 + $n5;
+                $totalNilaiAkhir = $nilai - $genten;
+
+                // Kumpulkan ID seluruh peserta dalam kontingen tersebut
+                $targetIds = [];
+                if (!empty($val['pp_ids'])) {
+                    $targetIds = is_array($val['pp_ids']) ? $val['pp_ids'] : explode(',', $val['pp_ids']);
+                }
+                if (empty($targetIds)) {
+                    $targetIds = [$rowId];
+                }
+
+                // Seluruh peserta dari satu kontingen mendapatkan nilai yang sama persis
+                foreach ($targetIds as $ppId) {
+                    $pp = PertandinganPeserta::find($ppId);
+                    if ($pp) {
+                        $pp->update([
+                            'waktu'       => $waktu,
+                            'nilai_1'     => $val['nilai_1'] !== '' ? $n1 : null,
+                            'nilai_2'     => $val['nilai_2'] !== '' ? $n2 : null,
+                            'nilai_3'     => $val['nilai_3'] !== '' ? $n3 : null,
+                            'nilai_4'     => $val['nilai_4'] !== '' ? $n4 : null,
+                            'nilai_5'     => $val['nilai_5'] !== '' ? $n5 : null,
+                            'minus'       => $val['minus'] !== '' ? $genten : 0,
+                            'total_nilai' => $totalNilaiAkhir
+                        ]);
+                    }
+                }
+
+                // Rekam ke scoresheetData untuk cetak PDF & Papan Skor
+                $kontingenText = $val['kontingen'] ?? '';
+                $namaPesertaText = $val['nama'] ?? '';
+
+                $scoresheetData['peserta'][$rIdx] = [
+                    'undian'    => $rIdx + 1,
+                    'kontingen' => $kontingenText,
+                    'peserta'   => $namaPesertaText,
+                    'waktu'     => $waktu,
+                    'juri_1'    => $n1,
+                    'juri_2'    => $n2,
+                    'juri_3'    => $n3,
+                    'juri_4'    => $n4,
+                    'juri_5'    => $n5,
+                    'hukuman'   => $genten,
+                    'total'     => $totalNilaiAkhir,
                 ];
-                $listKategori->data_juara = $juaraData;
+
+                $scoresheetData['rows'][$rIdx] = [
+                    'scores'      => [$n1, $n2, $n3, $n4, $n5],
+                    'total'       => $nilai,
+                    'waktu'       => $waktu,
+                    'genten'      => $genten,
+                    'pengurangan' => $genten,
+                    'total_akhir' => $totalNilaiAkhir,
+                ];
+                $rIdx++;
+            }
+
+            if ($listKategori) {
+                $listKategori->data_scoresheet = $scoresheetData;
                 $listKategori->save();
             }
+            if ($pertandingan) {
+                $pertandingan->data_scoresheet = $scoresheetData;
+                $pertandingan->save();
+            }
+
+            // Otomatis tentukan Peraih Medali berdasarkan total_nilai akhir tertinggi per kontingen
+            $ranked = PertandinganPeserta::with('Peserta.kabupaten')
+                ->where(function ($q) use ($id, $listKategori) {
+                    $q->where('list_kategori_id', $id)
+                      ->orWhere('pertandingan_id', $id);
+                    if ($listKategori && $listKategori->pertandingan_id) {
+                        $q->orWhere('pertandingan_id', $listKategori->pertandingan_id);
+                    }
+                })
+                ->whereNotNull('total_nilai')
+                ->orderByDesc('total_nilai')
+                ->get();
+
+            if ($ranked->count() > 0) {
+                $candidates = [];
+                $candidatesKab = [];
+                foreach ($ranked as $item) {
+                    if (!$item->Peserta) continue;
+                    $kontigenVal = optional($item->Peserta->kabupaten)->name ?? ($item->Peserta->kontigen ?? '');
+                    $kabId = optional($item->Peserta)->kabupaten_id;
+                    // Penilaian langsung berdasarkan kontingen
+                    $val = $kontigenVal ?: ($item->Peserta->nama ?? ('Peserta #' . $item->id));
+                    if ($val && !in_array($val, $candidates)) {
+                        $candidates[] = $val;
+                    }
+                    if ($kabId && !in_array($kabId, $candidatesKab)) {
+                        $candidatesKab[] = $kabId;
+                    }
+                }
+
+                // Simpan ke data_juara pada list_kategori
+                if ($listKategori) {
+                    $juaraData = [
+                        'emas' => [
+                            'kabupaten_id'   => $candidatesKab[0] ?? null,
+                            'kabupaten_nama' => optional(\App\Models\Kabupaten::find($candidatesKab[0] ?? null))->name,
+                            'peserta_nama'   => $this->getPesertaNamesByKabupaten($listKategori, $candidatesKab[0] ?? null),
+                        ],
+                        'perak' => [
+                            'kabupaten_id'   => $candidatesKab[1] ?? null,
+                            'kabupaten_nama' => optional(\App\Models\Kabupaten::find($candidatesKab[1] ?? null))->name,
+                            'peserta_nama'   => $this->getPesertaNamesByKabupaten($listKategori, $candidatesKab[1] ?? null),
+                        ],
+                        'perunggu' => [
+                            'kabupaten_id'   => $candidatesKab[2] ?? null,
+                            'kabupaten_nama' => optional(\App\Models\Kabupaten::find($candidatesKab[2] ?? null))->name,
+                            'peserta_nama'   => $this->getPesertaNamesByKabupaten($listKategori, $candidatesKab[2] ?? null),
+                        ],
+                    ];
+                    $listKategori->data_juara = $juaraData;
+                    $listKategori->save();
+
+                    // Sinkronkan peraih medali di tabel pertandingan_pesertas
+                    $lkId = $listKategori->id;
+                    PertandinganPeserta::where('list_kategori_id', $lkId)->update(['medali' => null]);
+                    if (!empty($candidatesKab[0])) {
+                        PertandinganPeserta::where('list_kategori_id', $lkId)
+                            ->whereHas('Peserta', fn($q) => $q->where('kabupaten_id', $candidatesKab[0]))
+                            ->update(['medali' => 'emas']);
+                    }
+                    if (!empty($candidatesKab[1])) {
+                        PertandinganPeserta::where('list_kategori_id', $lkId)
+                            ->whereHas('Peserta', fn($q) => $q->where('kabupaten_id', $candidatesKab[1]))
+                            ->update(['medali' => 'perak']);
+                    }
+                    if (!empty($candidatesKab[2])) {
+                        PertandinganPeserta::where('list_kategori_id', $lkId)
+                            ->whereHas('Peserta', fn($q) => $q->where('kabupaten_id', $candidatesKab[2]))
+                            ->update(['medali' => 'perunggu']);
+                    }
+                }
+            }
+
+            return response()->json(['status' => 'success']);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('saveScoresheet error: ' . $e->getMessage());
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Gagal menyimpan nilai: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Endpoint ringan untuk mengecek perubahan data papan skor (Smart Polling)
+     */
+    public function checkScoreUpdate($pertandinganId)
+    {
+        $pertandingan = \App\Models\Pertandingan::find($pertandinganId);
+        $listKategori = null;
+
+        if (!$pertandingan) {
+            $listKategori = \App\Models\ListKategori::find($pertandinganId);
+            if ($listKategori && $listKategori->pertandingan_id) {
+                $pertandingan = \App\Models\Pertandingan::find($listKategori->pertandingan_id);
+            }
+        } else {
+            $listKategori = \App\Models\ListKategori::where('pertandingan_id', $pertandingan->id)->first();
         }
 
-        return response()->json(['status' => 'success']);
+        if (!$pertandingan && !$listKategori) {
+            return response()->json(['hash' => null], 404);
+        }
+
+        // Ambil agregasi data peserta untuk mendeteksi segala bentuk perubahan nilai/waktu/baris
+        $pesertaRecords = \App\Models\PertandinganPeserta::where(function ($q) use ($pertandinganId, $pertandingan, $listKategori) {
+            $q->where('pertandingan_id', $pertandinganId)
+              ->orWhere('list_kategori_id', $pertandinganId);
+            if ($pertandingan && $pertandingan->id) {
+                $q->orWhere('pertandingan_id', $pertandingan->id);
+            }
+            if ($listKategori && $listKategori->id) {
+                $q->orWhere('list_kategori_id', $listKategori->id);
+            }
+        })
+        ->orderBy('id')
+        ->get();
+
+        // Gabungkan seluruh atribut penting menjadi satu string untuk di-hash
+        $statePayload = [
+            'pertandingan_updated' => (string) ($pertandingan ? $pertandingan->updated_at : ($listKategori ? $listKategori->updated_at : '')),
+            'pertandingan_attrs'   => md5(json_encode($pertandingan ? $pertandingan->getAttributes() : [])),
+            'list_kategori_attrs'  => $listKategori ? md5(json_encode($listKategori->getAttributes())) : '',
+            'peserta_count'        => $pesertaRecords->count(),
+            'peserta_data'         => md5($pesertaRecords->toJson()),
+        ];
+
+        return response()->json([
+            'hash' => md5(json_encode($statePayload)),
+        ]);
     }
 }

@@ -1,3 +1,16 @@
+@php
+    $pertandinganId = 0;
+    if (isset($pertandingan) && $pertandingan) {
+        $pertandinganId = $pertandingan->id;
+    } elseif (!empty($structuredData)) {
+        foreach ($structuredData as $kat) {
+            if (!empty($kat['tandings'])) {
+                $pertandinganId = $kat['tandings'][0]['pertandingan_id'] ?? ($kat['tandings'][0]['id'] ?? 0);
+                break;
+            }
+        }
+    }
+@endphp
 <!DOCTYPE html>
 <html lang="id" class="h-full overflow-hidden">
 <head>
@@ -115,7 +128,7 @@
     <!-- ============================================== -->
     <!-- 3. PAPAN SKOR DISPLAY UTAMA (READ-ONLY)       -->
     <!-- ============================================== -->
-    <main class="flex-1 flex flex-col justify-between gap-2 min-h-0 overflow-hidden">
+    <main id="scoreboard-content" class="flex-1 flex flex-col justify-between gap-2 min-h-0 overflow-hidden">
 
         <!-- BARIS 1: 5 WASIT (WASIT 1 - WASIT 5) -->
         <div class="grid grid-cols-5 gap-2 sm:gap-2.5 flex-1 min-h-0">
@@ -298,6 +311,10 @@
             const tandingId = parseInt(selectTanding.value);
             currentTanding = currentKategori.tandings.find(t => t.id === tandingId) || null;
 
+            if (typeof resetSmartPollingHash === 'function') {
+                resetSmartPollingHash();
+            }
+
             selectPeserta.innerHTML = '<option value="">-- Pilih Peserta --</option>';
             selectPeserta.disabled = !currentTanding;
 
@@ -473,33 +490,47 @@
             while (scores.length < 5) scores.push(0);
 
             // Update UI Wasit 1 - 5
-            wasitDisplays.forEach((el, idx) => {
-                const val = scores[idx] !== undefined && scores[idx] !== null ? scores[idx] : 0;
-                el.textContent = val;
-            });
+            for (let i = 1; i <= 5; i++) {
+                const el = document.getElementById('wasit_' + i);
+                if (el) {
+                    const val = scores[i - 1] !== undefined && scores[i - 1] !== null ? scores[i - 1] : 0;
+                    el.textContent = val;
+                }
+            }
 
             // Update Waktu & Genten
-            displayWaktu.textContent = waktu || '00:00';
-            displayGenten.textContent = genten !== null && genten !== undefined ? genten : 0;
+            const elWaktu = document.getElementById('displayWaktu');
+            const elGenten = document.getElementById('displayGenten');
+            if (elWaktu) elWaktu.textContent = waktu || '00:00';
+            if (elGenten) elGenten.textContent = genten !== null && genten !== undefined ? genten : 0;
 
             // Hitung Nilai (Jumlah seluruh nilai Wasit 1-5) & Total Nilai Akhir (Nilai - Genten)
             const sumNilai = scores.reduce((sum, s) => sum + (parseFloat(s) || 0), 0);
             const totalNilai = explicitTotal !== null ? explicitTotal : Math.max(0, sumNilai - genten);
 
-            displayNilai.textContent = Number.isInteger(sumNilai) ? sumNilai : sumNilai.toFixed(1);
-            displayTotalNilai.textContent = Number.isInteger(totalNilai) ? totalNilai : totalNilai.toFixed(1);
+            const elNilai = document.getElementById('displayNilai');
+            const elTotalNilai = document.getElementById('displayTotalNilai');
+            if (elNilai) elNilai.textContent = Number.isInteger(sumNilai) ? sumNilai : sumNilai.toFixed(1);
+            if (elTotalNilai) elTotalNilai.textContent = Number.isInteger(totalNilai) ? totalNilai : totalNilai.toFixed(1);
         }
 
         function resetScoreboard() {
-            bannerNamaPeserta.textContent = '-';
-            textKontingen.textContent = '-';
-            labelPesertaAktif.textContent = '-';
-            labelKontingenAktif.textContent = '-';
-            wasitDisplays.forEach(el => el.textContent = '0');
-            displayWaktu.textContent = '00:00';
-            displayGenten.textContent = '0';
-            displayNilai.textContent = '0';
-            displayTotalNilai.textContent = '0';
+            if (bannerNamaPeserta) bannerNamaPeserta.textContent = '-';
+            if (textKontingen) textKontingen.textContent = '-';
+            if (labelPesertaAktif) labelPesertaAktif.textContent = '-';
+            if (labelKontingenAktif) labelKontingenAktif.textContent = '-';
+            for (let i = 1; i <= 5; i++) {
+                const el = document.getElementById('wasit_' + i);
+                if (el) el.textContent = '0';
+            }
+            const dw = document.getElementById('displayWaktu');
+            if (dw) dw.textContent = '00:00';
+            const dg = document.getElementById('displayGenten');
+            if (dg) dg.textContent = '0';
+            const dn = document.getElementById('displayNilai');
+            if (dn) dn.textContent = '0';
+            const dtn = document.getElementById('displayTotalNilai');
+            if (dtn) dtn.textContent = '0';
         }
 
         // Fullscreen Toggle
@@ -522,16 +553,118 @@
             });
         });
 
-        // Auto-fetch data dari database setiap 3 detik secara otomatis (Live Screen Share Sync)
-        setInterval(() => {
-            if (currentTanding && currentPesertaGroup) {
-                fetchFreshScoreFromDatabase(() => {
-                    renderScoreFromDatabaseState();
-                });
-            }
-        }, 3000);
-
         document.addEventListener('DOMContentLoaded', initKategoriDropdown);
+    </script>
+
+    <!-- ============================================== -->
+    <!-- 6. SMART POLLING (CHECKSUM + PARTIAL DOM)      -->
+    <!-- ============================================== -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const defaultPertandinganId = {{ $pertandinganId ?: 1 }};
+        const checkUrl = "{{ route('scoreboard.check', $pertandinganId ?: 1) }}";
+        const pageUrl = window.location.href;
+        const containerId = 'scoreboard-content';
+
+        let currentHash = null;
+        let isUpdating = false;
+        const POLL_INTERVAL = 2500; // Interval pengecekan: 2.5 detik
+
+        window.resetSmartPollingHash = function () {
+            currentHash = null;
+        };
+
+        async function updateScoreboardDOM() {
+            if (isUpdating) return;
+            isUpdating = true;
+
+            try {
+                const response = await fetch(pageUrl, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'text/html'
+                    },
+                    cache: 'no-store'
+                });
+
+                if (!response.ok) throw new Error('HTTP status ' + response.status);
+
+                const htmlText = await response.text();
+                const parser = new DOMParser();
+                const newDoc = parser.parseFromString(htmlText, 'text/html');
+
+                const newContent = newDoc.getElementById(containerId);
+                const currentContent = document.getElementById(containerId);
+
+                if (newContent && currentContent) {
+                    // Hanya perbarui isi HTML di dalam #scoreboard-content
+                    currentContent.innerHTML = newContent.innerHTML;
+                }
+
+                // Segera tarik dan render nilai terbaru dari database ke elemen papan skor
+                if (typeof fetchFreshScoreFromDatabase === 'function') {
+                    fetchFreshScoreFromDatabase(() => {
+                        if (typeof renderScoreFromDatabaseState === 'function') {
+                            renderScoreFromDatabaseState();
+                        }
+                    });
+                }
+            } catch (err) {
+                console.warn('[SmartPolling] Gagal memperbarui tampilan:', err);
+            } finally {
+                isUpdating = false;
+            }
+        }
+
+        async function checkForUpdates() {
+            // Hanya lakukan request jika tab browser sedang aktif dilihat
+            if (!document.hidden) {
+                try {
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+                    // Gunakan ID tanding aktif jika dipilih, fallback ke defaultPertandinganId
+                    const activeTandingId = (typeof currentTanding !== 'undefined' && currentTanding && (currentTanding.pertandingan_id || currentTanding.id))
+                        ? (currentTanding.pertandingan_id || currentTanding.id)
+                        : defaultPertandinganId;
+                    const urlToFetch = "{{ url('/scoreboard') }}/" + activeTandingId + "/check-update";
+
+                    const response = await fetch(urlToFetch, {
+                        signal: controller.signal,
+                        headers: { 'Accept': 'application/json' },
+                        cache: 'no-store'
+                    });
+
+                    clearTimeout(timeoutId);
+
+                    if (response.ok) {
+                        const result = await response.json();
+
+                        if (result && result.hash) {
+                            if (currentHash === null) {
+                                // Simpan hash awal saat halaman pertama kali dibuka
+                                currentHash = result.hash;
+                            } else if (currentHash !== result.hash) {
+                                // Hash berubah! Perbarui hash dan muat ulang bagian skor
+                                currentHash = result.hash;
+                                await updateScoreboardDOM();
+                            }
+                        }
+                    }
+                } catch (err) {
+                    // Abaikan error jaringan sesaat, lanjutkan pada siklus berikutnya
+                }
+            }
+
+            // Gunakan recursive setTimeout agar tidak terjadi penumpukan request
+            setTimeout(checkForUpdates, POLL_INTERVAL);
+        }
+
+        // Jalankan hanya jika elemen #scoreboard-content ditemukan di halaman
+        if (document.getElementById(containerId)) {
+            checkForUpdates();
+        }
+    });
     </script>
 </body>
 </html>

@@ -55,6 +55,7 @@ Route::get('pendaftarans/{tanggal_lahir}/{jenis_kelamin}', [PertandinganControll
 Route::get('/kegiatan/{id}/papan-skor', [PertandinganController::class, 'publicPapanSkor'])->name('kegiatan.papan-skor');
 Route::get('/kegiatan/papan-skor/{pertandingan_id}/data', [PertandinganController::class, 'getPublicPapanSkorData'])->name('kegiatan.papan-skor.data');
 Route::post('/kegiatan/papan-skor/{pertandingan_id}/save', [PertandinganController::class, 'savePublicPapanSkor'])->name('kegiatan.papan-skor.save');
+Route::get('/scoreboard/{pertandinganId}/check-update', [PertandinganController::class, 'checkScoreUpdate'])->name('scoreboard.check');
 
 Route::middleware('auth')->group(function () {
 
