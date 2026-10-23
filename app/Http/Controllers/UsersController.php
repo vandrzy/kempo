@@ -50,13 +50,14 @@ class UsersController extends Controller
         }
         $validator = Validator::make($request->all(), [
             'name' => ['required'],
-            'email' => ['required', 'email'],
+            'email' => ['required', 'email', 'unique:users,email'],
             'no_wa' => ['required', 'numeric'],
             'role' => ['required', 'in:admin,operator,wasit,1,2,user'],
         ],[
             'name.required' => 'Nama Lengkap wajib diisi!',
             'email.required' => 'Email wajib diisi!',
-            'email.email' => 'Email harus diisi dengan format email diisi!',
+            'email.email' => 'Email harus diisi dengan format email yang valid!',
+            'email.unique' => 'Email sudah terdaftar, silakan gunakan email lain!',
             'no_wa.required' => 'Nomor Whatsapp wajib diisi!',
             'no_wa.numeric' => 'Nomor Whatsapp harus pake angka!',
             'role.required' => 'Role Pengguna wajib dipilih!',
@@ -76,7 +77,7 @@ class UsersController extends Controller
                 'email' => $request->email,
                 'no_wa' => $request->no_wa,
                 'role' => $request->role,
-                'email_verified_at' => $request->verifikasi == 1 ? date('Y-m-d h:i:s') : null,
+                'email_verified_at' => $request->verifikasi == 1 ? now() : null,
                 'password' => Hash::make($request->password),
             ]);
 
@@ -121,13 +122,14 @@ class UsersController extends Controller
         }
         $validator = Validator::make($request->all(), [
             'name' => ['required'],
-            'email' => ['required', 'email'],
+            'email' => ['required', 'email', 'unique:users,email,' . $id],
             'no_wa' => ['required', 'numeric'],
             'role' => ['required', 'in:admin,operator,wasit,1,2,user'],
         ],[
             'name.required' => 'Nama Lengkap wajib diisi!',
             'email.required' => 'Email wajib diisi!',
-            'email.email' => 'Email harus diisi dengan format email diisi!',
+            'email.email' => 'Email harus diisi dengan format email yang valid!',
+            'email.unique' => 'Email sudah terdaftar, silakan gunakan email lain!',
             'no_wa.required' => 'Nomor Whatsapp wajib diisi!',
             'no_wa.numeric' => 'Nomor Whatsapp harus pake angka!',
             'role.required' => 'Role Pengguna wajib dipilih!',
@@ -156,7 +158,7 @@ class UsersController extends Controller
                 $checkValidasi = 0;
             }
 
-            $user->email_verified_at = $request->verifikasi == 1 ? date('Y-m-d h:i:s') : null;
+            $user->email_verified_at = $request->verifikasi == 1 ? now() : null;
 
             if($request->password) {
                 $user->password = Hash::make($request->password);
