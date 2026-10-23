@@ -5,6 +5,18 @@
     $juara = $pertandingan->data_juara ?? [];
 @endphp
 
+<style>
+    /* Hilangkan panah spinner bawaan browser pada input angka modal scoresheet */
+    #scoresheetModal input[type="number"]::-webkit-outer-spin-button,
+    #scoresheetModal input[type="number"]::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+    #scoresheetModal input[type="number"] {
+        -moz-appearance: textfield;
+    }
+</style>
+
 <!-- ============================================== -->
 <!-- 1. MODAL SCORE SHEET PERTANDINGAN (MAX-W-7XL)  -->
 <!-- ============================================== -->
@@ -204,13 +216,19 @@
                 data.forEach((item, index) => {
                     const namaPeserta = item.nama || '-';
                     const kontingenName = item.kontingen || '-';
-                    const waktu = item.waktu ?? '';
-                    const n1 = item.nilai_1 ?? '';
-                    const n2 = item.nilai_2 ?? '';
-                    const n3 = item.nilai_3 ?? '';
-                    const n4 = item.nilai_4 ?? '';
-                    const n5 = item.nilai_5 ?? '';
-                    const genten = item.minus ?? 0;
+
+                    // Default form dikosongkan jika belum ada data dari database
+                    const waktu = (item.waktu && item.waktu !== '00:00') ? item.waktu : '';
+                    const n1 = (item.nilai_1 !== null && item.nilai_1 !== undefined && item.nilai_1 !== '') ? item.nilai_1 : '';
+                    const n2 = (item.nilai_2 !== null && item.nilai_2 !== undefined && item.nilai_2 !== '') ? item.nilai_2 : '';
+                    const n3 = (item.nilai_3 !== null && item.nilai_3 !== undefined && item.nilai_3 !== '') ? item.nilai_3 : '';
+                    const n4 = (item.nilai_4 !== null && item.nilai_4 !== undefined && item.nilai_4 !== '') ? item.nilai_4 : '';
+                    const n5 = (item.nilai_5 !== null && item.nilai_5 !== undefined && item.nilai_5 !== '') ? item.nilai_5 : '';
+
+                    // Cek apakah ada nilai wasit yang sudah terisi
+                    const hasAnyJudgeScore = [n1, n2, n3, n4, n5].some(v => v !== '');
+                    // Genten: kosongkan jika belum ada data dari database
+                    const genten = (item.minus !== null && item.minus !== undefined && item.minus !== '' && (hasAnyJudgeScore || item.minus != 0)) ? item.minus : '';
                     const ppIdsString = item.pp_ids ? item.pp_ids.join(',') : item.id;
 
                     const matchesFilter = !window.currentScoresheetFilterKabId ||
@@ -246,25 +264,25 @@
                             <input type="text" placeholder="00:00" name="scores[${item.id}][waktu]" value="${waktu}" style="width: 82px; padding: 7px 8px; border: 1.5px solid #cbd5e1; border-radius: 8px; text-align: center; font-size: 0.85rem;" class="font-semibold dark:bg-slate-800 dark:border-slate-600 dark:text-white">
                         </td>
                         <td style="padding: 12px 6px; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #f1f5f9; text-align: center;">
-                            <input type="number" step="0.01" placeholder="Wasit 1" title="Wasit 1" name="scores[${item.id}][nilai_1]" value="${n1}" oninput="recalcScoresheet()" style="width: 78px; padding: 7px 6px; border: 1.5px solid #cbd5e1; border-radius: 8px; text-align: center; font-size: 0.85rem;" class="score-input n1 font-bold dark:bg-slate-800 dark:border-slate-600 dark:text-white">
+                            <input type="number" step="0.01" min="0" max="100" placeholder="0" title="Wasit 1 (0 - 100)" name="scores[${item.id}][nilai_1]" value="${n1}" oninput="validateScoreInput(this); recalcScoresheet();" onwheel="this.blur();" style="width: 78px; padding: 7px 6px; border: 1.5px solid #cbd5e1; border-radius: 8px; text-align: center; font-size: 0.85rem;" class="score-input n1 font-bold dark:bg-slate-800 dark:border-slate-600 dark:text-white">
                         </td>
                         <td style="padding: 12px 6px; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #f1f5f9; text-align: center;">
-                            <input type="number" step="0.01" placeholder="Wasit 2" title="Wasit 2" name="scores[${item.id}][nilai_2]" value="${n2}" oninput="recalcScoresheet()" style="width: 78px; padding: 7px 6px; border: 1.5px solid #cbd5e1; border-radius: 8px; text-align: center; font-size: 0.85rem;" class="score-input n2 font-bold dark:bg-slate-800 dark:border-slate-600 dark:text-white">
+                            <input type="number" step="0.01" min="0" max="100" placeholder="0" title="Wasit 2 (0 - 100)" name="scores[${item.id}][nilai_2]" value="${n2}" oninput="validateScoreInput(this); recalcScoresheet();" onwheel="this.blur();" style="width: 78px; padding: 7px 6px; border: 1.5px solid #cbd5e1; border-radius: 8px; text-align: center; font-size: 0.85rem;" class="score-input n2 font-bold dark:bg-slate-800 dark:border-slate-600 dark:text-white">
                         </td>
                         <td style="padding: 12px 6px; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #f1f5f9; text-align: center;">
-                            <input type="number" step="0.01" placeholder="Wasit 3" title="Wasit 3" name="scores[${item.id}][nilai_3]" value="${n3}" oninput="recalcScoresheet()" style="width: 78px; padding: 7px 6px; border: 1.5px solid #cbd5e1; border-radius: 8px; text-align: center; font-size: 0.85rem;" class="score-input n3 font-bold dark:bg-slate-800 dark:border-slate-600 dark:text-white">
+                            <input type="number" step="0.01" min="0" max="100" placeholder="0" title="Wasit 3 (0 - 100)" name="scores[${item.id}][nilai_3]" value="${n3}" oninput="validateScoreInput(this); recalcScoresheet();" onwheel="this.blur();" style="width: 78px; padding: 7px 6px; border: 1.5px solid #cbd5e1; border-radius: 8px; text-align: center; font-size: 0.85rem;" class="score-input n3 font-bold dark:bg-slate-800 dark:border-slate-600 dark:text-white">
                         </td>
                         <td style="padding: 12px 6px; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #f1f5f9; text-align: center;">
-                            <input type="number" step="0.01" placeholder="Wasit 4" title="Wasit 4" name="scores[${item.id}][nilai_4]" value="${n4}" oninput="recalcScoresheet()" style="width: 78px; padding: 7px 6px; border: 1.5px solid #cbd5e1; border-radius: 8px; text-align: center; font-size: 0.85rem;" class="score-input n4 font-bold dark:bg-slate-800 dark:border-slate-600 dark:text-white">
+                            <input type="number" step="0.01" min="0" max="100" placeholder="0" title="Wasit 4 (0 - 100)" name="scores[${item.id}][nilai_4]" value="${n4}" oninput="validateScoreInput(this); recalcScoresheet();" onwheel="this.blur();" style="width: 78px; padding: 7px 6px; border: 1.5px solid #cbd5e1; border-radius: 8px; text-align: center; font-size: 0.85rem;" class="score-input n4 font-bold dark:bg-slate-800 dark:border-slate-600 dark:text-white">
                         </td>
                         <td style="padding: 12px 6px; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #f1f5f9; text-align: center;">
-                            <input type="number" step="0.01" placeholder="Wasit 5" title="Wasit 5" name="scores[${item.id}][nilai_5]" value="${n5}" oninput="recalcScoresheet()" style="width: 78px; padding: 7px 6px; border: 1.5px solid #cbd5e1; border-radius: 8px; text-align: center; font-size: 0.85rem;" class="score-input n5 font-bold dark:bg-slate-800 dark:border-slate-600 dark:text-white">
+                            <input type="number" step="0.01" min="0" max="100" placeholder="0" title="Wasit 5 (0 - 100)" name="scores[${item.id}][nilai_5]" value="${n5}" oninput="validateScoreInput(this); recalcScoresheet();" onwheel="this.blur();" style="width: 78px; padding: 7px 6px; border: 1.5px solid #cbd5e1; border-radius: 8px; text-align: center; font-size: 0.85rem;" class="score-input n5 font-bold dark:bg-slate-800 dark:border-slate-600 dark:text-white">
                         </td>
-                        <td style="padding: 12px 10px; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #f1f5f9; text-align: center; background-color: #eff6ff;" class="font-black text-blue-700 dark:text-blue-300 dark:bg-slate-700/60 text-sm nilai-sum">0</td>
+                        <td style="padding: 12px 10px; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #f1f5f9; text-align: center; background-color: #eff6ff;" class="font-black text-blue-700 dark:text-blue-300 dark:bg-slate-700/60 text-sm nilai-sum">-</td>
                         <td style="padding: 12px 6px; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #f1f5f9; text-align: center;">
-                            <input type="number" step="0.01" placeholder="0" title="Genten (Minus)" name="scores[${item.id}][minus]" value="${genten}" oninput="recalcScoresheet()" style="width: 78px; padding: 7px 6px; border: 1.5px solid #fca5a5; border-radius: 8px; text-align: center; font-size: 0.85rem;" class="score-input genten font-bold text-red-600 dark:bg-slate-800 dark:border-red-500">
+                            <input type="number" step="0.01" min="0" max="100" placeholder="0" title="Genten / Minus (0 - 100)" name="scores[${item.id}][minus]" value="${genten}" oninput="validateScoreInput(this); recalcScoresheet();" onwheel="this.blur();" style="width: 78px; padding: 7px 6px; border: 1.5px solid #fca5a5; border-radius: 8px; text-align: center; font-size: 0.85rem;" class="score-input genten font-bold text-red-600 dark:bg-slate-800 dark:border-red-500">
                         </td>
-                        <td style="padding: 12px 10px; border-bottom: 1px solid #e2e8f0; text-align: center; background-color: #ecfdf5;" class="font-black text-emerald-700 dark:text-emerald-300 dark:bg-slate-700/60 text-sm total-akhir-cell">0</td>
+                        <td style="padding: 12px 10px; border-bottom: 1px solid #e2e8f0; text-align: center; background-color: #ecfdf5;" class="font-black text-emerald-700 dark:text-emerald-300 dark:bg-slate-700/60 text-sm total-akhir-cell">-</td>
                     `;
                     tbody.appendChild(tr);
                 });
@@ -336,6 +354,31 @@
         }
     };
 
+    window.validateScoreInput = function(input) {
+        if (!input || input.value === '') return;
+
+        // Cegah tanda minus / karakter negatif
+        if (input.value.includes('-')) {
+            input.value = input.value.replace(/-/g, '');
+        }
+
+        let val = parseFloat(input.value);
+        if (!isNaN(val)) {
+            if (val < 0) {
+                input.value = 0;
+            } else if (val > 100) {
+                input.value = 100;
+            }
+        }
+    };
+
+    // Hilangkan fungsi merubah nilai input angka melalui scroll mouse wheel
+    document.addEventListener('wheel', function(e) {
+        if (e.target && (e.target.matches('#scoresheetModal input[type="number"]') || e.target.classList.contains('score-input'))) {
+            e.target.blur();
+        }
+    }, { passive: true });
+
     window.recalcScoresheet = function() {
         const rows = document.querySelectorAll('.scoresheet-row');
 
@@ -345,26 +388,30 @@
             const v3 = row.querySelector('.n3').value;
             const v4 = row.querySelector('.n4').value;
             const v5 = row.querySelector('.n5').value;
-            const gentenVal = parseFloat(row.querySelector('.genten').value) || 0;
+            const gentenInput = row.querySelector('.genten').value;
+            const gentenVal = (gentenInput !== '' && !isNaN(parseFloat(gentenInput))) ? parseFloat(gentenInput) : 0;
 
-            const hasAnyInput = [v1, v2, v3, v4, v5].some(v => v !== '');
+            const hasAnyInput = [v1, v2, v3, v4, v5, gentenInput].some(v => v !== '');
             if (!hasAnyInput) {
                 row.querySelector('.nilai-sum').textContent = '-';
                 row.querySelector('.total-akhir-cell').textContent = '-';
                 return;
             }
 
-            const n1 = parseFloat(v1) || 0;
-            const n2 = parseFloat(v2) || 0;
-            const n3 = parseFloat(v3) || 0;
-            const n4 = parseFloat(v4) || 0;
-            const n5 = parseFloat(v5) || 0;
+            const n1 = (v1 !== '' && !isNaN(parseFloat(v1))) ? parseFloat(v1) : 0;
+            const n2 = (v2 !== '' && !isNaN(parseFloat(v2))) ? parseFloat(v2) : 0;
+            const n3 = (v3 !== '' && !isNaN(parseFloat(v3))) ? parseFloat(v3) : 0;
+            const n4 = (v4 !== '' && !isNaN(parseFloat(v4))) ? parseFloat(v4) : 0;
+            const n5 = (v5 !== '' && !isNaN(parseFloat(v5))) ? parseFloat(v5) : 0;
 
             // Rumus: Jumlahkan ke-5 nilai wasit lalu dikurangi genten
             const jumlahNilai = n1 + n2 + n3 + n4 + n5;
             const totalNilaiAkhir = jumlahNilai - gentenVal;
 
-            row.querySelector('.nilai-sum').textContent = Number.isInteger(jumlahNilai) ? jumlahNilai : jumlahNilai.toFixed(2);
+            const hasJudgesInput = [v1, v2, v3, v4, v5].some(v => v !== '');
+            row.querySelector('.nilai-sum').textContent = hasJudgesInput
+                ? (Number.isInteger(jumlahNilai) ? jumlahNilai : jumlahNilai.toFixed(2))
+                : '-';
             row.querySelector('.total-akhir-cell').textContent = Number.isInteger(totalNilaiAkhir) ? totalNilaiAkhir : totalNilaiAkhir.toFixed(2);
         });
     };

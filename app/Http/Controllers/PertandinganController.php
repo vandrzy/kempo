@@ -1370,14 +1370,17 @@ class PertandinganController extends Controller
             $ppIds = $items->pluck('id')->toArray();
 
             // Cari nilai pertama yang tidak kosong dalam kontingen ini
-            $waktu = $items->pluck('waktu')->filter()->first() ?? '';
-            $n1 = $items->pluck('nilai_1')->filter(fn($v) => !is_null($v))->first();
-            $n2 = $items->pluck('nilai_2')->filter(fn($v) => !is_null($v))->first();
-            $n3 = $items->pluck('nilai_3')->filter(fn($v) => !is_null($v))->first();
-            $n4 = $items->pluck('nilai_4')->filter(fn($v) => !is_null($v))->first();
-            $n5 = $items->pluck('nilai_5')->filter(fn($v) => !is_null($v))->first();
-            $minus = $items->pluck('minus')->filter(fn($v) => !is_null($v))->first() ?? 0;
-            $totalNilai = $items->pluck('total_nilai')->filter(fn($v) => !is_null($v))->first();
+            $waktu = $items->pluck('waktu')->filter(fn($v) => !empty($v) && $v !== '00:00')->first() ?? '';
+            $n1 = $items->pluck('nilai_1')->filter(fn($v) => !is_null($v) && $v !== '')->first();
+            $n2 = $items->pluck('nilai_2')->filter(fn($v) => !is_null($v) && $v !== '')->first();
+            $n3 = $items->pluck('nilai_3')->filter(fn($v) => !is_null($v) && $v !== '')->first();
+            $n4 = $items->pluck('nilai_4')->filter(fn($v) => !is_null($v) && $v !== '')->first();
+            $n5 = $items->pluck('nilai_5')->filter(fn($v) => !is_null($v) && $v !== '')->first();
+            $totalNilai = $items->pluck('total_nilai')->filter(fn($v) => !is_null($v) && $v !== '')->first();
+
+            $hasAnyJudgeScore = $n1 !== null || $n2 !== null || $n3 !== null || $n4 !== null || $n5 !== null || $totalNilai !== null;
+            $rawMinus = $items->pluck('minus')->filter(fn($v) => !is_null($v) && $v !== '')->first();
+            $minus = ($hasAnyJudgeScore || (floatval($rawMinus) > 0)) ? $rawMinus : null;
 
             $groups[] = [
                 'row_index'    => $groupIndex,
@@ -1431,17 +1434,29 @@ class PertandinganController extends Controller
 
             $rIdx = 0;
             foreach ($scores as $rowId => $val) {
-                $waktu = $val['waktu'] ?? '00:00';
-                $n1 = isset($val['nilai_1']) && $val['nilai_1'] !== '' ? floatval($val['nilai_1']) : 0;
-                $n2 = isset($val['nilai_2']) && $val['nilai_2'] !== '' ? floatval($val['nilai_2']) : 0;
-                $n3 = isset($val['nilai_3']) && $val['nilai_3'] !== '' ? floatval($val['nilai_3']) : 0;
-                $n4 = isset($val['nilai_4']) && $val['nilai_4'] !== '' ? floatval($val['nilai_4']) : 0;
-                $n5 = isset($val['nilai_5']) && $val['nilai_5'] !== '' ? floatval($val['nilai_5']) : 0;
-                $genten = isset($val['minus']) && $val['minus'] !== '' ? floatval($val['minus']) : 0;
+                $waktu = !empty($val['waktu']) && $val['waktu'] !== '00:00' ? trim($val['waktu']) : null;
+                $hasN1 = isset($val['nilai_1']) && $val['nilai_1'] !== '';
+                $hasN2 = isset($val['nilai_2']) && $val['nilai_2'] !== '';
+                $hasN3 = isset($val['nilai_3']) && $val['nilai_3'] !== '';
+                $hasN4 = isset($val['nilai_4']) && $val['nilai_4'] !== '';
+                $hasN5 = isset($val['nilai_5']) && $val['nilai_5'] !== '';
+                $hasGenten = isset($val['minus']) && $val['minus'] !== '';
 
-                // Rumus: Jumlahkan ke-5 nilai wasit lalu dikurangi genten (minus)
-                $nilai = $n1 + $n2 + $n3 + $n4 + $n5;
-                $totalNilaiAkhir = $nilai - $genten;
+                $n1 = $hasN1 ? max(0, min(100, floatval($val['nilai_1']))) : null;
+                $n2 = $hasN2 ? max(0, min(100, floatval($val['nilai_2']))) : null;
+                $n3 = $hasN3 ? max(0, min(100, floatval($val['nilai_3']))) : null;
+                $n4 = $hasN4 ? max(0, min(100, floatval($val['nilai_4']))) : null;
+                $n5 = $hasN5 ? max(0, min(100, floatval($val['nilai_5']))) : null;
+                $genten = $hasGenten ? max(0, min(100, floatval($val['minus']))) : null;
+
+                $hasAnyScore = $hasN1 || $hasN2 || $hasN3 || $hasN4 || $hasN5 || $hasGenten;
+                if ($hasAnyScore) {
+                    $nilai = ($n1 ?? 0) + ($n2 ?? 0) + ($n3 ?? 0) + ($n4 ?? 0) + ($n5 ?? 0);
+                    $totalNilaiAkhir = $nilai - ($genten ?? 0);
+                } else {
+                    $nilai = null;
+                    $totalNilaiAkhir = null;
+                }
 
                 // Kumpulkan ID seluruh peserta dalam kontingen tersebut
                 $targetIds = [];
@@ -1458,12 +1473,12 @@ class PertandinganController extends Controller
                     if ($pp) {
                         $pp->update([
                             'waktu'       => $waktu,
-                            'nilai_1'     => $val['nilai_1'] !== '' ? $n1 : null,
-                            'nilai_2'     => $val['nilai_2'] !== '' ? $n2 : null,
-                            'nilai_3'     => $val['nilai_3'] !== '' ? $n3 : null,
-                            'nilai_4'     => $val['nilai_4'] !== '' ? $n4 : null,
-                            'nilai_5'     => $val['nilai_5'] !== '' ? $n5 : null,
-                            'minus'       => $val['minus'] !== '' ? $genten : 0,
+                            'nilai_1'     => $n1,
+                            'nilai_2'     => $n2,
+                            'nilai_3'     => $n3,
+                            'nilai_4'     => $n4,
+                            'nilai_5'     => $n5,
+                            'minus'       => $genten,
                             'total_nilai' => $totalNilaiAkhir
                         ]);
                     }
@@ -1477,23 +1492,23 @@ class PertandinganController extends Controller
                     'undian'    => $rIdx + 1,
                     'kontingen' => $kontingenText,
                     'peserta'   => $namaPesertaText,
-                    'waktu'     => $waktu,
-                    'juri_1'    => $n1,
-                    'juri_2'    => $n2,
-                    'juri_3'    => $n3,
-                    'juri_4'    => $n4,
-                    'juri_5'    => $n5,
-                    'hukuman'   => $genten,
-                    'total'     => $totalNilaiAkhir,
+                    'waktu'     => $waktu ?? '',
+                    'juri_1'    => $n1 ?? '',
+                    'juri_2'    => $n2 ?? '',
+                    'juri_3'    => $n3 ?? '',
+                    'juri_4'    => $n4 ?? '',
+                    'juri_5'    => $n5 ?? '',
+                    'hukuman'   => $genten ?? '',
+                    'total'     => $totalNilaiAkhir ?? '',
                 ];
 
                 $scoresheetData['rows'][$rIdx] = [
-                    'scores'      => [$n1, $n2, $n3, $n4, $n5],
-                    'total'       => $nilai,
-                    'waktu'       => $waktu,
-                    'genten'      => $genten,
-                    'pengurangan' => $genten,
-                    'total_akhir' => $totalNilaiAkhir,
+                    'scores'      => [$n1 ?? 0, $n2 ?? 0, $n3 ?? 0, $n4 ?? 0, $n5 ?? 0],
+                    'total'       => $nilai ?? 0,
+                    'waktu'       => $waktu ?? '',
+                    'genten'      => $genten ?? 0,
+                    'pengurangan' => $genten ?? 0,
+                    'total_akhir' => $totalNilaiAkhir ?? 0,
                 ];
                 $rIdx++;
             }
