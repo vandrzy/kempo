@@ -18,37 +18,48 @@
 </style>
 
 <!-- ============================================== -->
-<!-- 1. MODAL SCORE SHEET PERTANDINGAN (MAX-W-7XL)  -->
+<!-- 1. MODAL SCORE SHEET PERTANDINGAN (KEMPO UI)   -->
 <!-- ============================================== -->
-<div id="scoresheetModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100vw; height: 100vh; z-index: 999999; background: rgba(0, 0, 0, 0.75); align-items: center; justify-content: center; padding: 2.5rem 1.5rem; overflow-y: auto;">
-    <div style="position: relative; width: 100%; max-width: 1320px; margin: auto; max-height: 92vh; background: #ffffff; border-radius: 1.25rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); display: flex; flex-direction: column; overflow: hidden;" class="dark:bg-slate-850 border border-slate-200 dark:border-slate-700">
+<div id="scoresheetModal" style="display: none;" class="fixed inset-0 z-[999999] items-center justify-center p-3 sm:p-5 md:p-6 bg-black/60 backdrop-blur-xs overflow-y-auto transition-all duration-200">
+    <div class="relative w-full max-w-[1360px] my-auto max-h-[92vh] bg-white rounded-3xl border border-[#ebebeb] shadow-2xl flex flex-col overflow-hidden font-body">
         
-        <!-- Header Modal (Padding Lega) -->
-        <div style="padding: 1.5rem 2.25rem; flex-shrink: 0;" class="flex justify-between items-center border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/70">
-            <div>
-                <div class="flex items-center gap-2.5">
-                    <h3 class="text-xl md:text-2xl font-black text-slate-800 dark:text-white flex items-center mb-0">
-                        <i class="ni ni-paper-diploma text-blue-600 mr-2.5"></i> Score Sheet Pertandingan
-                    </h3>
-                    @if($isRandori)
-                        <span class="px-3 py-1 text-xs font-black text-red-700 bg-red-100 dark:bg-red-900/40 dark:text-red-300 rounded-full">Kategori Randori</span>
-                    @else
-                        <span class="px-3 py-1 text-xs font-black text-blue-700 bg-blue-100 dark:bg-blue-900/40 dark:text-blue-300 rounded-full">Kategori Embu</span>
-                    @endif
+        <!-- Header Modal -->
+        <div class="px-6 py-5 sm:px-8 sm:py-6 shrink-0 flex items-start justify-between border-b border-[#ebebeb] bg-white">
+            <div class="flex items-start gap-4">
+                <div class="w-12 h-12 rounded-2xl bg-[#fff0eb] text-[#f2470c] flex items-center justify-center shrink-0 text-xl border border-[#f2470c]/25 shadow-2xs">
+                    <i class="fas fa-file-invoice"></i>
                 </div>
-                <p class="text-xs md:text-sm text-slate-500 mb-0 mt-1.5 font-medium">
-                    {{ $pertandingan->kegiatan->nama ?? '' }} &bull; {{ $pertandingan->pertandingan->nama ?? '' }} (Kelas: {{ $pertandingan->pertandingan->kelas ?? '-' }}) &bull; Penilaian Berdasarkan Kontingen
-                </p>
-                <div id="scoresheetFilterBadge" style="display: none;" class="mt-2.5 flex items-center gap-2 flex-wrap">
-                    <span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-black bg-blue-100 text-blue-800 dark:bg-blue-900/60 dark:text-blue-200 rounded-full border border-blue-300">
-                        <i class="fa fa-filter text-blue-600"></i> Kontingen: <strong id="scoresheetFilterText">-</strong>
-                    </span>
-                    <button type="button" onclick="clearScoresheetFilter()" style="background: none; border: none;" class="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 hover:underline font-bold cursor-pointer p-0 ml-1">
-                        <i class="fa fa-refresh mr-1"></i> Tampilkan Semua Kontingen
-                    </button>
+                <div>
+                    <div class="flex items-center gap-2.5 flex-wrap">
+                        <h3 class="font-heading font-bold text-xl md:text-2xl text-[#000000] mb-0 tracking-tight">
+                            Score Sheet Pertandingan
+                        </h3>
+                        @if($isRandori)
+                            <span class="px-3 py-0.5 text-xs font-bold text-[#e54b4f] bg-[#fff0eb] rounded-full border border-[#e54b4f]/25">
+                                Kategori Randori
+                            </span>
+                        @else
+                            <span class="px-3 py-0.5 text-xs font-bold text-[#3276e4] bg-[#3276e4]/10 rounded-full border border-[#3276e4]/25">
+                                Kategori Embu
+                            </span>
+                        @endif
+                    </div>
+                    <p class="text-xs md:text-sm text-neutral-500 mb-0 mt-1 font-body">
+                        {{ $pertandingan->kegiatan->nama ?? '' }} &bull; {{ $pertandingan->pertandingan->nama ?? '' }} (Kelas: {{ $pertandingan->pertandingan->kelas ?? '-' }}) &bull; Penilaian Berdasarkan Kontingen
+                    </p>
+                    <div id="scoresheetFilterBadge" style="display: none;" class="mt-2.5 flex items-center gap-2 flex-wrap">
+                        <span class="inline-flex items-center gap-1.5 px-3 py-0.5 text-xs font-bold bg-[#fff0eb] text-[#f2470c] rounded-full border border-[#f2470c]/30">
+                            <i class="fas fa-filter text-[#f2470c]"></i> Kontingen: <strong id="scoresheetFilterText" class="font-bold">-</strong>
+                        </span>
+                        <button type="button" onclick="clearScoresheetFilter()" class="text-xs text-[#f2470c] hover:underline font-bold cursor-pointer p-0 ml-1 bg-transparent border-0">
+                            <i class="fas fa-undo mr-1"></i> Tampilkan Semua Kontingen
+                        </button>
+                    </div>
                 </div>
             </div>
-            <button type="button" onclick="closeScoresheetModal()" class="text-slate-400 hover:text-slate-700 dark:hover:text-white text-3xl font-bold leading-none cursor-pointer border-0 bg-transparent p-1">&times;</button>
+            <button type="button" onclick="closeScoresheetModal()" class="w-9 h-9 rounded-full bg-neutral-100 hover:bg-neutral-200 text-neutral-500 hover:text-[#000000] flex items-center justify-center transition-colors cursor-pointer border-0">
+                <i class="fas fa-times text-sm"></i>
+            </button>
         </div>
         
         <!-- Form Scoresheet -->
@@ -57,42 +68,42 @@
             <input type="hidden" id="scoresheet_pertandingan_id" value="{{ $pertandingan->id }}">
             <input type="hidden" name="kegiatan_id" value="{{ $pertandingan->kegiatan->id ?? '' }}">
             
-            <!-- Container Tabel dengan Padding Lega -->
-            <div style="padding: 1.5rem 2.25rem; flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column;">
+            <!-- Container Tabel dengan Background Soft & Padding Lega -->
+            <div class="p-4 sm:p-6 md:p-8 flex-1 min-h-0 flex flex-col overflow-hidden bg-[#fdfdfd]">
                 
-                <!-- Wrapper Scrollable Tabel dengan Header Solid Opaque (Tidak Tembus) -->
-                <div style="overflow-x: auto; overflow-y: auto; max-height: calc(90vh - 230px); border: 1.5px solid #cbd5e1; border-radius: 0.75rem; background-color: #ffffff;" class="dark:bg-slate-800 dark:border-slate-700 shadow-xs">
-                    <table style="width: 100%; border-collapse: separate !important; border-spacing: 0 !important; text-align: left; background-color: #ffffff;" class="dark:bg-slate-800 text-sm">
+                <!-- Wrapper Scrollable Tabel dengan Header Solid Opaque -->
+                <div class="overflow-x-auto overflow-y-auto max-h-[calc(90vh-230px)] rounded-2xl border border-[#ebebeb] bg-white shadow-2xs kempo-scrollbar">
+                    <table class="w-full border-separate border-spacing-0 text-left text-sm font-body">
                         <thead>
-                            <tr class="uppercase text-xs font-bold text-slate-700 dark:text-white">
-                                <th style="position: sticky !important; top: 0 !important; z-index: 50 !important; background-color: #f1f5f9 !important; background-clip: padding-box !important; border-bottom: 2px solid #94a3b8 !important; border-right: 1px solid #cbd5e1 !important; width: 45px; padding: 14px 10px; text-align: center;">No</th>
-                                <th style="position: sticky !important; top: 0 !important; z-index: 50 !important; background-color: #f1f5f9 !important; background-clip: padding-box !important; border-bottom: 2px solid #94a3b8 !important; border-right: 1px solid #cbd5e1 !important; min-width: 170px; padding: 14px 14px;">Kontingen</th>
-                                <th style="position: sticky !important; top: 0 !important; z-index: 50 !important; background-color: #f1f5f9 !important; background-clip: padding-box !important; border-bottom: 2px solid #94a3b8 !important; border-right: 1px solid #cbd5e1 !important; min-width: 200px; padding: 14px 14px;">Nama Atlet / Anggota</th>
-                                <th style="position: sticky !important; top: 0 !important; z-index: 50 !important; background-color: #f1f5f9 !important; background-clip: padding-box !important; border-bottom: 2px solid #94a3b8 !important; border-right: 1px solid #cbd5e1 !important; width: 95px; padding: 14px 10px; text-align: center;">Waktu</th>
-                                <th style="position: sticky !important; top: 0 !important; z-index: 50 !important; background-color: #f8fafc !important; background-clip: padding-box !important; border-bottom: 2px solid #94a3b8 !important; border-right: 1px solid #cbd5e1 !important; width: 85px; padding: 14px 8px; text-align: center;">Wasit 1</th>
-                                <th style="position: sticky !important; top: 0 !important; z-index: 50 !important; background-color: #f8fafc !important; background-clip: padding-box !important; border-bottom: 2px solid #94a3b8 !important; border-right: 1px solid #cbd5e1 !important; width: 85px; padding: 14px 8px; text-align: center;">Wasit 2</th>
-                                <th style="position: sticky !important; top: 0 !important; z-index: 50 !important; background-color: #f8fafc !important; background-clip: padding-box !important; border-bottom: 2px solid #94a3b8 !important; border-right: 1px solid #cbd5e1 !important; width: 85px; padding: 14px 8px; text-align: center;">Wasit 3</th>
-                                <th style="position: sticky !important; top: 0 !important; z-index: 50 !important; background-color: #f8fafc !important; background-clip: padding-box !important; border-bottom: 2px solid #94a3b8 !important; border-right: 1px solid #cbd5e1 !important; width: 85px; padding: 14px 8px; text-align: center;">Wasit 4</th>
-                                <th style="position: sticky !important; top: 0 !important; z-index: 50 !important; background-color: #f8fafc !important; background-clip: padding-box !important; border-bottom: 2px solid #94a3b8 !important; border-right: 1px solid #cbd5e1 !important; width: 85px; padding: 14px 8px; text-align: center;">Wasit 5</th>
-                                <th style="position: sticky !important; top: 0 !important; z-index: 50 !important; background-color: #dbeafe !important; background-clip: padding-box !important; border-bottom: 2px solid #60a5fa !important; border-right: 1px solid #cbd5e1 !important; color: #1e40af !important; width: 95px; padding: 14px 10px; text-align: center; font-weight: 900;">Nilai</th>
-                                <th style="position: sticky !important; top: 0 !important; z-index: 50 !important; background-color: #fee2e2 !important; background-clip: padding-box !important; border-bottom: 2px solid #f87171 !important; border-right: 1px solid #cbd5e1 !important; color: #dc2626 !important; width: 85px; padding: 14px 8px; text-align: center;">Genten</th>
-                                <th style="position: sticky !important; top: 0 !important; z-index: 50 !important; background-color: #d1fae5 !important; background-clip: padding-box !important; border-bottom: 2px solid #34d399 !important; color: #065f46 !important; width: 130px; padding: 14px 10px; text-align: center; font-weight: 900;">Total Nilai Akhir</th>
+                            <tr class="uppercase text-xs font-bold text-neutral-600 font-heading">
+                                <th style="position: sticky !important; top: 0 !important; z-index: 20 !important; background-color: #fafafa !important; border-bottom: 2px solid #ebebeb !important; border-right: 1px solid #ebebeb !important; width: 45px; padding: 12px 10px; text-align: center;">No</th>
+                                <th style="position: sticky !important; top: 0 !important; z-index: 20 !important; background-color: #fafafa !important; border-bottom: 2px solid #ebebeb !important; border-right: 1px solid #ebebeb !important; min-width: 170px; padding: 12px 14px;">Kontingen</th>
+                                <th style="position: sticky !important; top: 0 !important; z-index: 20 !important; background-color: #fafafa !important; border-bottom: 2px solid #ebebeb !important; border-right: 1px solid #ebebeb !important; min-width: 200px; padding: 12px 14px;">Nama Atlet / Anggota</th>
+                                <th style="position: sticky !important; top: 0 !important; z-index: 20 !important; background-color: #fafafa !important; border-bottom: 2px solid #ebebeb !important; border-right: 1px solid #ebebeb !important; width: 95px; padding: 12px 8px; text-align: center;">Waktu</th>
+                                <th style="position: sticky !important; top: 0 !important; z-index: 20 !important; background-color: #fafafa !important; border-bottom: 2px solid #ebebeb !important; border-right: 1px solid #ebebeb !important; width: 85px; padding: 12px 6px; text-align: center;">Wasit 1</th>
+                                <th style="position: sticky !important; top: 0 !important; z-index: 20 !important; background-color: #fafafa !important; border-bottom: 2px solid #ebebeb !important; border-right: 1px solid #ebebeb !important; width: 85px; padding: 12px 6px; text-align: center;">Wasit 2</th>
+                                <th style="position: sticky !important; top: 0 !important; z-index: 20 !important; background-color: #fafafa !important; border-bottom: 2px solid #ebebeb !important; border-right: 1px solid #ebebeb !important; width: 85px; padding: 12px 6px; text-align: center;">Wasit 3</th>
+                                <th style="position: sticky !important; top: 0 !important; z-index: 20 !important; background-color: #fafafa !important; border-bottom: 2px solid #ebebeb !important; border-right: 1px solid #ebebeb !important; width: 85px; padding: 12px 6px; text-align: center;">Wasit 4</th>
+                                <th style="position: sticky !important; top: 0 !important; z-index: 20 !important; background-color: #fafafa !important; border-bottom: 2px solid #ebebeb !important; border-right: 1px solid #ebebeb !important; width: 85px; padding: 12px 6px; text-align: center;">Wasit 5</th>
+                                <th style="position: sticky !important; top: 0 !important; z-index: 20 !important; background-color: #fff0eb !important; border-bottom: 2px solid #fd822b !important; border-right: 1px solid #ebebeb !important; color: #f2470c !important; width: 95px; padding: 12px 8px; text-align: center; font-weight: 800;">Nilai</th>
+                                <th style="position: sticky !important; top: 0 !important; z-index: 20 !important; background-color: #fee2e2 !important; border-bottom: 2px solid #e54b4f !important; border-right: 1px solid #ebebeb !important; color: #e54b4f !important; width: 85px; padding: 12px 6px; text-align: center; font-weight: 800;">Genten</th>
+                                <th style="position: sticky !important; top: 0 !important; z-index: 20 !important; background-color: #fff0eb !important; border-bottom: 2px solid #f2470c !important; color: #f2470c !important; width: 130px; padding: 12px 8px; text-align: center; font-weight: 800;">Total Nilai Akhir</th>
                             </tr>
                         </thead>
-                        <tbody id="scoresheetBody" class="bg-white dark:bg-slate-800">
+                        <tbody id="scoresheetBody" class="bg-white">
                             <tr>
-                                <td colspan="12" class="text-center py-10 text-slate-400 font-semibold" style="padding: 2.5rem 1rem;">Memuat data kontingen &amp; peserta...</td>
+                                <td colspan="12" class="text-center py-10 text-neutral-400 font-medium" style="padding: 2.5rem 1rem;">Memuat data kontingen &amp; peserta...</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
             </div>
 
-            <!-- Footer Modal (Padding Lega) -->
-            <div style="padding: 1.25rem 2.25rem; flex-shrink: 0;" class="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/70">
+            <!-- Footer Modal -->
+            <div class="px-6 py-4 sm:px-8 sm:py-5 shrink-0 flex flex-wrap items-center justify-between gap-3 border-t border-[#ebebeb] bg-white">
                 <div>
-                    <a href="{{ route('pertandingan.cetak-pdf', $pertandingan->id) }}" id="btnCetakPdfScoresheet" target="_blank" style="background-color: var(--color-btn-4, #3276e4) !important; color: #ffffff !important;" class="inline-flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold text-white uppercase rounded-xl shadow-xs hover:opacity-90 transition-all cursor-pointer">
-                        <i class="fa fa-print mr-1"></i> Cetak PDF Sekarang
+                    <a href="{{ route('pertandingan.cetak-pdf', $pertandingan->id) }}" id="btnCetakPdfScoresheet" target="_blank" class="btn-kempo-4 inline-flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold uppercase shadow-2xs hover:opacity-90 transition-all cursor-pointer">
+                        <i class="fas fa-print mr-1"></i> Cetak PDF Sekarang
                     </a>
                 </div>
 
@@ -100,8 +111,8 @@
                     <button type="button" onclick="closeScoresheetModal()" class="btn-kempo-2 px-5 py-2.5 text-xs font-bold uppercase transition cursor-pointer border-0">
                         Batal
                     </button>
-                    <button type="submit" id="btnSimpanScoresheet" class="btn-kempo-1 px-6 py-2.5 text-xs font-bold uppercase shadow-xs hover:opacity-95 transition cursor-pointer border-0">
-                        <i class="fa fa-save mr-1.5"></i> Simpan Nilai
+                    <button type="submit" id="btnSimpanScoresheet" class="btn-kempo-1 px-6 py-2.5 text-xs font-bold uppercase shadow-md hover:opacity-95 transition cursor-pointer border-0 inline-flex items-center gap-1.5">
+                        <i class="fas fa-save"></i> Simpan Nilai
                     </button>
                 </div>
             </div>
@@ -110,61 +121,68 @@
 </div>
 
 <!-- ============================================== -->
-<!-- 2. MODAL PERAIH MEDALI (MAX-W-2XL, PADDING LEGA)-->
+<!-- 2. MODAL PERAIH MEDALI (KEMPO UI)              -->
 <!-- ============================================== -->
-<div id="medaliModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100vw; height: 100vh; z-index: 999999; background: rgba(0, 0, 0, 0.75); align-items: center; justify-content: center; padding: 2.5rem 1.5rem; overflow-y: auto;">
-    <div style="position: relative; width: 100%; max-width: 700px; margin: auto; max-height: 90vh; background: #ffffff; border-radius: 1.25rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); display: flex; flex-direction: column; overflow: hidden;" class="dark:bg-slate-850 border border-slate-200 dark:border-slate-700">
+<div id="medaliModal" style="display: none;" class="fixed inset-0 z-[999999] items-center justify-center p-4 bg-black/60 backdrop-blur-xs overflow-y-auto transition-all duration-200">
+    <div class="relative w-full max-w-[650px] my-auto max-h-[90vh] bg-white rounded-3xl border border-[#ebebeb] shadow-2xl flex flex-col overflow-hidden font-body">
         
-        <!-- Header Modal (Padding Lega) -->
-        <div style="padding: 1.5rem 2rem; flex-shrink: 0;" class="flex justify-between items-center border-b border-slate-200 dark:border-slate-700 bg-amber-50/70 dark:bg-amber-950/20">
-            <div>
-                <h3 class="text-xl md:text-2xl font-black text-slate-800 dark:text-white flex items-center gap-2 mb-0">
-                    <i class="ni ni-trophy text-amber-500"></i> Peraih Medali
-                </h3>
-                <p class="text-xs md:text-sm text-slate-500 mb-0 mt-1.5 font-medium">
-                    {{ $pertandingan->pertandingan->nama ?? '' }} (Kelas: {{ $pertandingan->pertandingan->kelas ?? '-' }}) &bull; Penilaian Berdasarkan Kontingen
-                </p>
+        <!-- Header Modal -->
+        <div class="px-6 py-5 sm:px-7 sm:py-6 shrink-0 flex items-start justify-between border-b border-[#ebebeb] bg-white">
+            <div class="flex items-start gap-4">
+                <div class="w-12 h-12 rounded-2xl bg-[#fff0eb] text-[#fd822b] flex items-center justify-center shrink-0 text-xl border border-[#ffd375]/40 shadow-2xs">
+                    <i class="fas fa-trophy"></i>
+                </div>
+                <div>
+                    <h3 class="font-heading font-bold text-xl md:text-2xl text-[#000000] mb-0 tracking-tight">
+                        Peraih Medali
+                    </h3>
+                    <p class="text-xs md:text-sm text-neutral-500 mb-0 mt-1 font-body">
+                        {{ $pertandingan->pertandingan->nama ?? '' }} (Kelas: {{ $pertandingan->pertandingan->kelas ?? '-' }}) &bull; Penilaian Berdasarkan Kontingen
+                    </p>
+                </div>
             </div>
-            <button type="button" onclick="closeMedaliModal()" class="text-slate-400 hover:text-slate-700 dark:hover:text-white text-3xl font-bold leading-none cursor-pointer border-0 bg-transparent p-1">&times;</button>
+            <button type="button" onclick="closeMedaliModal()" class="w-9 h-9 rounded-full bg-neutral-100 hover:bg-neutral-200 text-neutral-500 hover:text-[#000000] flex items-center justify-center transition-colors cursor-pointer border-0">
+                <i class="fas fa-times text-sm"></i>
+            </button>
         </div>
 
-        <!-- Form Konten Medali (Padding Lega & Spasi Antar Card) -->
-        <div id="medaliForm" style="padding: 2rem; flex: 1 1 auto; max-height: calc(90vh - 170px); overflow-y: auto;">
+        <!-- Form Konten Medali (Cards Emas, Perak, Perunggu) -->
+        <div id="medaliForm" class="p-6 sm:p-7 flex-1 overflow-y-auto bg-[#fdfdfd] space-y-4 max-h-[calc(90vh-170px)] kempo-scrollbar">
             <input type="hidden" id="medali_pertandingan_id" value="{{ $pertandingan->id }}">
             
             <!-- Emas -->
-            <div style="padding: 1.25rem 1.5rem; margin-bottom: 1.25rem; border: 1.5px solid #fde68a;" class="bg-amber-50/70 dark:bg-amber-950/20 rounded-xl shadow-xs">
-                <label class="block text-sm font-black mb-2 text-yellow-700 dark:text-yellow-400 flex items-center gap-2">
-                    <span class="text-xl">🥇</span> Medali Emas (Juara 1)
+            <div class="p-4 sm:p-5 rounded-2xl border border-amber-200 bg-amber-50/40 shadow-2xs">
+                <label class="block text-xs font-bold mb-2 text-amber-800 font-heading flex items-center gap-2 uppercase tracking-wider">
+                    <span class="text-lg">🥇</span> Medali Emas (Juara 1)
                 </label>
-                <select id="medali_emas" disabled class="w-full border border-amber-300 rounded-lg px-3.5 py-2.5 text-sm bg-white dark:bg-slate-800 text-slate-800 dark:text-white font-bold cursor-not-allowed">
+                <select id="medali_emas" disabled class="w-full border border-amber-300 rounded-xl px-3.5 py-2.5 text-sm bg-white text-[#000000] font-semibold cursor-not-allowed">
                     <option value="">-- Belum Ditentukan --</option>
                 </select>
             </div>
 
             <!-- Perak -->
-            <div style="padding: 1.25rem 1.5rem; margin-bottom: 1.25rem; border: 1.5px solid #cbd5e1;" class="bg-slate-50 dark:bg-slate-800/40 rounded-xl shadow-xs">
-                <label class="block text-sm font-black mb-2 text-slate-700 dark:text-slate-200 flex items-center gap-2">
-                    <span class="text-xl">🥈</span> Medali Perak (Juara 2)
+            <div class="p-4 sm:p-5 rounded-2xl border border-slate-200 bg-slate-50/70 shadow-2xs">
+                <label class="block text-xs font-bold mb-2 text-slate-700 font-heading flex items-center gap-2 uppercase tracking-wider">
+                    <span class="text-lg">🥈</span> Medali Perak (Juara 2)
                 </label>
-                <select id="medali_perak" disabled class="w-full border border-slate-300 rounded-lg px-3.5 py-2.5 text-sm bg-white dark:bg-slate-800 text-slate-800 dark:text-white font-bold cursor-not-allowed">
+                <select id="medali_perak" disabled class="w-full border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm bg-white text-[#000000] font-semibold cursor-not-allowed">
                     <option value="">-- Belum Ditentukan --</option>
                 </select>
             </div>
 
             <!-- Perunggu -->
-            <div style="padding: 1.25rem 1.5rem; border: 1.5px solid #fed7aa;" class="bg-orange-50/70 dark:bg-orange-950/20 rounded-xl shadow-xs">
-                <label class="block text-sm font-black mb-2 text-amber-700 dark:text-amber-400 flex items-center gap-2">
-                    <span class="text-xl">🥉</span> Medali Perunggu (Juara 3)
+            <div class="p-4 sm:p-5 rounded-2xl border border-orange-200 bg-[#fff0eb]/70 shadow-2xs">
+                <label class="block text-xs font-bold mb-2 text-[#f2470c] font-heading flex items-center gap-2 uppercase tracking-wider">
+                    <span class="text-lg">🥉</span> Medali Perunggu (Juara 3)
                 </label>
-                <select id="medali_perunggu1" disabled class="w-full border border-orange-300 rounded-lg px-3.5 py-2.5 text-sm bg-white dark:bg-slate-800 text-slate-800 dark:text-white font-bold cursor-not-allowed">
+                <select id="medali_perunggu1" disabled class="w-full border border-orange-300 rounded-xl px-3.5 py-2.5 text-sm bg-white text-[#000000] font-semibold cursor-not-allowed">
                     <option value="">-- Belum Ditentukan --</option>
                 </select>
             </div>
         </div>
 
-        <!-- Footer Modal Medali (Padding Lega) -->
-        <div style="padding: 1.25rem 2rem; flex-shrink: 0;" class="flex justify-end border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/70">
+        <!-- Footer Modal Medali -->
+        <div class="px-6 py-4 sm:px-7 sm:py-5 shrink-0 flex justify-end border-t border-[#ebebeb] bg-white">
             <button type="button" onclick="closeMedaliModal()" class="btn-kempo-2 px-6 py-2.5 text-xs font-bold uppercase transition cursor-pointer border-0">
                 Tutup
             </button>
@@ -200,14 +218,14 @@
         updateScoresheetFilterBadge(filterKabupatenName);
 
         const tbody = document.getElementById('scoresheetBody');
-        tbody.innerHTML = '<tr><td colspan="12" class="text-center py-10 text-slate-500 font-semibold" style="padding: 2.5rem 1rem;">Memuat data kontingen &amp; peserta...</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="12" class="text-center py-10 text-neutral-400 font-medium" style="padding: 2.5rem 1rem;">Memuat data kontingen &amp; peserta...</td></tr>';
 
         fetch(`/pertandingan/${targetId}/peserta`)
             .then(res => res.json())
             .then(res => {
                 const data = res.peserta || [];
                 if (data.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="12" class="text-center py-10 text-slate-400 font-semibold" style="padding: 2.5rem 1rem;">Belum ada peserta di nomor pertandingan ini.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="12" class="text-center py-10 text-neutral-400 font-medium" style="padding: 2.5rem 1rem;">Belum ada peserta di nomor pertandingan ini.</td></tr>';
                     return;
                 }
                 tbody.innerHTML = '';
@@ -240,7 +258,7 @@
                     }
 
                     const tr = document.createElement('tr');
-                    tr.className = 'scoresheet-row hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors';
+                    tr.className = 'scoresheet-row hover:bg-[#fff0eb]/30 transition-colors border-b border-[#ebebeb]';
                     tr.dataset.rowId = item.id;
                     tr.dataset.kabupatenId = item.kabupaten_id || '';
                     tr.dataset.kontingen = kontingenName;
@@ -250,39 +268,39 @@
                     }
 
                     tr.innerHTML = `
-                        <td style="padding: 12px 10px; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #f1f5f9; text-align: center;" class="font-bold text-xs text-slate-500 row-number-cell">${index + 1}</td>
-                        <td style="padding: 12px 14px; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #f1f5f9;" class="text-xs font-black text-blue-700 dark:text-blue-300">
-                            <div class="text-sm font-extrabold text-blue-800 dark:text-blue-300">${kontingenName}</div>
+                        <td style="padding: 10px 8px; border-bottom: 1px solid #ebebeb; border-right: 1px solid #ebebeb; text-align: center;" class="font-bold text-xs text-neutral-400 tabular-nums row-number-cell">${index + 1}</td>
+                        <td style="padding: 10px 14px; border-bottom: 1px solid #ebebeb; border-right: 1px solid #ebebeb;">
+                            <div class="text-sm font-heading font-bold text-[#f2470c]">${kontingenName}</div>
                             <input type="hidden" name="scores[${item.id}][pp_ids]" value="${ppIdsString}">
                             <input type="hidden" name="scores[${item.id}][kontingen]" value="${kontingenName}">
                             <input type="hidden" name="scores[${item.id}][nama]" value="${namaPeserta}">
                         </td>
-                        <td style="padding: 12px 14px; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #f1f5f9;" class="font-medium text-xs text-slate-700 dark:text-slate-200">
+                        <td style="padding: 10px 14px; border-bottom: 1px solid #ebebeb; border-right: 1px solid #ebebeb;" class="font-medium text-xs text-neutral-800">
                             ${namaPeserta}
                         </td>
-                        <td style="padding: 12px 10px; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #f1f5f9; text-align: center;">
-                            <input type="text" placeholder="00:00" name="scores[${item.id}][waktu]" value="${waktu}" style="width: 82px; padding: 7px 8px; border: 1.5px solid #cbd5e1; border-radius: 8px; text-align: center; font-size: 0.85rem;" class="font-semibold dark:bg-slate-800 dark:border-slate-600 dark:text-white">
+                        <td style="padding: 8px 6px; border-bottom: 1px solid #ebebeb; border-right: 1px solid #ebebeb; text-align: center;">
+                            <input type="text" placeholder="00:00" name="scores[${item.id}][waktu]" value="${waktu}" style="width: 80px; padding: 6px 6px; border: 1px solid #ebebeb; border-radius: 10px; text-align: center; font-size: 0.8125rem; font-family: var(--font-body);" class="font-semibold tabular-nums text-neutral-800 bg-white focus:border-[#f2470c] focus:outline-none focus:ring-2 focus:ring-[#f2470c]/20 transition-all">
                         </td>
-                        <td style="padding: 12px 6px; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #f1f5f9; text-align: center;">
-                            <input type="number" step="0.01" min="0" max="100" placeholder="0" title="Wasit 1 (0 - 100)" name="scores[${item.id}][nilai_1]" value="${n1}" oninput="validateScoreInput(this); recalcScoresheet();" onwheel="this.blur();" style="width: 78px; padding: 7px 6px; border: 1.5px solid #cbd5e1; border-radius: 8px; text-align: center; font-size: 0.85rem;" class="score-input n1 font-bold dark:bg-slate-800 dark:border-slate-600 dark:text-white">
+                        <td style="padding: 8px 4px; border-bottom: 1px solid #ebebeb; border-right: 1px solid #ebebeb; text-align: center;">
+                            <input type="number" step="0.01" min="0" max="100" placeholder="0" title="Wasit 1 (0 - 100)" name="scores[${item.id}][nilai_1]" value="${n1}" oninput="validateScoreInput(this); recalcScoresheet();" onwheel="this.blur();" style="width: 76px; padding: 6px 4px; border: 1px solid #ebebeb; border-radius: 10px; text-align: center; font-size: 0.8125rem; font-family: var(--font-body);" class="score-input n1 font-bold tabular-nums text-[#000000] bg-white focus:border-[#f2470c] focus:outline-none focus:ring-2 focus:ring-[#f2470c]/20 transition-all">
                         </td>
-                        <td style="padding: 12px 6px; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #f1f5f9; text-align: center;">
-                            <input type="number" step="0.01" min="0" max="100" placeholder="0" title="Wasit 2 (0 - 100)" name="scores[${item.id}][nilai_2]" value="${n2}" oninput="validateScoreInput(this); recalcScoresheet();" onwheel="this.blur();" style="width: 78px; padding: 7px 6px; border: 1.5px solid #cbd5e1; border-radius: 8px; text-align: center; font-size: 0.85rem;" class="score-input n2 font-bold dark:bg-slate-800 dark:border-slate-600 dark:text-white">
+                        <td style="padding: 8px 4px; border-bottom: 1px solid #ebebeb; border-right: 1px solid #ebebeb; text-align: center;">
+                            <input type="number" step="0.01" min="0" max="100" placeholder="0" title="Wasit 2 (0 - 100)" name="scores[${item.id}][nilai_2]" value="${n2}" oninput="validateScoreInput(this); recalcScoresheet();" onwheel="this.blur();" style="width: 76px; padding: 6px 4px; border: 1px solid #ebebeb; border-radius: 10px; text-align: center; font-size: 0.8125rem; font-family: var(--font-body);" class="score-input n2 font-bold tabular-nums text-[#000000] bg-white focus:border-[#f2470c] focus:outline-none focus:ring-2 focus:ring-[#f2470c]/20 transition-all">
                         </td>
-                        <td style="padding: 12px 6px; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #f1f5f9; text-align: center;">
-                            <input type="number" step="0.01" min="0" max="100" placeholder="0" title="Wasit 3 (0 - 100)" name="scores[${item.id}][nilai_3]" value="${n3}" oninput="validateScoreInput(this); recalcScoresheet();" onwheel="this.blur();" style="width: 78px; padding: 7px 6px; border: 1.5px solid #cbd5e1; border-radius: 8px; text-align: center; font-size: 0.85rem;" class="score-input n3 font-bold dark:bg-slate-800 dark:border-slate-600 dark:text-white">
+                        <td style="padding: 8px 4px; border-bottom: 1px solid #ebebeb; border-right: 1px solid #ebebeb; text-align: center;">
+                            <input type="number" step="0.01" min="0" max="100" placeholder="0" title="Wasit 3 (0 - 100)" name="scores[${item.id}][nilai_3]" value="${n3}" oninput="validateScoreInput(this); recalcScoresheet();" onwheel="this.blur();" style="width: 76px; padding: 6px 4px; border: 1px solid #ebebeb; border-radius: 10px; text-align: center; font-size: 0.8125rem; font-family: var(--font-body);" class="score-input n3 font-bold tabular-nums text-[#000000] bg-white focus:border-[#f2470c] focus:outline-none focus:ring-2 focus:ring-[#f2470c]/20 transition-all">
                         </td>
-                        <td style="padding: 12px 6px; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #f1f5f9; text-align: center;">
-                            <input type="number" step="0.01" min="0" max="100" placeholder="0" title="Wasit 4 (0 - 100)" name="scores[${item.id}][nilai_4]" value="${n4}" oninput="validateScoreInput(this); recalcScoresheet();" onwheel="this.blur();" style="width: 78px; padding: 7px 6px; border: 1.5px solid #cbd5e1; border-radius: 8px; text-align: center; font-size: 0.85rem;" class="score-input n4 font-bold dark:bg-slate-800 dark:border-slate-600 dark:text-white">
+                        <td style="padding: 8px 4px; border-bottom: 1px solid #ebebeb; border-right: 1px solid #ebebeb; text-align: center;">
+                            <input type="number" step="0.01" min="0" max="100" placeholder="0" title="Wasit 4 (0 - 100)" name="scores[${item.id}][nilai_4]" value="${n4}" oninput="validateScoreInput(this); recalcScoresheet();" onwheel="this.blur();" style="width: 76px; padding: 6px 4px; border: 1px solid #ebebeb; border-radius: 10px; text-align: center; font-size: 0.8125rem; font-family: var(--font-body);" class="score-input n4 font-bold tabular-nums text-[#000000] bg-white focus:border-[#f2470c] focus:outline-none focus:ring-2 focus:ring-[#f2470c]/20 transition-all">
                         </td>
-                        <td style="padding: 12px 6px; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #f1f5f9; text-align: center;">
-                            <input type="number" step="0.01" min="0" max="100" placeholder="0" title="Wasit 5 (0 - 100)" name="scores[${item.id}][nilai_5]" value="${n5}" oninput="validateScoreInput(this); recalcScoresheet();" onwheel="this.blur();" style="width: 78px; padding: 7px 6px; border: 1.5px solid #cbd5e1; border-radius: 8px; text-align: center; font-size: 0.85rem;" class="score-input n5 font-bold dark:bg-slate-800 dark:border-slate-600 dark:text-white">
+                        <td style="padding: 8px 4px; border-bottom: 1px solid #ebebeb; border-right: 1px solid #ebebeb; text-align: center;">
+                            <input type="number" step="0.01" min="0" max="100" placeholder="0" title="Wasit 5 (0 - 100)" name="scores[${item.id}][nilai_5]" value="${n5}" oninput="validateScoreInput(this); recalcScoresheet();" onwheel="this.blur();" style="width: 76px; padding: 6px 4px; border: 1px solid #ebebeb; border-radius: 10px; text-align: center; font-size: 0.8125rem; font-family: var(--font-body);" class="score-input n5 font-bold tabular-nums text-[#000000] bg-white focus:border-[#f2470c] focus:outline-none focus:ring-2 focus:ring-[#f2470c]/20 transition-all">
                         </td>
-                        <td style="padding: 12px 10px; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #f1f5f9; text-align: center; background-color: #eff6ff;" class="font-black text-blue-700 dark:text-blue-300 dark:bg-slate-700/60 text-sm nilai-sum">-</td>
-                        <td style="padding: 12px 6px; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #f1f5f9; text-align: center;">
-                            <input type="number" step="0.01" min="0" max="100" placeholder="0" title="Genten / Minus (0 - 100)" name="scores[${item.id}][minus]" value="${genten}" oninput="validateScoreInput(this); recalcScoresheet();" onwheel="this.blur();" style="width: 78px; padding: 7px 6px; border: 1.5px solid #fca5a5; border-radius: 8px; text-align: center; font-size: 0.85rem;" class="score-input genten font-bold text-red-600 dark:bg-slate-800 dark:border-red-500">
+                        <td style="padding: 10px 8px; border-bottom: 1px solid #ebebeb; border-right: 1px solid #ebebeb; text-align: center; background-color: #fff0eb;" class="font-heading font-bold text-[#f2470c] text-sm tabular-nums nilai-sum">-</td>
+                        <td style="padding: 8px 4px; border-bottom: 1px solid #ebebeb; border-right: 1px solid #ebebeb; text-align: center;">
+                            <input type="number" step="0.01" min="0" max="100" placeholder="0" title="Genten / Minus (0 - 100)" name="scores[${item.id}][minus]" value="${genten}" oninput="validateScoreInput(this); recalcScoresheet();" onwheel="this.blur();" style="width: 76px; padding: 6px 4px; border: 1px solid #fca5a5; border-radius: 10px; text-align: center; font-size: 0.8125rem; font-family: var(--font-body);" class="score-input genten font-bold tabular-nums text-[#e54b4f] bg-white focus:border-[#e54b4f] focus:outline-none focus:ring-2 focus:ring-[#e54b4f]/20 transition-all">
                         </td>
-                        <td style="padding: 12px 10px; border-bottom: 1px solid #e2e8f0; text-align: center; background-color: #ecfdf5;" class="font-black text-emerald-700 dark:text-emerald-300 dark:bg-slate-700/60 text-sm total-akhir-cell">-</td>
+                        <td style="padding: 10px 8px; border-bottom: 1px solid #ebebeb; text-align: center; background-color: #fff0eb;" class="font-heading font-extrabold text-[#f2470c] text-base tabular-nums total-akhir-cell">-</td>
                     `;
                     tbody.appendChild(tr);
                 });
@@ -290,9 +308,9 @@
                 if (window.currentScoresheetFilterKabId && visibleCount === 0) {
                     const emptyMsg = document.createElement('tr');
                     emptyMsg.id = 'scoresheetEmptyFilterRow';
-                    emptyMsg.innerHTML = `<td colspan="12" class="text-center py-6 text-amber-600 font-semibold" style="padding: 2rem 1rem;">
+                    emptyMsg.innerHTML = `<td colspan="12" class="text-center py-6 text-amber-700 font-semibold" style="padding: 2rem 1rem;">
                         Data untuk kontingen ini tidak ditemukan di pertandingan ini. 
-                        <button type="button" onclick="clearScoresheetFilter()" class="underline font-bold ml-1 text-blue-600 hover:text-blue-800 bg-transparent border-0 cursor-pointer">Tampilkan Semua</button>
+                        <button type="button" onclick="clearScoresheetFilter()" class="underline font-bold ml-1 text-[#f2470c] hover:underline bg-transparent border-0 cursor-pointer">Tampilkan Semua</button>
                     </td>`;
                     tbody.appendChild(emptyMsg);
                 }
@@ -301,7 +319,7 @@
             })
             .catch(err => {
                 console.error(err);
-                tbody.innerHTML = '<tr><td colspan="12" class="text-center py-10 text-red-500 font-semibold" style="padding: 2.5rem 1rem;">Gagal memuat data peserta.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="12" class="text-center py-10 text-rose-500 font-semibold" style="padding: 2.5rem 1rem;">Gagal memuat data peserta.</td></tr>';
             });
     };
 
@@ -424,7 +442,7 @@
         const submitBtn = document.getElementById('btnSimpanScoresheet');
 
         submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i class="fa fa-spinner fa-spin mr-1.5"></i> Menyimpan...';
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1.5"></i> Menyimpan...';
 
         fetch(`/pertandingan/${id}/scoresheet`, {
             method: 'POST',
@@ -437,7 +455,7 @@
         .then(res => res.json())
         .then(data => {
             submitBtn.disabled = false;
-            submitBtn.innerHTML = '<i class="fa fa-save mr-1.5"></i> Simpan Nilai';
+            submitBtn.innerHTML = '<i class="fas fa-save mr-1.5"></i> Simpan Nilai';
 
             if (data.status === 'success') {
                 if (typeof Swal !== 'undefined') {
@@ -467,7 +485,7 @@
         })
         .catch(err => {
             submitBtn.disabled = false;
-            submitBtn.innerHTML = '<i class="fa fa-save mr-1.5"></i> Simpan Nilai';
+            submitBtn.innerHTML = '<i class="fas fa-save mr-1.5"></i> Simpan Nilai';
             console.error(err);
             if (typeof Swal !== 'undefined') {
                 Swal.fire({
