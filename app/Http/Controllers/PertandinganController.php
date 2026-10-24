@@ -617,7 +617,7 @@ class PertandinganController extends Controller
     /**
      * Helper untuk mengambil seluruh data rekapitulasi kegiatan (Klasemen & Daftar Juara Embu/Randori)
      */
-    private function getRekapitulasiData($active_kegiatan_id)
+    public static function getRekapitulasiData($active_kegiatan_id)
     {
         $klasemen = [];
         $daftar_juara = [];

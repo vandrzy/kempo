@@ -9,6 +9,7 @@ use App\Models\Kecamatan;
 use App\Models\Kegiatan;
 use App\Models\Kelurahan;
 use App\Models\ListKategori;
+use App\Models\Official;
 use App\Models\Penulis;
 use App\Models\Pertandingan;
 use App\Models\PertandinganPeserta;
@@ -373,11 +374,67 @@ class HomePageController extends Controller
     }
 
 
-    public function home() {
+    public function home(Request $request) {
         if (Auth::user()->role === 'wasit') {
             return redirect('/kegiatan');
         }
-        return view('admin.dashboard');
+
+        // Ambil semua kegiatan (urutkan paling awal dulu: default data paling awal)
+        $kegiatans = Kegiatan::orderBy('id', 'asc')->get();
+
+        // Default: data paling awal
+        $defaultKegiatan = $kegiatans->first();
+        $selectedKegiatanId = $request->get('kegiatan_id');
+
+        if (!$selectedKegiatanId && $defaultKegiatan) {
+            $selectedKegiatanId = $defaultKegiatan->id;
+        }
+
+        $kegiatanAktif = $kegiatans->firstWhere('id', $selectedKegiatanId) ?? $defaultKegiatan;
+        $selectedKegiatanId = $kegiatanAktif ? $kegiatanAktif->id : null;
+
+        $jumlahPeserta = 0;
+        $jumlahOfficial = 0;
+        $totalSeluruhMedali = 0;
+        $totalMedaliEmas = 0;
+        $totalMedaliPerak = 0;
+        $totalMedaliPerunggu = 0;
+        $totalKategori = 0;
+        $klasemen = [];
+
+        if ($selectedKegiatanId) {
+            // Jumlah Peserta terdaftar pada kegiatan yang dipilih
+            $jumlahPeserta = Peserta::where('status', 'P')
+                ->whereHas('PertandinganPeserta', function ($q) use ($selectedKegiatanId) {
+                    $q->where('kegiatan_id', $selectedKegiatanId);
+                })->count();
+
+            // Jumlah Official pada kegiatan yang dipilih
+            $jumlahOfficial = Official::where('kegiatan_id', $selectedKegiatanId)->count();
+
+            // Klasemen dan statistik medali dari helper rekapitulasi kegiatan
+            $rekap = PertandinganController::getRekapitulasiData($selectedKegiatanId);
+            $klasemen = $rekap['klasemen'] ?? [];
+            $totalSeluruhMedali = $rekap['total_seluruh_medali'] ?? 0;
+            $totalMedaliEmas = $rekap['total_medali_emas'] ?? 0;
+            $totalMedaliPerak = $rekap['total_medali_perak'] ?? 0;
+            $totalMedaliPerunggu = $rekap['total_medali_perunggu'] ?? 0;
+            $totalKategori = $rekap['total_kategori'] ?? 0;
+        }
+
+        return view('admin.dashboard', compact(
+            'kegiatans',
+            'kegiatanAktif',
+            'selectedKegiatanId',
+            'jumlahPeserta',
+            'jumlahOfficial',
+            'totalSeluruhMedali',
+            'totalMedaliEmas',
+            'totalMedaliPerak',
+            'totalMedaliPerunggu',
+            'totalKategori',
+            'klasemen'
+        ));
     }
 
     public function login() {
