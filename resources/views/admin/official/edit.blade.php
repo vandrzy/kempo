@@ -1,33 +1,33 @@
 @extends('tamplate')
 @section('title', 'Edit Official')
 @section('content')
-    {{-- <h1>Edit Data Peserta</h1> --}}
-    {{-- <hr> --}}
-    <div class="flex flex-wrap -mx-3">
-        <div class="flex-none w-full max-w-full px-3">
-            <div class="relative flex flex-col min-w-0 mb-6 break-words bg-white border-0 border-transparent border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-                <div class="p-6 pb-0 mb-0 border-b-0 border-b-solid rounded-t-2xl border-b-transparent">
-                    <div class="flex items-center justify-between mb-4">
-                        <h4 class="dark:text-white">Edit Data Official</h4>
-                    </div>
-                    <form action="{{ url('official/'.$peserta->id) }}" method="post" id="form-peserta" enctype="multipart/form-data">
-                        <div class="flex justify-between items-center p-1">
-                            <div>
-                                <a href="{{ url('official') }}" class="bg-black text-white px-4 py-3 rounded">Kembali</a>
-                            </div>
-                            <h4>{{ $kegiatan->nama }}</h4>
-                        </div>
-                        <br>
-                        @csrf
-                        @method('PUT')
-                        @include('admin.official.form')
-                    </form>
+    <div class="w-full min-w-0 max-w-full">
+        <div class="kempo-card">
+            <!-- Header Kartu -->
+            <div class="px-6 py-5 border-b border-[#ebebeb] bg-white flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                    <h4 class="font-heading font-bold text-lg text-[#000000] m-0 leading-tight">Edit Data Official</h4>
+                    <p class="text-xs text-neutral-400 m-0 mt-0.5">Kegiatan: <span class="font-semibold text-neutral-800">{{ $kegiatan->nama }}</span></p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <a href="{{ url('official') }}" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold text-[#000000] bg-[#ffad9e] hover:bg-[#ff9c8a] transition-all shadow-2xs">
+                        <i class="fas fa-arrow-left text-[10px]"></i>
+                        <span>Kembali</span>
+                    </a>
                 </div>
             </div>
+
+            <!-- Form -->
+            <form action="{{ url('official/'.$peserta->id) }}" method="post" id="form-peserta" enctype="multipart/form-data" class="p-6">
+                @csrf
+                @method('PUT')
+                @include('admin.official.form')
+            </form>
         </div>
     </div>
-<script>
-    @section('script')
+@endsection
+
+@section('script')
         // const komposisi = @json($peserta->PertandinganPeserta);
         // console.log(komposisi[0]);
             // document.querySelector('input[name="berat_badan"]').addEventListener('keydown', function(e) {
@@ -513,8 +513,4 @@
                 kosong.slice(1).remove();
             });
         });
-
-
     @endsection
-</script>
-@endsection

@@ -1,29 +1,37 @@
 @extends('tamplate')
-@section('title', 'Tambah Tanding')
+@section('title', 'Tambah Data Pertandingan')
 @section('content')
-    <div class="flex flex-wrap -mx-3">
-        <div class="flex-none w-full max-w-full px-3">
-            <div class="relative flex flex-col min-w-0 mb-6 break-words bg-white border-0 border-transparent border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-                <div class="p-6 pb-0 mb-0 border-b-0 border-b-solid rounded-t-2xl border-b-transparent">
-                    <div class="flex items-center justify-between mb-4">
-                        <h4 class="dark:text-white">Tambah Data Tanding</h4>
-                    </div>
+    <div class="w-full min-w-0 max-w-full">
+        <div class="kempo-card">
+            <!-- Header Kartu -->
+            <div class="px-6 py-5 border-b border-[#ebebeb] bg-white flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                    <h4 class="font-heading font-bold text-lg text-[#000000] m-0 leading-tight">Tambah Data Pertandingan</h4>
+                    <p class="text-xs text-neutral-400 m-0 mt-0.5">Daftarkan nomor pertandingan, kategori, dan pembagian kelas baru</p>
                 </div>
-                <div class="flex-auto px-0 pt-0 pb-2">
-                    <div class="p-0 overflow-x-auto">
-                        <form action="{{ url('pertandingan') }}" method="post">
-                            <div class="flex items-center justify-between mb-4 p-3">
-                                <a href="{{ url('pertandingan') }}?kegiatan_id={{ Request('kegiatan_id') }}"  style="background-color: rgb(91, 184, 91);" class="bg-green-500 text-white px-4 py-2 rounded">Kembali</a>
-                                <button type="submit" style="background-color: rgb(91, 184, 91);" class="bg-green-500 text-white px-4 py-2 rounded">Simpan</button>
-                            </div>
-                            @csrf
-                            <div class="p-3">
-                                @include('admin.pertandingan.form')
-                            </div>
-                        </form>
-                    </div>
+                <div class="flex items-center gap-2">
+                    <a href="{{ url('pertandingan') }}?kegiatan_id={{ Request('kegiatan_id') }}" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold text-[#000000] bg-[#ffad9e] hover:bg-[#ff9c8a] transition-all shadow-2xs">
+                        <i class="fas fa-arrow-left text-[10px]"></i>
+                        <span>Kembali</span>
+                    </a>
                 </div>
             </div>
+
+            <!-- Form -->
+            <form action="{{ url('pertandingan') }}" method="post" class="p-6">
+                @csrf
+                @include('admin.pertandingan.form')
+
+                <div class="mt-8 pt-5 border-t border-[#ebebeb] flex items-center justify-end gap-3">
+                    <a href="{{ url('pertandingan') }}?kegiatan_id={{ Request('kegiatan_id') }}" class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-semibold text-neutral-700 bg-neutral-100 hover:bg-neutral-200 transition-all">
+                        Batal
+                    </a>
+                    <button type="submit" class="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-[#f2470c] hover:bg-[#d83d09] shadow-xs hover:-translate-y-px transition-all cursor-pointer">
+                        <i class="fas fa-save text-[11px]"></i>
+                        <span>Simpan Pertandingan</span>
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 @endsection

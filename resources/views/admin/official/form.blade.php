@@ -1,168 +1,183 @@
-<div class="max-w-md mx-auto bg-white shadow-md p-5 border border-gray-200 p-2">
-    <h2 class="text-lg font-semibold text-gray-800 mb-3">Keterangan</h2>
-    <ul class="list-disc list-inside space-y-2 text-gray-700 text-sm">
-        <li>Jika ada simbol "<span style="color: red;">*</span><span style="color: red;">*</span>" Harus diisi garis strip atau tanda hubung.</li>
-        <li>Jika ada simbol "<span style="color: red;">*</span>" Wajib diisi.</li>
-    </ul>
+<!-- Informasi Keterangan Form -->
+<div class="p-4 mb-6 rounded-2xl bg-[#fff0eb] border border-[#f2470c]/25 flex items-start gap-3">
+    <div class="w-8 h-8 rounded-xl bg-[#f2470c]/10 text-[#f2470c] flex items-center justify-center shrink-0 text-sm mt-0.5">
+        <i class="fas fa-info-circle"></i>
+    </div>
+    <div class="text-xs">
+        <h5 class="font-heading font-bold text-sm text-[#000000] mb-1">Panduan Pengisian Formulir</h5>
+        <ul class="space-y-1 text-neutral-600 m-0 pl-4 list-disc">
+            <li>Tanda <span class="text-[#e54b4f] font-bold">*</span> menandakan kolom wajib diisi.</li>
+            <li>Tanda <span class="text-[#e54b4f] font-bold">**</span> menandakan kolom wajib diisi tanda hubung / strip (-) bila tidak memiliki data.</li>
+        </ul>
+    </div>
 </div>
 
-<div class="p-3 overflow-x-auto">
-    <div class="flex flex-wrap mt-4 -mx-3">
-        <div class="w-full max-w-full px-3 mt-0 mb-6 lg:mb-0 lg:w-7/12 lg:flex-none">
-            <div class="relative flex flex-col min-w-0 break-words bg-white border-0 border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl dark:bg-gray-950 border-black-125 rounded-2xl bg-clip-border">
-                <input type="hidden" name="kegiatan_id" id="kegiatan_id" value="{{ $kegiatan->id }}">
-                <div class="mb-4">
-                    <label for="">Nama <span style="color: red;">*</span></label>
-                    <input type="text" name="nama" value="{{ old('nama', @$peserta->nama) }}" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" value="{{ old('nama') }}" placeholder="Nama" id="">
-                    <span class="error text-sm text-red-600"></span>
-                </div>
+<input type="hidden" name="kegiatan_id" id="kegiatan_id" value="{{ $kegiatan->id }}">
 
-                <div class="mb-4">
-                    <label for="">Golongan Darah <span style="color: red;">*</span></label>
-                    <select name="golongan_darah"  class="w-full pl-9 text-sm focus:shadow-primary-outline ease leading-5.6 relative -ml-px block min-w-0 flex-auto rounded-lg border border-solid border-gray-300 dark:bg-slate-850 dark:text-white bg-white bg-clip-padding py-2 pr-3 text-gray-700 transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:transition-shadow" id="">
-                        <option value="A" {{ old('golongan_darah', @$peserta->golongan_darah) == 'A' ? 'selected' : '' }} >A</option>
-                        <option value="B" {{ old('golongan_darah', @$peserta->golongan_darah) == 'B' ? 'selected' : '' }} >B</option>
-                        <option value="AB" {{ old('golongan_darah', @$peserta->golongan_darah) == 'AB' ? 'selected' : '' }} >AB</option>
-                        <option value="O" {{ old('golongan_darah', @$peserta->golongan_darah) == 'O' ? 'selected' : '' }} >O</option>
-                    </select>
-                    <span class="error text-sm text-red-600"></span>
-                </div>
-
-                {{-- <div class="mb-4">
-                    <label for="">Status <span style="color: red;">*</span></label>
-                    <select name="status"  class="w-full pl-9 text-sm focus:shadow-primary-outline ease leading-5.6 relative -ml-px block min-w-0 flex-auto rounded-lg border border-solid border-gray-300 dark:bg-slate-850 dark:text-white bg-white bg-clip-padding py-2 pr-3 text-gray-700 transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:transition-shadow" id="">
-                        <option value="P" {{ old('status', @$peserta->status) == 'P' ? 'selected' : '' }} >Peserta / Atlet</option>
-                        <option value="O" {{ old('status', @$peserta->status) == 'O' ? 'selected' : '' }} >Official</option>
-                    </select>
-                    <span class="error text-sm text-red-600"></span>
-                </div> --}}
-                <div class="mb-4">
-                    <label for="">Tingkat <span style="color: red;">*</span></label>
-                    @php
-                        $tingkat_sabuk = explode('-', $peserta->tingkat ?? "");
-                    @endphp
-                    {{-- <input type="text" name="status" value=" {{ old('status') }}" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" id="" > --}}
-                    <div class="flex gap-2">
-                        <select name="tingkatan_sabuk_a"  class="w-1/2 pl-9 text-sm focus:shadow-primary-outline ease leading-5.6 relative -ml-px block min-w-0 flex-auto rounded-lg border border-solid border-gray-300 dark:bg-slate-850 dark:text-white bg-white bg-clip-padding py-2 pr-3 text-gray-700 transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:transition-shadow" id="">
-                            <option value="KYU" {{ old('tingkatan_sabuk_a', @$tingkat_sabuk[0]) == 'KYU' ? 'selected' : '' }} >KYU</option>
-                            <option value="DAN" {{ old('tingkatan_sabuk_a', @$tingkat_sabuk[0]) == 'DAN' ? 'selected' : '' }} >DAN</option>
-                        </select>
-                        <input type="number" value="{{ @$tingkat_sabuk[1] }}" name="tingkatan_sabuk_b" class="w-1/2 px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500" value="{{ old('nama') }}" placeholder="Jumlah Tingkatan" id="">
-                    </div>
-                    <span class="error text-sm text-red-600"></span>
-                </div>
-
-                <label for="">Alamat Rumah <span style="color: red;">*</span></label>
-                <div class="mb-4">
-                    <label for="kabupaten_id" class="block text-sm font-medium text-gray-700">Kabupaten <span style="color: red;">*</span></label>
-                    <select name="kabupaten_id" id="kabupaten_id" class="w-full border rounded px-3 py-2">
-                        <option selected disabled>Pilih Kabupaten</option>
-                        @foreach($kabupatens as $a)
-                            <option value="{{ $a->id }}" {{ old('kabupaten_id', @$peserta->kabupaten_id) == $a->id ? 'selected' : '' }}>{{ $a->name }}</option>
-                        @endforeach
-                    </select>
-                    <span class="error text-sm text-red-600"></span>
-                </div>
-
-                <div class="mb-4">
-                    <label for="">Alamat Lengkap</label>
-                    <textarea name="alamat" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" id="" rows="5">{{ old('alamat', @$peserta->alamat) }}</textarea>
-                    <span class="error text-sm text-red-600"></span>
-                </div>
-
-                <div class="mb-4">
-                    <label for="">Tempat, Tanggal Lahir  <span style="color: red;">*</span></label>
-                    <div class="flex gap-2">
-                        <input type="text" name="tempat"
-                            class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-1/2"
-                            value="{{ old('tempat', @$peserta->tempat) }}" placeholder="Tempat Lahir" id="">
-                        <span class="error text-sm text-red-600"></span>
-                        <input type="date" name="tanggal_lahir" id="tanggal_lahir"
-                            class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-1/2"
-                            value="{{ old('tanggal_lahir', date('Y-m-d', strtotime(@$peserta->tanggal_lahir))) }}" id="">
-                            <span class="error text-sm text-red-600"></span>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-        <div class="w-full max-w-full px-3 mt-0 lg:w-5/12 lg:flex-none">
-            <div class="relative flex flex-col min-w-0 break-words bg-white border-0 border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl dark:bg-gray-950 border-black-125 rounded-2xl bg-clip-border">
-                <div class="mb-4">
-                    <label for="">Jenis Kelamin <span style="color: red;">*</span></label>
-                    <select name="jenis_kelamin"  class="w-full pl-9 text-sm focus:shadow-primary-outline ease leading-5.6 relative -ml-px block min-w-0 flex-auto rounded-lg border border-solid border-gray-300 dark:bg-slate-850 dark:text-white bg-white bg-clip-padding py-2 pr-3 text-gray-700 transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:transition-shadow" id="jenis_kelamin">
-                        <option value="Laki-Laki" {{ old('jenis_kelamin', @$peserta->jenis_kelamin) == 'Laki-Laki' ? 'selected' : '' }} >Laki-Laki</option>
-                        <option value="Perempuan" {{ old('jenis_kelamin', @$peserta->jenis_kelamin) == 'Perempuan' ? 'selected' : '' }} >Perempuan</option>
-
-                    </select>
-                    <span class="error text-sm text-red-600"></span>
-                </div>
-
-                <div class="mb-4">
-                    <label for="">NIK <span style="color: red;">*</span></label>
-                    <input type="text" name="nik" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" value="{{ old('nik', @$peserta->nik) }}" placeholder="NIK" id=""   onkeypress="return event.charCode >= 48 && event.charCode <= 57" oninput="this.value = this.value.replace(/[^0-9]/g, '');" onkeydown="if(['e','E','+','-','.'].includes(event.key)) event.preventDefault();">
-                    <span class="error text-sm text-red-600"></span>
-                </div>
-
-
-                <div class="mb-4">
-                    <label for="">Telepon <span style="color: red;">*</span></label>
-                    <input type="text" name="telepon" value="{{ old('telepon', @$peserta->telepon) }}" placeholder="Nomor Telepon" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" id="" >
-                    <span class="error text-sm text-red-600"></span>
-                </div>
-                {{-- <div class="mb-4">
-                    <label for="">Berat Badan (Kg) <span style="color: red;">*</span></label>
-                    <input type="number" min="0" max="1000" name="berat_badan" placeholder="Berat Badan (Kg)" value="{{ old('berat_badan', @$peserta->berat_badan) }}" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" id="" >
-                    <span class="error text-sm text-red-600"></span>
-                </div> --}}
-                <div class="mb-4">
-                    <label for="">Keterangan Khusus Official Prestasi Terbaik : </label>
-                    <textarea name="keterangan" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" id="" cols="30" rows="4">{{ old('keterangan', @$peserta->keterangan) }}</textarea>
-                    <span class="error text-sm text-red-600"></span>
-                </div>
-
-                <div class="mb-4">
-                    <label for="">Sertifikat Pelatih yang diikuti : <span style="color: red;">*</span></label>
-                    <textarea name="sertifikat" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" id="" cols="30" rows="4">{{ old('sertifikat', @$peserta->sertifikat) }}</textarea>
-                    <span class="error text-sm text-red-600"></span>
-                </div>
-
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <!-- Kolom Kiri: Biodata & Alamat -->
+    <div class="lg:col-span-7 space-y-5">
+        <div class="p-5 rounded-2xl bg-white border border-[#ebebeb] shadow-2xs space-y-4">
+            <h5 class="font-heading font-bold text-sm text-[#000000] border-b border-[#ebebeb] pb-2.5 mb-3 flex items-center gap-2">
+                <i class="fas fa-id-card text-[#f2470c]"></i>
+                <span>Identitas Utama Official</span>
+            </h5>
 
             <div class="mb-4">
-                <label for="">Foto Berwarna 4 x 6 <span style="color: red;">*</span></label>
-                <input type="file" name="foto" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" id="imageInput">
-                <br>
-                <img src="{{ url($peserta->foto ?? "") }}" style="width: 50%;" id="preview" alt=""><br>
-                <span class="error text-sm text-red-600"></span>
+                <label class="block text-xs font-bold text-[#000000] uppercase tracking-wider font-heading mb-2">
+                    Nama <span class="text-[#e54b4f]">*</span>
+                </label>
+                <input type="text" name="nama" value="{{ old('nama', @$peserta->nama) }}" class="w-full px-4 py-2.5 text-xs font-medium rounded-xl bg-white border border-[#ebebeb] text-[#000000] placeholder:text-neutral-400 focus:border-[#f2470c] focus:ring-2 focus:ring-[#f2470c]/20 outline-none transition-all shadow-2xs" placeholder="Nama lengkap official">
+                <span class="error text-xs font-semibold text-[#e54b4f] mt-1 inline-block"></span>
             </div>
-                {{-- <div class="mb-4">
-                    <label for="">Kategori <span style="color: red;">*</span></label>
-                    <input type="text" name="tingkat" readonly class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500 w-full" value="{{ old('tingkat') }}" placeholder="Kategori" id="tingkat">
-                    @error('tingkat')
-                        <span class="text-red" style="color: red;">{{ $message }}</span>
-                    @enderror
-                </div>
-                <div class="mb-4">
-                    <label for="">Nomor dan Kelas Pertandingan yang akan diikuti : <span style="color: red;">*</span></label>
-                    <select name="pertandingan_id[]" class="pilihan w-full pl-9 text-sm focus:shadow-primary-outline ease leading-5.6 relative -ml-px block min-w-0 flex-auto rounded-lg border border-solid border-gray-300 dark:bg-slate-850 dark:text-white bg-white bg-clip-padding py-2 pr-3 text-gray-700 transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:transition-shadow" multiple="multiple" status="{{ (is_array(old('pertandingan_id')) && count(old('pertandingan_id'))) > 0 ? 'true' : 'false' }}" id="pertandingan_id">
+
+            <div class="mb-4">
+                <label class="block text-xs font-bold text-[#000000] uppercase tracking-wider font-heading mb-2">
+                    Golongan Darah <span class="text-[#e54b4f]">*</span>
+                </label>
+                <select name="golongan_darah" class="w-full px-4 py-2.5 text-xs font-medium rounded-xl bg-white border border-[#ebebeb] text-[#000000] focus:border-[#f2470c] focus:ring-2 focus:ring-[#f2470c]/20 outline-none transition-all shadow-2xs">
+                    <option value="A" {{ old('golongan_darah', @$peserta->golongan_darah) == 'A' ? 'selected' : '' }}>A</option>
+                    <option value="B" {{ old('golongan_darah', @$peserta->golongan_darah) == 'B' ? 'selected' : '' }}>B</option>
+                    <option value="AB" {{ old('golongan_darah', @$peserta->golongan_darah) == 'AB' ? 'selected' : '' }}>AB</option>
+                    <option value="O" {{ old('golongan_darah', @$peserta->golongan_darah) == 'O' ? 'selected' : '' }}>O</option>
+                </select>
+                <span class="error text-xs font-semibold text-[#e54b4f] mt-1 inline-block"></span>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-xs font-bold text-[#000000] uppercase tracking-wider font-heading mb-2">
+                    Tingkat <span class="text-[#e54b4f]">*</span>
+                </label>
+                @php
+                    $tingkat_sabuk = explode('-', $peserta->tingkat ?? "");
+                @endphp
+                <div class="grid grid-cols-2 gap-3">
+                    <select name="tingkatan_sabuk_a" class="w-full px-4 py-2.5 text-xs font-medium rounded-xl bg-white border border-[#ebebeb] text-[#000000] focus:border-[#f2470c] focus:ring-2 focus:ring-[#f2470c]/20 outline-none transition-all shadow-2xs">
+                        <option value="KYU" {{ old('tingkatan_sabuk_a', @$tingkat_sabuk[0]) == 'KYU' ? 'selected' : '' }}>KYU</option>
+                        <option value="DAN" {{ old('tingkatan_sabuk_a', @$tingkat_sabuk[0]) == 'DAN' ? 'selected' : '' }}>DAN</option>
                     </select>
-                    @error('pertandingan_id')
-                        <span class="text-red" style="color: red;">{{ $message }}</span>
-                    @enderror
-                </div> --}}
+                    <input type="number" name="tingkatan_sabuk_b" value="{{ @$tingkat_sabuk[1] }}" class="w-full px-4 py-2.5 text-xs font-medium rounded-xl bg-white border border-[#ebebeb] text-[#000000] placeholder:text-neutral-400 focus:border-[#f2470c] focus:ring-2 focus:ring-[#f2470c]/20 outline-none transition-all shadow-2xs tabular-nums" placeholder="Jumlah Tingkatan">
+                </div>
+                <span class="error text-xs font-semibold text-[#e54b4f] mt-1 inline-block"></span>
+            </div>
+        </div>
+
+        <div class="p-5 rounded-2xl bg-white border border-[#ebebeb] shadow-2xs space-y-4">
+            <h5 class="font-heading font-bold text-sm text-[#000000] border-b border-[#ebebeb] pb-2.5 mb-3 flex items-center gap-2">
+                <i class="fas fa-map-marker-alt text-[#f2470c]"></i>
+                <span>Alamat & Tempat Lahir</span>
+            </h5>
+
+            <div class="mb-4">
+                <label for="kabupaten_id" class="block text-xs font-bold text-[#000000] uppercase tracking-wider font-heading mb-2">
+                    Kabupaten / Kota <span class="text-[#e54b4f]">*</span>
+                </label>
+                <select name="kabupaten_id" id="kabupaten_id" class="w-full px-4 py-2.5 text-xs font-medium rounded-xl bg-white border border-[#ebebeb] text-[#000000] focus:border-[#f2470c] focus:ring-2 focus:ring-[#f2470c]/20 outline-none transition-all shadow-2xs">
+                    <option selected disabled>Pilih Kabupaten</option>
+                    @foreach($kabupatens as $a)
+                        <option value="{{ $a->id }}" {{ old('kabupaten_id', @$peserta->kabupaten_id) == $a->id ? 'selected' : '' }}>{{ $a->name }}</option>
+                    @endforeach
+                </select>
+                <span class="error text-xs font-semibold text-[#e54b4f] mt-1 inline-block"></span>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-xs font-bold text-[#000000] uppercase tracking-wider font-heading mb-2">
+                    Alamat Lengkap <span class="text-[#e54b4f]">*</span>
+                </label>
+                <textarea name="alamat" class="w-full px-4 py-2.5 text-xs font-medium rounded-xl bg-white border border-[#ebebeb] text-[#000000] placeholder:text-neutral-400 focus:border-[#f2470c] focus:ring-2 focus:ring-[#f2470c]/20 outline-none transition-all shadow-2xs" rows="3" placeholder="Alamat lengkap official">{{ old('alamat', @$peserta->alamat) }}</textarea>
+                <span class="error text-xs font-semibold text-[#e54b4f] mt-1 inline-block"></span>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-xs font-bold text-[#000000] uppercase tracking-wider font-heading mb-2">
+                    Tempat, Tanggal Lahir <span class="text-[#e54b4f]">*</span>
+                </label>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <input type="text" name="tempat" class="w-full px-4 py-2.5 text-xs font-medium rounded-xl bg-white border border-[#ebebeb] text-[#000000] placeholder:text-neutral-400 focus:border-[#f2470c] focus:ring-2 focus:ring-[#f2470c]/20 outline-none transition-all shadow-2xs" value="{{ old('tempat', @$peserta->tempat) }}" placeholder="Tempat Lahir">
+                    <input type="date" name="tanggal_lahir" id="tanggal_lahir" class="w-full px-4 py-2.5 text-xs font-medium rounded-xl bg-white border border-[#ebebeb] text-[#000000] focus:border-[#f2470c] focus:ring-2 focus:ring-[#f2470c]/20 outline-none transition-all shadow-2xs" value="{{ old('tanggal_lahir', @$peserta->tanggal_lahir ? date('Y-m-d', strtotime($peserta->tanggal_lahir)) : '') }}">
+                </div>
+                <span class="error text-xs font-semibold text-[#e54b4f] mt-1 inline-block"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Kolom Kanan: Data Pribadi & Sertifikasi & Foto -->
+    <div class="lg:col-span-5 space-y-5">
+        <div class="p-5 rounded-2xl bg-white border border-[#ebebeb] shadow-2xs space-y-4">
+            <h5 class="font-heading font-bold text-sm text-[#000000] border-b border-[#ebebeb] pb-2.5 mb-3 flex items-center gap-2">
+                <i class="fas fa-user-check text-[#f2470c]"></i>
+                <span>Data Pribadi & Sertifikasi</span>
+            </h5>
+
+            <div class="mb-4">
+                <label class="block text-xs font-bold text-[#000000] uppercase tracking-wider font-heading mb-2">
+                    Jenis Kelamin <span class="text-[#e54b4f]">*</span>
+                </label>
+                <select name="jenis_kelamin" id="jenis_kelamin" class="w-full px-4 py-2.5 text-xs font-medium rounded-xl bg-white border border-[#ebebeb] text-[#000000] focus:border-[#f2470c] focus:ring-2 focus:ring-[#f2470c]/20 outline-none transition-all shadow-2xs">
+                    <option value="Laki-Laki" {{ old('jenis_kelamin', @$peserta->jenis_kelamin) == 'Laki-Laki' ? 'selected' : '' }}>Laki-Laki</option>
+                    <option value="Perempuan" {{ old('jenis_kelamin', @$peserta->jenis_kelamin) == 'Perempuan' ? 'selected' : '' }}>Perempuan</option>
+                </select>
+                <span class="error text-xs font-semibold text-[#e54b4f] mt-1 inline-block"></span>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-xs font-bold text-[#000000] uppercase tracking-wider font-heading mb-2">
+                    NIK <span class="text-[#e54b4f]">*</span>
+                </label>
+                <input type="text" name="nik" value="{{ old('nik', @$peserta->nik) }}" class="w-full px-4 py-2.5 text-xs font-medium rounded-xl bg-white border border-[#ebebeb] text-[#000000] placeholder:text-neutral-400 focus:border-[#f2470c] focus:ring-2 focus:ring-[#f2470c]/20 outline-none transition-all shadow-2xs tabular-nums" placeholder="16 digit NIK" onkeypress="return event.charCode >= 48 && event.charCode <= 57" oninput="this.value = this.value.replace(/[^0-9]/g, '');" onkeydown="if(['e','E','+','-','.'].includes(event.key)) event.preventDefault();">
+                <span class="error text-xs font-semibold text-[#e54b4f] mt-1 inline-block"></span>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-xs font-bold text-[#000000] uppercase tracking-wider font-heading mb-2">
+                    Nomor Telepon / WhatsApp <span class="text-[#e54b4f]">*</span>
+                </label>
+                <input type="text" name="telepon" value="{{ old('telepon', @$peserta->telepon) }}" placeholder="Contoh: 08123456789" class="w-full px-4 py-2.5 text-xs font-medium rounded-xl bg-white border border-[#ebebeb] text-[#000000] placeholder:text-neutral-400 focus:border-[#f2470c] focus:ring-2 focus:ring-[#f2470c]/20 outline-none transition-all shadow-2xs tabular-nums">
+                <span class="error text-xs font-semibold text-[#e54b4f] mt-1 inline-block"></span>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-xs font-bold text-[#000000] uppercase tracking-wider font-heading mb-2">
+                    Keterangan Prestasi Terbaik Official
+                </label>
+                <textarea name="keterangan" class="w-full px-4 py-2.5 text-xs font-medium rounded-xl bg-white border border-[#ebebeb] text-[#000000] placeholder:text-neutral-400 focus:border-[#f2470c] focus:ring-2 focus:ring-[#f2470c]/20 outline-none transition-all shadow-2xs" rows="3" placeholder="Tuliskan prestasi terbaik official">{{ old('keterangan', @$peserta->keterangan) }}</textarea>
+                <span class="error text-xs font-semibold text-[#e54b4f] mt-1 inline-block"></span>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-xs font-bold text-[#000000] uppercase tracking-wider font-heading mb-2">
+                    Sertifikat Pelatih yang Diikuti <span class="text-[#e54b4f]">*</span>
+                </label>
+                <textarea name="sertifikat" class="w-full px-4 py-2.5 text-xs font-medium rounded-xl bg-white border border-[#ebebeb] text-[#000000] placeholder:text-neutral-400 focus:border-[#f2470c] focus:ring-2 focus:ring-[#f2470c]/20 outline-none transition-all shadow-2xs" rows="3" placeholder="Tuliskan sertifikat kepelatihan yang dimiliki">{{ old('sertifikat', @$peserta->sertifikat) }}</textarea>
+                <span class="error text-xs font-semibold text-[#e54b4f] mt-1 inline-block"></span>
+            </div>
+        </div>
+
+        <div class="p-5 rounded-2xl bg-white border border-[#ebebeb] shadow-2xs space-y-4">
+            <h5 class="font-heading font-bold text-sm text-[#000000] border-b border-[#ebebeb] pb-2.5 mb-3 flex items-center gap-2">
+                <i class="fas fa-camera text-[#f2470c]"></i>
+                <span>Pas Foto Official (4 x 6)</span>
+            </h5>
+
+            <div class="mb-4">
+                <label class="block text-xs font-bold text-[#000000] uppercase tracking-wider font-heading mb-2">
+                    Upload Foto Berwarna <span class="text-[#e54b4f]">*</span>
+                </label>
+                <input type="file" name="foto" id="imageInput" class="w-full px-4 py-2 text-xs font-medium rounded-xl bg-white border border-[#ebebeb] text-[#000000] file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-[#fff0eb] file:text-[#f2470c] hover:file:bg-[#ffe2d6] file:cursor-pointer transition-all">
+                <p class="text-[11px] text-neutral-400 mt-1.5">Format: JPG, JPEG, PNG (Maks 1MB)</p>
+                <div class="mt-3">
+                    <img src="{{ url($peserta->foto ?? '') }}" id="preview" class="w-28 h-36 object-cover rounded-xl border border-[#ebebeb] shadow-2xs bg-neutral-100" alt="Preview Foto">
+                </div>
+                <span class="error text-xs font-semibold text-[#e54b4f] mt-1 inline-block"></span>
             </div>
         </div>
     </div>
 </div>
-<div class="p-3 overflow-x-auto">
 
-
-    {{-- <h1>Tahapan Teknik</h1>
-    <div class="tanding_list">
-
-    </div> --}}
-    <br>
-    <div class="mb-4" style="text-align: center;">
-        <button type="submit"  style="border: solid 2px green; color: green; font-size: 22px;"   class="edit-tanding-form inline-block px-8 py-2 mb-0 text-xs font-bold leading-normal text-center text-green-500 align-middle transition-all ease-in bg-transparent border  border-solid rounded-lg shadow-none cursor-pointer bg-150 active:opacity-85 hover:-translate-y-px tracking-tight-rem bg-x-25 hover:opacity-75">Simpan</button>
-    </div>
+<div class="mt-8 pt-6 border-t border-[#ebebeb] flex justify-end">
+    <button type="submit" class="edit-tanding-form inline-flex items-center justify-center gap-2 px-8 py-3 rounded-xl text-xs font-bold font-heading text-white bg-[#f2470c] hover:bg-[#d83c07] shadow-sm hover:shadow-md transition-all active:scale-[0.99] cursor-pointer tracking-wider uppercase">
+        <i class="fas fa-save"></i>
+        <span>Simpan Data Official</span>
+    </button>
 </div>
