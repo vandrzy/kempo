@@ -112,14 +112,14 @@
                                                                 <h5 class="m-4" style="text-align: center">Peserta tidak tersedia!</h5>
                                                             @else
                                                                 <div class="w-full max-w-full px-3 mt-0 mb-6 lg:mb-0 lg:w-5/12 lg:flex-none">
-                                                                    <div class="relative flex flex-col min-w-0 break-words bg-white border-0 border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl dark:bg-gray-950 border-black-125 rounded-2xl bg-clip-border">
+                                                                    <div class="kempo-card">
                                                                         <input type="hidden" name="kegiatan_id" id="kegiatan_id" value="{{ $kegiatan->id }}">
-                                                                        <div class="mb-4 p-3">
-                                                                            <table class=" bg-white border rounded-lg overflow-hidden" style="width: 100%;">
-                                                                                <thead class="bg-gray-100 border-b">
+                                                                        <div class="kempo-table-wrapper">
+                                                                            <table class="kempo-table">
+                                                                                <thead>
                                                                                     <tr>
-                                                                                        <th class="px-3 py-2 border-r" style="width: 20%;">No Urut</th>
-                                                                                        <th class="px-3 py-2" style="text-align: left;">Nama Peserta</th>
+                                                                                        <th class="w-24 text-center tabular-nums">No Urut</th>
+                                                                                        <th>Nama Peserta</th>
                                                                                     </tr>
                                                                                 </thead>
                                                                                 <tbody>
@@ -127,21 +127,16 @@
                                                                                         @php
                                                                                             $kategoriList = $peserta->PertandinganPeserta->pluck('list_kategori.kategori')->unique()->values();
                                                                                             $pertandingan = $peserta->PertandinganPeserta->pluck('list_kategori.pertandingan')->unique()->values();
-                                                                                        @endphp
-                                                                                        @php
                                                                                             $kategori_id = 0;
                                                                                             $urutan = 0;
-
                                                                                         @endphp
                                                                                         @foreach ($peserta->PertandinganPeserta as $item)
                                                                                             <tr>
-                                                                                                <td style="text-align: center" class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-                                                                                                    <p class="mb-0 text-3xl font-semibold leading-tight dark:text-white dark:opacity-80">
-                                                                                                        {{ $item->urutan }}
-                                                                                                    </p>
+                                                                                                <td class="text-center font-bold text-primary tabular-nums">
+                                                                                                    {{ $item->urutan }}
                                                                                                 </td>
-                                                                                                <td style="text-align: left" class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-                                                                                                    <p class="mb-0 text-3xl font-semibold leading-tight dark:text-white dark:opacity-80"> {{ $peserta->nama }}</p>
+                                                                                                <td class="font-medium text-foreground">
+                                                                                                    {{ $peserta->nama }}
                                                                                                 </td>
                                                                                             </tr>
                                                                                             @php
@@ -149,7 +144,6 @@
                                                                                             @endphp
                                                                                         @endforeach
                                                                                     @endforeach
-
                                                                                 </tbody>
                                                                             </table>
                                                                         </div>

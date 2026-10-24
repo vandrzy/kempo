@@ -91,16 +91,16 @@
             <!-- Footer Modal (Padding Lega) -->
             <div style="padding: 1.25rem 2.25rem; flex-shrink: 0;" class="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/70">
                 <div>
-                    <a href="{{ route('pertandingan.cetak-pdf', $pertandingan->id) }}" id="btnCetakPdfScoresheet" target="_blank" style="background-color: #059669 !important; color: #ffffff !important;" class="inline-flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold text-white uppercase rounded-lg shadow-md hover:opacity-90 transition-all cursor-pointer">
+                    <a href="{{ route('pertandingan.cetak-pdf', $pertandingan->id) }}" id="btnCetakPdfScoresheet" target="_blank" style="background-color: var(--color-btn-4, #3276e4) !important; color: #ffffff !important;" class="inline-flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold text-white uppercase rounded-xl shadow-xs hover:opacity-90 transition-all cursor-pointer">
                         <i class="fa fa-print mr-1"></i> Cetak PDF Sekarang
                     </a>
                 </div>
 
                 <div class="flex items-center gap-3">
-                    <button type="button" onclick="closeScoresheetModal()" style="background-color: #e2e8f0 !important; color: #334155 !important;" class="px-5 py-2.5 text-xs font-bold text-slate-700 uppercase rounded-lg transition cursor-pointer border-0 hover:bg-slate-300">
+                    <button type="button" onclick="closeScoresheetModal()" class="btn-kempo-2 px-5 py-2.5 text-xs font-bold uppercase transition cursor-pointer border-0">
                         Batal
                     </button>
-                    <button type="submit" id="btnSimpanScoresheet" style="background-color: #2563eb !important; color: #ffffff !important;" class="px-6 py-2.5 text-xs font-bold text-white uppercase rounded-lg shadow-md hover:opacity-90 transition cursor-pointer border-0">
+                    <button type="submit" id="btnSimpanScoresheet" class="btn-kempo-1 px-6 py-2.5 text-xs font-bold uppercase shadow-xs hover:opacity-95 transition cursor-pointer border-0">
                         <i class="fa fa-save mr-1.5"></i> Simpan Nilai
                     </button>
                 </div>
@@ -165,7 +165,7 @@
 
         <!-- Footer Modal Medali (Padding Lega) -->
         <div style="padding: 1.25rem 2rem; flex-shrink: 0;" class="flex justify-end border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/70">
-            <button type="button" onclick="closeMedaliModal()" style="background-color: #e2e8f0 !important; color: #334155 !important;" class="px-6 py-2.5 text-xs font-bold text-slate-700 uppercase rounded-lg transition cursor-pointer border-0 hover:bg-slate-300">
+            <button type="button" onclick="closeMedaliModal()" class="btn-kempo-2 px-6 py-2.5 text-xs font-bold uppercase transition cursor-pointer border-0">
                 Tutup
             </button>
         </div>

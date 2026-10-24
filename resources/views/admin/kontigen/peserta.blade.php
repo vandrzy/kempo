@@ -16,164 +16,158 @@
         accent-color: green; /* tetap hijau meski disabled */
     }
 </style>
-    <div class="flex flex-wrap -mx-3">
-        <div class="flex-none w-full max-w-full px-3">
-        <div class="relative flex flex-col min-w-0 mb-6 break-words bg-white border-0 border-transparent border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-            <div class="p-6 pb-0 mb-0 border-b-0 border-b-solid rounded-t-2xl border-b-transparent">
-                <div class="flex items-center justify-between mb-2">
-                    <h4 class="dark:text-white">Data Kontigen {{ $kabupaten->name }}</h4>
-                    <h4>{{ $kegiatan->nama }}</h4>
-                </div>
-                <div class="flex items-center justify-between mb-2">
+    <div class="w-full min-w-0 max-w-full">
+        <div class="kempo-card">
+            <!-- Header Kartu -->
+            <div class="px-6 py-5 border-b border-[#ebebeb] bg-white flex flex-col gap-4">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <div>
-                        <a href="{{ url('kontingen') }}" style="border: solid 2px green; color: green;"  class="inline-block px-5 py-2 mb-0 text-xs font-bold leading-normal text-center text-green-500 align-middle transition-all ease-in bg-transparent border  border-solid rounded-lg shadow-none cursor-pointer bg-150 active:opacity-85 hover:-translate-y-px tracking-tight-rem bg-x-25 hover:opacity-75">Kembali</a>
+                        <h4 class="font-heading font-bold text-lg text-[#000000] m-0 leading-tight">Data Kontingen {{ $kabupaten->name }}</h4>
+                        <p class="text-xs text-neutral-400 m-0 mt-0.5">Kegiatan: <span class="font-semibold text-neutral-600">{{ $kegiatan->nama }}</span></p>
+                    </div>
+                </div>
+
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-2 border-t border-[#ebebeb]/60">
+                    <div>
+                        <!-- Tombol Kembali (Button 2 Secondary) -->
+                        <a href="{{ url('kontingen') }}"
+                            class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-neutral-700 bg-neutral-100 hover:bg-neutral-200 border border-neutral-200 shadow-2xs hover:-translate-y-px transition-all">
+                            <i class="fas fa-arrow-left text-[10px]"></i>
+                            <span>Kembali ke Kontingen</span>
+                        </a>
                     </div>
                     <div>
-                        <form action="{{ url('kontingen/'.$kabupaten->id) }}" method="get">
+                        <form action="{{ url('kontingen/'.$kabupaten->id) }}" method="get" class="m-0">
                             <input type="hidden" name="kegiatan_id" value="{{ $kegiatan->id }}">
-                            <select name="status" onchange="this.form.submit()" class="pl-9 text-sm focus:shadow-primary-outline ease leading-5.6 relative -ml-px block min-w-0 flex-auto rounded-lg border border-solid border-gray-300 dark:bg-slate-850 dark:text-white bg-white bg-clip-padding py-2 pr-3 text-gray-700 transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:transition-shadow" id="kegiatan_id">
-                                <option value="peserta" {{ Request('status') == 'peserta' ? 'selected' : '' }} >Peserta</option>
-                                <option value="official" {{ Request('status') == 'official' ? 'selected' : '' }} >Official</option>
+                            <select name="status" onchange="this.form.submit()"
+                                class="px-3.5 py-2 text-xs rounded-xl bg-white border border-[#ebebeb] focus:border-[#f2470c] focus:ring-2 focus:ring-[#f2470c]/20 outline-none transition-all shadow-2xs text-[#000000] font-medium"
+                                id="kegiatan_id">
+                                <option value="peserta" {{ Request('status') == 'peserta' ? 'selected' : '' }}>Peserta</option>
+                                <option value="official" {{ Request('status') == 'official' ? 'selected' : '' }}>Official</option>
                             </select>
                         </form>
                     </div>
                 </div>
             </div>
-            <div class="flex-auto px-0 pt-0 pb-2">
-            <div class="p-0 overflow-x-auto">
-                <table class="items-center w-full mb-0 align-top border-collapse dark:border-white/40 text-slate-500">
-                    <thead class="align-bottom">
+
+            <!-- Tabel Data -->
+            <div class="kempo-table-wrapper kempo-scrollbar">
+                <table class="kempo-table">
+                    <thead>
                         <tr>
-                            <th rowspan="2" class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-4xl border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">No</th>
-                            {{-- <th rowspan="2" class="px-6 py-3 pl-2 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-3xl border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Kegiatan</th>
-                            <th rowspan="2" class="px-6 py-3 pl-2 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-3xl border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Pertandingan</th> --}}
-                            <th rowspan="2" class="px-6 py-3 pl-2 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-3xl border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Nama</th>
-                            <th rowspan="2" class="px-6 py-3 pl-2 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-3xl border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">NIK</th>
-                            <th rowspan="2" class="px-6 py-3 pl-2 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-3xl border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Usia (Tahun)</th>
-                            <th colspan="2" style="text-align: center" class="px-6 py-3 pl-2 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-3xl border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Jenis Kelamin</th>
-                            <th colspan="2" style="text-align: center" class="px-6 py-3 pl-2 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-3xl border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Tingkat</th>
-                            <th colspan="2" style="text-align: center" class="px-6 py-3 pl-2 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-3xl border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Status</th>
-                            <th rowspan="2" class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-3xl border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Aksi</th>
+                            <th rowspan="2" class="text-center w-14">No</th>
+                            <th rowspan="2" class="text-left">Nama</th>
+                            <th rowspan="2" class="text-left">NIK</th>
+                            <th rowspan="2" class="text-center">Usia</th>
+                            <th colspan="2" class="text-center border-b border-[#ebebeb]">Jenis Kelamin</th>
+                            <th colspan="2" class="text-center border-b border-[#ebebeb]">Tingkat</th>
+                            <th colspan="2" class="text-center border-b border-[#ebebeb]">Status</th>
+                            <th rowspan="2" class="text-center w-28">Aksi</th>
                         </tr>
                         <tr>
-                            <th style="text-align: center" class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-3xl border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">L</th>
-                            <th style="text-align: center" class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-3xl border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">P</th>
-                            <th style="text-align: center" class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-3xl border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">K</th>
-                            <th style="text-align: center" class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-3xl border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">D</th>
-                            <th style="text-align: center" class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-3xl border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">P</th>
-                            <th style="text-align: center" class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-3xl border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">O</th>
+                            <th class="text-center w-10">L</th>
+                            <th class="text-center w-10">P</th>
+                            <th class="text-center w-10">K</th>
+                            <th class="text-center w-10">D</th>
+                            <th class="text-center w-10">P</th>
+                            <th class="text-center w-10">O</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($peserta as $a)
+                        @forelse ($peserta as $a)
                             <tr>
-                                <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-                                    <h6 class="mb-0 text-sm leading-normal pl-4 dark:text-white">{{ $loop->iteration }}</h6>
+                                <td class="text-center tabular-nums text-xs font-semibold text-neutral-500">
+                                    {{ $loop->iteration }}
                                 </td>
-
-                                {{-- <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-                                    <p class="mb-0 text-3xl font-semibold leading-tight dark:text-white dark:opacity-80">{{ $a->KegiatanPertandinganPeserta->list_kategori->kegiatan->nama ?? "" }}</p>
+                                <td class="text-left font-semibold text-[#000000]">
+                                    {{ $a->nama }}
                                 </td>
-                                <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-                                    <ul>
-                                        @isset($a->PertandinganPeserta)
-                                            @foreach ($a->PertandinganPeserta as $b)
-                                                <li><p class="mb-0 text-3xl font-semibold leading-tight dark:text-white dark:opacity-80">{{ $b->list_kategori->pertandingan->nama ?? "" }}</p></li>
-                                            @endforeach
-                                        @endisset
-                                    </ul>
-                                </td> --}}
-                                <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-                                    <p class="mb-0 text-3xl font-semibold leading-tight dark:text-white dark:opacity-80">{{ $a->nama }}</p>
+                                <td class="text-left tabular-nums text-neutral-600 text-xs sm:text-sm">
+                                    {{ $a->nik }}
                                 </td>
-                                <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-                                    <p class="mb-0 text-3xl font-semibold leading-tight dark:text-white dark:opacity-80">{{ $a->nik }}</p>
+                                <td class="text-center tabular-nums text-neutral-700 text-xs sm:text-sm">
+                                    {{ (Date('Y')) - (Date('Y', strtotime($a->tanggal_lahir))) }} Thn
                                 </td>
-                                <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-                                    <p class="mb-0 text-3xl font-semibold leading-tight dark:text-white dark:opacity-80">{{ (Date('Y')) - (Date('Y', strtotime($a->tanggal_lahir))) }} Tahun </p>
+                                <td class="text-center">
+                                    @if(strtoupper(substr($a->jenis_kelamin, 0, 1)) == "L")
+                                        <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200 text-[10px] font-bold" title="Laki-laki">
+                                            <i class="fas fa-check"></i>
+                                        </span>
+                                    @endif
                                 </td>
-                                <td style="text-align: center" class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-                                    <p class="mb-0 text-3xl font-semibold leading-tight dark:text-white dark:opacity-80">
-                                        @if(strtoupper(substr($a->jenis_kelamin, 0, 1)) == "L")
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
-                                            </svg>
+                                <td class="text-center">
+                                    @if(strtoupper(substr($a->jenis_kelamin, 0, 1)) == "P")
+                                        <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200 text-[10px] font-bold" title="Perempuan">
+                                            <i class="fas fa-check"></i>
+                                        </span>
+                                    @endif
+                                </td>
+                                <td class="text-center">
+                                    @if(strtoupper(substr($a->tingkatan_sabuk, 0, 1)) == "K")
+                                        <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-blue-50 text-blue-600 border border-blue-200 text-[10px] font-bold" title="KYU">
+                                            <i class="fas fa-check"></i>
+                                        </span>
+                                    @endif
+                                </td>
+                                <td class="text-center">
+                                    @if(strtoupper(substr($a->tingkatan_sabuk, 0, 1)) == "D")
+                                        <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-blue-50 text-blue-600 border border-blue-200 text-[10px] font-bold" title="DAN">
+                                            <i class="fas fa-check"></i>
+                                        </span>
+                                    @endif
+                                </td>
+                                <td class="text-center">
+                                    @if(strtoupper(substr($a->status, 0, 1)) == "P")
+                                        <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-amber-50 text-amber-600 border border-amber-200 text-[10px] font-bold" title="Peserta">
+                                            <i class="fas fa-check"></i>
+                                        </span>
+                                    @endif
+                                </td>
+                                <td class="text-center">
+                                    @if(strtoupper(substr($a->status, 0, 1)) == "O")
+                                        <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-amber-50 text-amber-600 border border-amber-200 text-[10px] font-bold" title="Official">
+                                            <i class="fas fa-check"></i>
+                                        </span>
+                                    @endif
+                                </td>
+                                <td class="text-center">
+                                    @if(isset($_GET['status']))
+                                        @if($_GET['status'] == "official")
+                                            <a href="{{ url('official/'.$a->id) }}?kontigen={{ $kabupaten->id }}&ehh={{ $_GET['kegiatan_id'] }}"
+                                                class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-[#3276e4] hover:bg-[#2862c2] shadow-2xs hover:-translate-y-px transition-all">
+                                                <i class="fas fa-eye text-[10px]"></i> Detail
+                                            </a>
                                         @endif
-                                    </p>
-                                </td>
-                                <td style="text-align: center" class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-                                    <p class="mb-0 text-3xl font-semibold leading-tight dark:text-white dark:opacity-80">
-                                        @if(strtoupper(substr($a->jenis_kelamin, 0, 1)) == "P")
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
-                                            </svg>
+                                        @if($_GET['status'] == "peserta")
+                                            <a href="{{ url('official/'.$a->id) }}?kontigen={{ $kabupaten->id }}&ehh={{ $_GET['kegiatan_id'] }}"
+                                                class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-[#3276e4] hover:bg-[#2862c2] shadow-2xs hover:-translate-y-px transition-all">
+                                                <i class="fas fa-eye text-[10px]"></i> Detail
+                                            </a>
                                         @endif
-                                    </p>
-                                </td>
-                                <td style="text-align: center" class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-                                    <p class="mb-0 text-3xl font-semibold leading-tight dark:text-white dark:opacity-80">
-                                        @if(strtoupper(substr($a->tingkatan_sabuk, 0, 1)) == "K")
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
-                                            </svg>
-                                        @endif
-                                    </p>
-                                </td>
-                                <td style="text-align: center" class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-                                    <p class="mb-0 text-3xl font-semibold leading-tight dark:text-white dark:opacity-80">
-                                        @if(strtoupper(substr($a->tingkatan_sabuk, 0, 1)) == "D")
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
-                                            </svg>
-                                        @endif
-                                    </p>
-                                </td>
-                                <td style="text-align: center" class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-                                    <p class="mb-0 text-3xl font-semibold leading-tight dark:text-white dark:opacity-80">
-                                        @if(strtoupper(substr($a->status, 0, 1)) == "P")
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
-                                            </svg>
-                                        @endif
-                                    </p>
-                                </td>
-                                <td style="text-align: center" class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-                                    <p class="mb-0 text-3xl font-semibold leading-tight dark:text-white dark:opacity-80">
-                                        @if(strtoupper(substr($a->status, 0, 1)) == "O")
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
-                                            </svg>
-                                        @endif
-                                    </p>
-                                </td>
-                                <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-                                    <div class="flex justify-center items-center space-x-4">
-                                            @if(isset($_GET['status']))
-                                                @if($_GET['status'] == "official")
-                                                    <a href="{{ url('official/'.$a->id) }}?kontigen={{ $kabupaten->id }}&ehh={{ $_GET['kegiatan_id'] }}" style="border: solid 2px green; color: green;"  class="inline-block px-5 py-2 mb-0 text-xs font-bold leading-normal text-center text-green-500 align-middle transition-all ease-in bg-transparent border  border-solid rounded-lg shadow-none cursor-pointer bg-150 active:opacity-85 hover:-translate-y-px tracking-tight-rem bg-x-25 hover:opacity-75">Detail</a>
-                                                @endif
-                                                @if($_GET['status'] == "peserta")
-                                                    <a href="{{ url('official/'.$a->id) }}?kontigen={{ $kabupaten->id }}&ehh={{ $_GET['kegiatan_id'] }}" style="border: solid 2px green; color: green;"  class="inline-block px-5 py-2 mb-0 text-xs font-bold leading-normal text-center text-green-500 align-middle transition-all ease-in bg-transparent border  border-solid rounded-lg shadow-none cursor-pointer bg-150 active:opacity-85 hover:-translate-y-px tracking-tight-rem bg-x-25 hover:opacity-75">Detail</a>
-                                                @endif
-                                            @endif
-
-                                            @if (!isset($_GET['status']))
-                                                <a href="{{ url('peserta/'.$a->id) }}?kontigen={{ $kabupaten->id }}&ehh={{ $_GET['kegiatan_id'] }}" style="border: solid 2px green; color: green;"  class="inline-block px-5 py-2 mb-0 text-xs font-bold leading-normal text-center text-green-500 align-middle transition-all ease-in bg-transparent border  border-solid rounded-lg shadow-none cursor-pointer bg-150 active:opacity-85 hover:-translate-y-px tracking-tight-rem bg-x-25 hover:opacity-75">Detail</a>
-
-                                            @endif
-
-                                    </div>
+                                    @else
+                                        <a href="{{ url('peserta/'.$a->id) }}?kontigen={{ $kabupaten->id }}&ehh={{ $_GET['kegiatan_id'] }}"
+                                            class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-[#3276e4] hover:bg-[#2862c2] shadow-2xs hover:-translate-y-px transition-all">
+                                            <i class="fas fa-eye text-[10px]"></i> Detail
+                                        </a>
+                                    @endif
                                 </td>
                             </tr>
-                        @endforeach
+                        @empty
+                            <tr>
+                                <td colspan="11" class="text-center py-8 text-neutral-400 text-sm">
+                                    <i class="fas fa-inbox text-2xl mb-2 block"></i>
+                                    Tidak ada data peserta/official ditemukan.
+                                </td>
+                            </tr>
+                        @endforelse
                     </tbody>
                 </table>
-                <div class="d-flex justify-content-center">
-                    {{ $peserta->withQueryString()->links('vendor.pagination.tailwind') }}
-                </div>
             </div>
+
+            <!-- Pagination -->
+            <div class="px-6 py-4 border-t border-[#ebebeb] bg-[#fdfdfd] flex justify-center">
+                {{ $peserta->withQueryString()->links('vendor.pagination.tailwind') }}
             </div>
-        </div>
         </div>
     </div>
 

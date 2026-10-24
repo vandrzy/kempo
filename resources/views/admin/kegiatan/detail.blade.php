@@ -1,52 +1,48 @@
 @extends('tamplate')
-@section('title', 'Pertandingan')
+@section('title', 'Pertandingan Kegiatan')
 @section('content')
-    @php
-        use App\Models\Pertandingan;
-    @endphp
-    <div class="flex flex-wrap -mx-3">
-        <div class="flex-none w-full max-w-full px-3">
-        <div class="relative flex flex-col min-w-0 mb-6 break-words bg-white border-0 border-transparent border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-            <div class="p-6 pb-0 mb-0 border-b-0 border-b-solid rounded-t-2xl border-b-transparent">
-                <div class="flex items-center justify-between mb-4">
-                    <h4 class="dark:text-white">{{ $kegiatan->nama }}</h4>
+    <div class="kempo-card mb-6">
+        <div class="p-6 border-b border-input flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+                <div class="flex items-center gap-3">
+                    <a href="{{ url('kegiatan') }}" class="btn-kempo-2 inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold shadow-xs hover:opacity-90 transition-all">
+                        <i class="fa fa-arrow-left"></i> Kembali
+                    </a>
+                    <h2 class="text-xl font-heading font-bold text-foreground mb-0">{{ $kegiatan->nama }}</h2>
                 </div>
-                <div class="flex items-center justify-between mb-4">
-                    {{-- <a href="{{ url('pertandingan/create') }}?kegiatan_id={{ (@$kegiatan_get->id ? $kegiatan_get->id : Request('kegiatan_id')) }}" style="border: solid 2px green; color: green;"  class="inline-block px-8 py-2 mb-0 text-xs font-bold leading-normal text-center text-green-500 align-middle transition-all ease-in bg-transparent border  border-solid rounded-lg shadow-none cursor-pointer bg-150 active:opacity-85 hover:-translate-y-px tracking-tight-rem bg-x-25 hover:opacity-75">Tambah Data</a> --}}
-                    <a href="{{ url('kegiatan') }}" style="border: solid 2px green; color: green;"  class="inline-block px-5 py-2 mb-0 text-xs font-bold leading-normal text-center text-green-500 align-middle transition-all ease-in bg-transparent border  border-solid rounded-lg shadow-none cursor-pointer bg-150 active:opacity-85 hover:-translate-y-px tracking-tight-rem bg-x-25 hover:opacity-75">Kembali</a>
-                    <form action="" method="get">
-                        <div class="flex items-center gap-2">
-                            <select name="kategori_id" class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500" id="kategori_id">
-                                @foreach ($kategori as $a)
-                                    <option value="{{ $a->kategori->id }}" {{ Request('kategori_id') == $a->kategori->id ? 'selected' : (@$kegiatan_get->id == $a->kategori->id ? 'selected' : '') }} >{{ $a->kategori->nama }}</option>
-
-                                    {{-- <option value="{{ $a->id }}" {{ Request('kegiatan_id') == $a->id ? 'selected' : ''}}>{{ $a->nama }}</option> --}}
-                                @endforeach
-                            </select>
-
-                            <input type="text" name="cari"
-                                class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-200 focus:border-blue-500"
-                                placeholder="Cari data...">
-
-                            <button type="submit"
-                                class="px-4 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition">
-                                Cari
-                            </button>
-                        </div>
-                    </form>
-                </div>
-
+                <p class="text-sm text-paragraph mt-1.5">Daftar kelas pertandingan dan jumlah peserta yang terdaftar pada kegiatan ini</p>
             </div>
-            <br>
-            <div class="flex-auto px-0 pt-0 pb-2">
-            <div class="p-0 overflow-x-auto">
-                <table class="items-center w-full mb-0 align-top border-collapse dark:border-white/40 text-slate-500">
-                <thead class="align-bottom">
+
+            <!-- Filter & Search Bar -->
+            <form action="" method="get" class="flex flex-wrap items-center gap-2">
+                <select name="kategori_id" class="px-3 py-2 text-xs font-medium border border-input rounded-xl bg-white text-foreground focus:outline-none focus:border-primary" id="kategori_id">
+                    @foreach ($kategori as $a)
+                        <option value="{{ $a->kategori->id }}" {{ Request('kategori_id') == $a->kategori->id ? 'selected' : (@$kegiatan_get->id == $a->kategori->id ? 'selected' : '') }}>
+                            {{ $a->kategori->nama }}
+                        </option>
+                    @endforeach
+                </select>
+
+                <div class="relative">
+                    <input type="text" name="cari" value="{{ Request('cari') }}"
+                        class="px-3 py-2 text-xs font-medium border border-input rounded-xl bg-white text-foreground focus:outline-none focus:border-primary placeholder:text-neutral-400"
+                        placeholder="Cari pertandingan...">
+                </div>
+
+                <button type="submit" class="btn-kempo-4 inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold uppercase tracking-wider shadow-xs hover:opacity-90 transition-all cursor-pointer">
+                    <i class="fa fa-search"></i> Cari
+                </button>
+            </form>
+        </div>
+
+        <div class="kempo-table-wrapper">
+            <table class="kempo-table">
+                <thead>
                     <tr>
-                            <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-4xl border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">No</th>
-                            <th class="px-6 py-3 pl-2 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-3xl border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Nama Pertandingan</th>
-                            <th class="px-6 py-3 pl-2 font-bold text-left uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-3xl border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Jumlah Peserta terdaftar</th>
-                            <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-3xl border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Aksi</th>
+                        <th class="w-16 text-center tabular-nums">No</th>
+                        <th>Nama Pertandingan</th>
+                        <th class="text-center w-56">Jumlah Peserta</th>
+                        <th class="text-center w-48">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -55,94 +51,80 @@
                         $kategori_id = 0;
                         $jenis_kelamin = "-";
                     @endphp
-                @foreach ($pertandingan as $a)
-
-                    @if ($kategori_id != $a->kategori_id)
-                        @php
-                            $kategori_id = $a->kategori_id;
-                        @endphp
-                        <tr>
-                            <th class="px-6 py-4 border-b" style="text-align: left;" colspan="4">{{ $a->kategori->nama }}</th>
-                        </tr>
-                        @if ($a->pertandingan->jenis_kelamin != $jenis_kelamin)
+                    @forelse ($pertandingan as $a)
+                        @if ($kategori_id != $a->kategori_id)
                             @php
-                                $jenis_kelamin = $a->pertandingan->jenis_kelamin;
+                                $kategori_id = $a->kategori_id;
                             @endphp
+                            <tr class="bg-neutral-100/80 hover:bg-neutral-100 border-t border-b border-input">
+                                <td colspan="4" class="py-2.5 px-4 font-heading font-bold text-xs uppercase tracking-wide text-foreground">
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-2.5 h-2.5 rounded-full bg-primary inline-block"></span>
+                                        <span>Kategori: {{ $a->kategori->nama }}</span>
+                                    </div>
+                                </td>
+                            </tr>
+                            @if ($a->pertandingan->jenis_kelamin != $jenis_kelamin)
+                                @php
+                                    $jenis_kelamin = $a->pertandingan->jenis_kelamin;
+                                @endphp
+                                <tr class="bg-neutral-50 hover:bg-neutral-50/90 border-b border-input">
+                                    <td colspan="4" class="py-2 px-6 text-xs font-semibold text-neutral-600">
+                                        &bull; Jenis Kelamin: <span class="text-foreground">{{ $jenis_kelamin ?? "Campuran" }}</span>
+                                    </td>
+                                </tr>
+                            @endif
                             <tr>
-                                <th class="px-6 py-4 border-b" style="text-align: left;" colspan="4">- {{ $jenis_kelamin ?? "Campuran" }}</th>
-                                {{-- <th class="px-6 py-4 border-b" style="text-align: center;">{{ $a->totalEmasPerJenisKelamin($kategori_id, $jenis_kelamin)->total_emas }}</th>
-                                <th class="px-6 py-4 border-b" style="text-align: center;">{{ $a->totalEmasPerJenisKelamin($kategori_id, $jenis_kelamin)->total_perak }}</th>
-                                <th class="px-6 py-4 border-b" style="text-align: center;">{{ $a->totalEmasPerJenisKelamin($kategori_id, $jenis_kelamin)->total_perunggu }}</th>
-                                <th class="px-6 py-4 border-b" style="text-align: left;"></th> --}}
+                                <td class="text-center font-semibold text-neutral-500 tabular-nums">{{ $loop->iteration }}</td>
+                                <td class="font-medium text-foreground">{{ $a->pertandingan->nama }}</td>
+                                <td class="text-center">
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold rounded-lg bg-neutral-100 text-neutral-700 tabular-nums">
+                                        <i class="fa fa-users text-neutral-500"></i> {{ $a->list_kategori->count() }} Peserta
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <a href="{{ url('pertandingan/'.$a->id) }}?kegiatan_id={{ $kegiatan->id }}" class="btn-kempo-4 inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold shadow-xs hover:opacity-90 transition-all">
+                                        <i class="fa fa-list-ol"></i> Nomor Tanding
+                                    </a>
+                                </td>
+                            </tr>
+                        @else
+                            @if ($a->pertandingan->jenis_kelamin != $jenis_kelamin)
+                                @php
+                                    $jenis_kelamin = $a->pertandingan->jenis_kelamin;
+                                @endphp
+                                <tr class="bg-neutral-50 hover:bg-neutral-50/90 border-b border-input">
+                                    <td colspan="4" class="py-2 px-6 text-xs font-semibold text-neutral-600">
+                                        &bull; Jenis Kelamin: <span class="text-foreground">{{ $jenis_kelamin ?? 'Campuran' }}</span>
+                                    </td>
+                                </tr>
+                            @endif
+                            <tr>
+                                <td class="text-center font-semibold text-neutral-500 tabular-nums">{{ $loop->iteration }}</td>
+                                <td class="font-medium text-foreground">{{ $a->pertandingan->nama }}</td>
+                                <td class="text-center">
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold rounded-lg bg-neutral-100 text-neutral-700 tabular-nums">
+                                        <i class="fa fa-users text-neutral-500"></i> {{ $a->list_kategori->count() }} Peserta
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <a href="{{ url('pertandingan/'.$a->id) }}?kegiatan_id={{ $kegiatan->id }}" class="btn-kempo-4 inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold shadow-xs hover:opacity-90 transition-all">
+                                        <i class="fa fa-list-ol"></i> Nomor Tanding
+                                    </a>
+                                </td>
                             </tr>
                         @endif
+                    @empty
                         <tr>
-                            <td class="px-6 py-4 border-b">{{ $loop->iteration }}</td>
-                            <td class="px-6 py-4 border-b">{{ $a->pertandingan->nama }}</td>
-                            <td class="px-6 py-4 border-b">{{ $a->list_kategori->count() }} Peserta</td>
-                            {{-- <td class="px-6 py-4 border-b">{{ $jenis_kelamin }}</td> --}}
-                            {{-- <td class="text-center px-6 py-4 border-b">{{ $a->emas }}</td>
-                            <td class="text-center px-6 py-4 border-b">{{ $a->perak }}</td>
-                            <td class="text-center px-6 py-4 border-b">{{ $a->perunggu }}</td> --}}
-
-                            <td class="px-6 py-4 border-b">
-                                <div class="flex justify-center items-center space-x-4">
-                                    <a href="{{ url('pertandingan/'.$a->id) }}?kegiatan_id={{ $kegiatan->id }}" style="border: solid 2px green; color: green;"  class="inline-block px-5 py-2 mb-0 text-xs font-bold leading-normal text-center text-green-500 align-middle transition-all ease-in bg-transparent border  border-solid rounded-lg shadow-none cursor-pointer bg-150 active:opacity-85 hover:-translate-y-px tracking-tight-rem bg-x-25 hover:opacity-75">Nomor Tanding</a><br>
-                                    {{-- <a href="{{ url('pertandingan/'.$a->id.'/edit') }}?kegiatan_id={{ (@$kegiatan_get->id ? $kegiatan_get->id : Request('kegiatan_id')) }}" style="border: solid 2px blue; color: blue;"  class="inline-block px-5 py-2 mb-0 text-xs font-bold leading-normal text-center text-green-500 align-middle transition-all ease-in bg-transparent border  border-solid rounded-lg shadow-none cursor-pointer bg-150 active:opacity-85 hover:-translate-y-px tracking-tight-rem bg-x-25 hover:opacity-75">Edit</a><br>
-                                    <form action="{{ url('pertandingan/'.$a->id) }}?kegiatan_id={{ (@$kegiatan_get->id ? $kegiatan_get->id : Request('kegiatan_id')) }}" method="post" style="border: solid 2px blue; color: blue;"  class="inline-block px-5 py-2 mb-0 text-xs font-bold leading-normal text-center text-green-500 align-middle transition-all ease-in bg-transparent border  border-solid rounded-lg shadow-none cursor-pointer bg-150 active:opacity-85 hover:-translate-y-px tracking-tight-rem bg-x-25 hover:opacity-75 delete-form">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="text-red-500 hover:underline">Hapus</button>
-                                    </form> --}}
-                                </div>
-                            </td>
+                            <td colspan="4" class="py-8 text-center text-paragraph">Belum ada pertandingan pada kegiatan ini.</td>
                         </tr>
-                    @else
-                        @if ($a->pertandingan->jenis_kelamin != $jenis_kelamin)
-                            @php
-                                $jenis_kelamin = $a->pertandingan->jenis_kelamin;
-                                // dd($a->totalEmasPerJenisKelamin($kategori_id, $jenis_kelamin)->total_emas );
-                            @endphp
-                            <tr>
-                                <th class="px-6 py-4 border-b" style="text-align: left;" colspan="4">- {{ $jenis_kelamin ?? 'Campuran' }}</th>
-                                {{-- <th class="px-6 py-4 border-b" style="text-align: center;">{{ $a->totalEmasPerJenisKelamin($kategori_id, $jenis_kelamin)->total_emas ?? '0' }}</th>
-                                <th class="px-6 py-4 border-b" style="text-align: center;">{{ $a->totalEmasPerJenisKelamin($kategori_id, $jenis_kelamin)->total_perak ?? '0' }}</th>
-                                <th class="px-6 py-4 border-b" style="text-align: center;">{{ $a->totalEmasPerJenisKelamin($kategori_id, $jenis_kelamin)->total_perunggu ?? '0' }}</th>
-                                <th class="px-6 py-4 border-b" style="text-align: left;"></th> --}}
-                            </tr>
-                        @endif
-                        <tr>
-                            <td class="px-6 py-4 border-b">{{ $loop->iteration }}</td>
-                            <td class="px-6 py-4 border-b">{{ $a->pertandingan->nama }}</td>
-                            <td class="px-6 py-4 border-b">{{ $a->list_kategori->count() }} Peserta</td>
-                            {{-- <td class="px-6 py-4 border-b">{{ $jenis_kelamin }}</td> --}}
-                            {{-- <td class="text-center px-6 py-4 border-b">{{ $a->emas }}</td>
-                            <td class="text-center px-6 py-4 border-b">{{ $a->perak }}</td>
-                            <td class="text-center px-6 py-4 border-b">{{ $a->perunggu }}</td> --}}
-
-                            <td class="px-6 py-4 border-b">
-                                <div class="flex justify-center items-center space-x-4">
-                                    <a href="{{ url('pertandingan/'.$a->id) }}?kegiatan_id={{ $kegiatan->id }}" style="border: solid 2px green; color: green;"  class="inline-block px-5 py-2 mb-0 text-xs font-bold leading-normal text-center text-green-500 align-middle transition-all ease-in bg-transparent border  border-solid rounded-lg shadow-none cursor-pointer bg-150 active:opacity-85 hover:-translate-y-px tracking-tight-rem bg-x-25 hover:opacity-75">Nomor Tanding</a><br>
-                                    {{-- <a href="{{ url('pertandingan/'.$a->id.'/edit') }}?kegiatan_id={{ (@$kegiatan_get->id ? $kegiatan_get->id : Request('kegiatan_id')) }}" style="border: solid 2px blue; color: blue;"  class="inline-block px-5 py-2 mb-0 text-xs font-bold leading-normal text-center text-green-500 align-middle transition-all ease-in bg-transparent border  border-solid rounded-lg shadow-none cursor-pointer bg-150 active:opacity-85 hover:-translate-y-px tracking-tight-rem bg-x-25 hover:opacity-75">Edit</a><br>
-                                    <form action="{{ url('pertandingan/'.$a->id) }}?kegiatan_id={{ (@$kegiatan_get->id ? $kegiatan_get->id : Request('kegiatan_id')) }}" method="post" style="border: solid 2px blue; color: blue;"  class="inline-block px-5 py-2 mb-0 text-xs font-bold leading-normal text-center text-green-500 align-middle transition-all ease-in bg-transparent border  border-solid rounded-lg shadow-none cursor-pointer bg-150 active:opacity-85 hover:-translate-y-px tracking-tight-rem bg-x-25 hover:opacity-75 delete-form">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="text-red-500 hover:underline">Hapus</button>
-                                    </form> --}}
-                                </div>
-                            </td>
-                        </tr>
-                    @endif
-                @endforeach
+                    @endforelse
                 </tbody>
-                </table>
-                <div class="d-flex justify-content-center">
-                    {{ $pertandingan->withQueryString()->links('vendor.pagination.tailwind') }}
-                </div>
-            </div>
-            </div>
+            </table>
         </div>
+
+        <div class="p-4 border-t border-input flex justify-center">
+            {{ $pertandingan->withQueryString()->links('vendor.pagination.tailwind') }}
         </div>
     </div>
-
 @endsection

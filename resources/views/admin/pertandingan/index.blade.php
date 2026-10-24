@@ -1,118 +1,116 @@
 @extends('tamplate')
 @section('title', 'Tanding')
 @section('content')
-    {{-- @php
-        use App\Models\Pertandingan;
-    @endphp --}}
-    {{-- <h1>Data Pertandingan</h1> --}}
-
-    <div class="flex flex-wrap -mx-3">
-        <div class="flex-none w-full max-w-full px-3">
-            <div class="relative flex flex-col min-w-0 mb-6 break-words bg-white border-0 border-transparent border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-                <div class="p-6 pb-0 mb-0 border-b-0 border-b-solid rounded-t-2xl border-b-transparent">
-                    <div class="flex items-center justify-between mb-4">
-                        <h4 class="dark:text-white">Data Tanding</h4>
-                        {{-- <a href="{{ url('users/create') }}" class="bg-green-500 text-black px-4 py-2 rounded">Tambah Data</a> --}}
-                        <a href="{{ url('pertandingan/create') }}" style="border: solid 2px green; color: green;"  class="inline-block px-5 py-2 mb-0 text-xs font-bold leading-normal text-center text-green-500 align-middle transition-all ease-in bg-transparent border  border-solid rounded-lg shadow-none cursor-pointer bg-150 active:opacity-85 hover:-translate-y-px tracking-tight-rem bg-x-25 hover:opacity-75">Tambah Data</a>
-                    </div>
-                </div>
-                <div class="flex-auto px-0 pt-0 pb-2">
-                    <div class="p-0 overflow-x-auto">
-                        <table class="items-center w-full mb-0 align-top border-collapse dark:border-white/40 text-slate-500">
-                            <thead class="align-bottom">
-                                <tr>
-                                    <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-3xl border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">No</th>
-                                    <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-3xl border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Nama Pertandingan</th>
-
-                                    <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-collapse shadow-none dark:border-white/40 dark:text-white text-3xl border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @php
-                                    $total_gender_group = 0;
-                                    $kategori_id = 0;
-                                    $jenis_kelamin = "-";
-                                @endphp
-                                @foreach ($pertandingan as $a)
-                                    @if ($kategori_id != $a->kategori_id)
-                                        @php
-                                            $kategori_id = $a->kategori_id;
-                                        @endphp
-                                        <tr>
-                                        <th class="p-3 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent text-left" colspan="3">
-                                            <h6 class="mb-0 text-sm leading-normal dark:text-white">{{ $a->kategori->nama ?? "Tidak Ada Kategori" }}</h6>
-                                        </th>
-                                        </tr>
-                                        @if ($a->jenis_kelamin != $jenis_kelamin)
-                                            @php
-                                                $jenis_kelamin = $a->jenis_kelamin;
-                                            @endphp
-                                            <tr>
-                                                <th class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent text-left" colspan="3">
-                                                    <h6 class="mb-0 text-sm leading-normal pl-4 dark:text-white" >- {{ $jenis_kelamin ?? "Campuran" }}</h6>
-                                                </th>
-                                            </tr>
-                                        @endif
-                                        <tr>
-                                            <td class="p-2 align-middle text-center bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-                                                <h6 class="mb-0 text-sm leading-normal pl-4 dark:text-white">{{ $loop->iteration }}</h6>
-                                            </td>
-                                            <td class="p-2 align-middle text-center bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-                                                <h6 class="mb-0 text-sm leading-normal pl-4 dark:text-white">{{ $a->nama }}</h6>
-                                            </td>
-                                            <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-                                                <div class="flex justify-center items-center space-x-4">
-                                                    <a href="{{ url('pertandingan/'.$a->id.'/edit') }}" style="border: solid 2px blue; color: blue;"  class="inline-block px-5 py-2 mb-0 text-xs font-bold leading-normal text-center text-green-500 align-middle transition-all ease-in bg-transparent border  border-solid rounded-lg shadow-none cursor-pointer bg-150 active:opacity-85 hover:-translate-y-px tracking-tight-rem bg-x-25 hover:opacity-75">Edit</a>
-                                                    <form action="{{ url('pertandingan/'.$a->id) }}" method="post" class="delete-form pl-2">
-                                                        @csrf
-                                                        @method('DELETE')
-                                                        <button style="border: solid 2px red; color: red;"  class="inline-block px-5 py-2 mb-0 text-xs font-bold leading-normal text-center text-green-500 align-middle transition-all ease-in bg-transparent border  border-solid rounded-lg shadow-none cursor-pointer bg-150 active:opacity-85 hover:-translate-y-px tracking-tight-rem bg-x-25 hover:opacity-75">Hapus</button>
-                                                    </form>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    @else
-                                        @if ($a->jenis_kelamin != $jenis_kelamin)
-                                            @php
-                                                $jenis_kelamin = $a->jenis_kelamin;
-                                                // dd($a->totalEmasPerJenisKelamin($kategori_id, $jenis_kelamin)->total_emas );
-                                            @endphp
-                                            <tr>
-                                                <th class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent text-left" colspan="3">
-                                                    <h6 class="mb-0 text-sm leading-normal pl-4 dark:text-white" >- {{ $jenis_kelamin ?? "Campuran" }}</h6>
-                                                </th>
-                                            </tr>
-                                        @endif
-                                        <tr>
-                                            <td class="p-2 align-middle text-center bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-                                                <h6 class="mb-0 text-sm leading-normal pl-4 dark:text-white">{{ $loop->iteration }}</h6>
-                                            </td>
-                                            <td class="p-2 align-middle text-center bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-                                                <h6 class="mb-0 text-sm leading-normal pl-4 dark:text-white">{{ $a->nama }}</h6>
-                                            </td>
-                                            <td class="p-2 align-middle bg-transparent border-b dark:border-white/40 whitespace-nowrap shadow-transparent">
-                                                <div class="flex justify-center items-center space-x-4">
-                                                    <a href="{{ url('pertandingan/'.$a->id.'/edit') }}" style="border: solid 2px blue; color: blue;"  class="inline-block px-5 py-2 mb-0 text-xs font-bold leading-normal text-center text-green-500 align-middle transition-all ease-in bg-transparent border  border-solid rounded-lg shadow-none cursor-pointer bg-150 active:opacity-85 hover:-translate-y-px tracking-tight-rem bg-x-25 hover:opacity-75">Edit</a>
-                                                    <form action="{{ url('pertandingan/'.$a->id) }}" method="post" class="delete-form pl-2">
-                                                        @csrf
-                                                        @method('DELETE')
-                                                        <button style="border: solid 2px red; color: red;"  class="inline-block px-5 py-2 mb-0 text-xs font-bold leading-normal text-center text-green-500 align-middle transition-all ease-in bg-transparent border  border-solid rounded-lg shadow-none cursor-pointer bg-150 active:opacity-85 hover:-translate-y-px tracking-tight-rem bg-x-25 hover:opacity-75">Hapus</button>
-                                                    </form>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    @endif
-                                @endforeach
-                            </tbody>
-                        </table>
-
-                    </div>
-                    <br>
-                    <div class="d-flex justify-content-center">
-                            {{ $pertandingan->withQueryString()->links('vendor.pagination.tailwind') }}
-                        </div>
-                </div>
+    <div class="kempo-card mb-6">
+        <div class="p-6 border-b border-input flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+                <h2 class="text-xl font-heading font-bold text-foreground">Data Tanding</h2>
+                <p class="text-sm text-paragraph mt-1">Daftar kelas dan nomor pertandingan yang tersedia</p>
             </div>
+            <div>
+                <a href="{{ url('pertandingan/create') }}" class="btn-kempo-1 inline-flex items-center gap-2 px-5 py-2.5 text-xs font-bold uppercase tracking-wider shadow-sm hover:opacity-95 transition-all">
+                    <i class="fa fa-plus"></i> Tambah Data
+                </a>
+            </div>
+        </div>
+
+        <div class="kempo-table-wrapper">
+            <table class="kempo-table">
+                <thead>
+                    <tr>
+                        <th class="w-16 text-center tabular-nums">No</th>
+                        <th>Nama Pertandingan</th>
+                        <th class="text-center w-48">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @php
+                        $total_gender_group = 0;
+                        $kategori_id = 0;
+                        $jenis_kelamin = "-";
+                    @endphp
+                    @forelse ($pertandingan as $a)
+                        @if ($kategori_id != $a->kategori_id)
+                            @php
+                                $kategori_id = $a->kategori_id;
+                            @endphp
+                            <tr class="bg-neutral-100/80 hover:bg-neutral-100 border-t border-b border-input">
+                                <td colspan="3" class="py-2.5 px-4 font-heading font-bold text-xs uppercase tracking-wide text-foreground">
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-2.5 h-2.5 rounded-full bg-primary inline-block"></span>
+                                        <span>Kategori: {{ $a->kategori->nama ?? "Tidak Ada Kategori" }}</span>
+                                    </div>
+                                </td>
+                            </tr>
+                            @if ($a->jenis_kelamin != $jenis_kelamin)
+                                @php
+                                    $jenis_kelamin = $a->jenis_kelamin;
+                                @endphp
+                                <tr class="bg-neutral-50 hover:bg-neutral-50/90 border-b border-input">
+                                    <td colspan="3" class="py-2 px-6 text-xs font-semibold text-neutral-600">
+                                        &bull; Jenis Kelamin: <span class="text-foreground">{{ $jenis_kelamin ?? "Campuran" }}</span>
+                                    </td>
+                                </tr>
+                            @endif
+                            <tr>
+                                <td class="text-center font-semibold text-neutral-500 tabular-nums">{{ $loop->iteration }}</td>
+                                <td class="font-medium text-foreground">{{ $a->nama }}</td>
+                                <td class="text-center">
+                                    <div class="flex justify-center items-center gap-2">
+                                        <a href="{{ url('pertandingan/'.$a->id.'/edit') }}" class="btn-kempo-3 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold shadow-xs hover:opacity-90 transition-all">
+                                            <i class="fa fa-pencil"></i> Edit
+                                        </a>
+                                        <form action="{{ url('pertandingan/'.$a->id) }}" method="post" class="delete-form inline-block">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-destructive hover:bg-red-700 rounded-2xl shadow-xs transition-all cursor-pointer">
+                                                <i class="fa fa-trash"></i> Hapus
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        @else
+                            @if ($a->jenis_kelamin != $jenis_kelamin)
+                                @php
+                                    $jenis_kelamin = $a->jenis_kelamin;
+                                @endphp
+                                <tr class="bg-neutral-50 hover:bg-neutral-50/90 border-b border-input">
+                                    <td colspan="3" class="py-2 px-6 text-xs font-semibold text-neutral-600">
+                                        &bull; Jenis Kelamin: <span class="text-foreground">{{ $jenis_kelamin ?? "Campuran" }}</span>
+                                    </td>
+                                </tr>
+                            @endif
+                            <tr>
+                                <td class="text-center font-semibold text-neutral-500 tabular-nums">{{ $loop->iteration }}</td>
+                                <td class="font-medium text-foreground">{{ $a->nama }}</td>
+                                <td class="text-center">
+                                    <div class="flex justify-center items-center gap-2">
+                                        <a href="{{ url('pertandingan/'.$a->id.'/edit') }}" class="btn-kempo-3 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold shadow-xs hover:opacity-90 transition-all">
+                                            <i class="fa fa-pencil"></i> Edit
+                                        </a>
+                                        <form action="{{ url('pertandingan/'.$a->id) }}" method="post" class="delete-form inline-block">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-destructive hover:bg-red-700 rounded-2xl shadow-xs transition-all cursor-pointer">
+                                                <i class="fa fa-trash"></i> Hapus
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endif
+                    @empty
+                        <tr>
+                            <td colspan="3" class="py-8 text-center text-paragraph">Belum ada data pertandingan.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+
+        <div class="p-4 border-t border-input flex justify-center">
+            {{ $pertandingan->withQueryString()->links('vendor.pagination.tailwind') }}
         </div>
     </div>
 @endsection

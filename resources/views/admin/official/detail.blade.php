@@ -1,121 +1,126 @@
 @extends('tamplate')
-@section('title', 'Detail Peserta')
+@section('title', 'Detail Official')
 @section('content')
-    <div class="flex flex-wrap -mx-3">
-        <div class="flex-none w-full max-w-full px-3">
-            <div class="relative flex flex-col min-w-0 mb-6 break-words bg-white border-0 border-transparent border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
-                <div class="p-6 pb-0 mb-0 border-b-0 border-b-solid rounded-t-2xl border-b-transparent">
-                    <div class="flex items-center justify-between mb-4">
-                        @if(isset($_GET['kontigen']))
-                            <a href="{{ url('kontingen/'.$_GET['kontigen'].'?kegiatan_id='.$_GET['ehh'].'&status=official') }}" style="border: solid 2px green; color: green;"  class="inline-block px-5 py-2 mb-0 text-xs font-bold leading-normal text-center text-green-500 align-middle transition-all ease-in bg-transparent border  border-solid rounded-lg shadow-none cursor-pointer bg-150 active:opacity-85 hover:-translate-y-px tracking-tight-rem bg-x-25 hover:opacity-75">Kembali</a>
+    <div class="space-y-6">
+        <!-- Top Bar Header Card -->
+        <div class="kempo-card p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div class="flex items-center gap-3">
+                @if(isset($_GET['kontigen']))
+                    <a href="{{ url('kontingen/'.$_GET['kontigen'].'?kegiatan_id='.$_GET['ehh'].'&status=official') }}" class="btn-kempo-2 inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold shadow-xs hover:opacity-90 transition-all">
+                        <i class="fa fa-arrow-left"></i> Kembali
+                    </a>
+                @else
+                    <a href="{{ url('official') }}" class="btn-kempo-2 inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold shadow-xs hover:opacity-90 transition-all">
+                        <i class="fa fa-arrow-left"></i> Kembali
+                    </a>
+                @endif
+                <div>
+                    <h2 class="text-xl font-heading font-bold text-foreground mb-0">Detail Official</h2>
+                    <p class="text-xs text-paragraph mt-0.5">Informasi profil lengkap pelatih dan official kontingen</p>
+                </div>
+            </div>
+            <div>
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-full bg-blue-50 text-btn-4 border border-blue-200">
+                    <i class="fa fa-id-badge"></i> Official / Pelatih
+                </span>
+            </div>
+        </div>
+
+        <!-- 2 Columns: Foto & Biodata -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <!-- Foto Official -->
+            <div class="lg:col-span-5">
+                <div class="kempo-card h-full flex flex-col">
+                    <div class="p-5 border-b border-input">
+                        <h3 class="text-sm font-heading font-bold uppercase tracking-wider text-neutral-600 flex items-center gap-2 mb-0">
+                            <i class="fa fa-image text-primary"></i> Foto Official
+                        </h3>
+                    </div>
+                    <div class="p-6 flex-1 flex flex-col items-center justify-center bg-neutral-50/40">
+                        @if(@$peserta && $peserta->foto)
+                            <div class="relative group rounded-2xl overflow-hidden border border-input shadow-md bg-white p-2">
+                                <img src="{{ url($peserta->foto) }}" alt="Foto Official" class="max-h-96 w-auto object-cover rounded-xl" id="preview">
+                            </div>
                         @else
-                            <a href="{{ url('official') }}" style="border: solid 2px green; color: green;"  class="inline-block px-5 py-2 mb-0 text-xs font-bold leading-normal text-center text-green-500 align-middle transition-all ease-in bg-transparent border  border-solid rounded-lg shadow-none cursor-pointer bg-150 active:opacity-85 hover:-translate-y-px tracking-tight-rem bg-x-25 hover:opacity-75">Kembali</a>
+                            <div class="w-48 h-64 rounded-2xl border-2 border-dashed border-input flex flex-col items-center justify-center text-neutral-400">
+                                <i class="fa fa-user-circle text-5xl mb-2"></i>
+                                <span class="text-xs font-medium">Foto Tidak Tersedia</span>
+                            </div>
                         @endif
-                        <h4 class="dark:text-white">Detail Official</h4>
+                        <h4 class="font-heading font-bold text-foreground text-base mt-4 text-center">{{ $peserta->nama }}</h4>
+                        <p class="text-xs text-paragraph mb-0 text-center">{{ $peserta->kabupaten->name ?? 'Tanpa Kontingen' }}</p>
                     </div>
                 </div>
-                <div class="flex flex-wrap mt-4 -mx-3">
-                    <div class="w-full max-w-full px-3 mt-0 mb-6 lg:mb-0 lg:w-7/12 lg:flex-none">
-                        <div class="relative flex flex-col min-w-0 break-words bg-white border-0 border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl dark:bg-gray-950 border-black-125 rounded-2xl bg-clip-border">
-                            <div class="p-4 pb-0 mb-0 rounded-t-4">
-                                <div class="flex justify-between">
-                                    <h6 class="mb-2 dark:text-white">Foto Official</h6>
-                                </div>
-                            </div>
-                            <div class="overflow-x-auto p-3">
-                                <img src="{{ @$peserta ? url($peserta->foto) : '' }}" alt="Foto Official" class="w-3/4 border border-black rounded shadow" id="preview">
-                            </div>
-                        </div>
+            </div>
+
+            <!-- Biodata Table -->
+            <div class="lg:col-span-7">
+                <div class="kempo-card overflow-hidden">
+                    <div class="p-5 border-b border-input">
+                        <h3 class="text-sm font-heading font-bold uppercase tracking-wider text-neutral-600 flex items-center gap-2 mb-0">
+                            <i class="fa fa-id-card-o text-primary"></i> Data Official
+                        </h3>
                     </div>
-                    <div class="w-full max-w-full px-3 mt-0 lg:w-5/12 lg:flex-none">
-                        <div class="border-black/12.5 shadow-xl dark:bg-slate-850 dark:shadow-dark-xl relative flex min-w-0 flex-col break-words rounded-2xl border-0 border-solid bg-white bg-clip-border">
-                            <div class="p-4 pb-0 rounded-t-4">
-                                <h6 class="mb-0 dark:text-white">Data Official</h6>
-                                {{-- <a href="#" class="bg-black text-white px-4 py-3 rounded">Urusan Komposisi</a> --}}
-                            </div>
-                            <div class="flex-auto p-4">
-                                <table class="min-w-full bg-white border border-gray-200">
-                                    <tbody>
-                                        <tr>
-                                            <th class="px-6 py-4 border-b" style="text-align: left">Kontigen</th>
-                                            <td class="px-6 py-4 border-b">{{ $peserta->kabupaten->name }}</td>
-                                        </tr>
-                                        <tr>
-                                            <th class="px-6 py-4 border-b" style="text-align: left">Nama</th>
-                                            <td class="px-6 py-4 border-b">{{ $peserta->nama }}</td>
-                                        </tr>
-                                        <tr>
-                                            <th class="px-6 py-4 border-b" style="text-align: left">Jenis Kelamin</td>
-                                            <td class="px-6 py-4 border-b">{{ $peserta->jenis_kelamin }}</td>
-                                        </tr>
-                                        <tr>
-                                            <th class="px-6 py-4 border-b" style="text-align: left">Golongan Darah</td>
-                                            <td class="px-6 py-4 border-b">{{ $peserta->golongan_darah }}</td>
-                                        </tr>
-                                        {{-- <tr>
-                                            <th class="px-6 py-4 border-b" style="text-align: left">Disabilitas</td>
-                                            <td class="px-6 py-4 border-b">{{ $peserta->disabilitas == "1" ? "Ya" : "Tidak" }}</td>
-                                        </tr> --}}
-                                        <tr>
-                                            <th class="px-6 py-4 border-b" style="text-align: left">NIK</td>
-                                            <td class="px-6 py-4 border-b">{{ $peserta->nik }}</td>
-                                        </tr>
-                                        {{-- <tr>
-                                            <th class="px-6 py-4 border-b" style="text-align: left">Kategori</td>
-                                            <td class="px-6 py-4 border-b">{{ $peserta->tingkat }}</td>
-                                        </tr> --}}
-                                        {{-- <tr>
-                                            <th class="px-6 py-4 border-b" style="text-align: left">Berat Badan (Kg)</td>
-                                            <td class="px-6 py-4 border-b">{{ $peserta->berat_badan }} Kg</td>
-                                        </tr> --}}
-                                        <tr>
-                                            <th class="px-6 py-4 border-b" style="text-align: left">Tingkat</td>
-                                            <td class="px-6 py-4 border-b">{{ $peserta->tingkat }}</td>
-                                        </tr>
-                                        {{-- <tr>
-                                            <th class="px-6 py-4 border-b" style="text-align: left">Status</td>
-                                            <td class="px-6 py-4 border-b">{{ $peserta->status == "P" ? "Peserta / Atlet" : "Official"  }}</td>
-                                        </tr> --}}
-                                        <tr>
-                                            <th class="px-6 py-4 border-b" style="text-align: left">Tempat, Tanggal Lahir</td>
-                                            <td class="px-6 py-4 border-b">{{ $peserta->tempat }}, {{ $peserta->tanggal_lahir }}</td>
-                                        </tr>
-                                        <tr>
-                                            <th class="px-6 py-4 border-b" style="text-align: left">Alamat Rumah</td>
-                                            <td class="px-6 py-4 border-b">{{ $peserta->alamat }} </td>
-                                        </tr>
-                                        <tr>
-                                            <th class="px-6 py-4 border-b" style="text-align: left">Telepon</td>
-                                            <td class="px-6 py-4 border-b">{{ $peserta->telepon }}</td>
-                                        </tr>
-                                        <tr>
-                                            <th class="px-6 py-4 border-b" style="text-align: left" colspan="2">Keterangan Khusus Official Prestasi Terbaik</td>
-                                        </tr>
-                                        <tr>
-                                            <td class="px-6 py-4 border-b" colspan="2">{{ $peserta->keterangan }}</td>
-                                        </tr>
-                                        <tr>
-                                            <th class="px-6 py-4 border-b" style="text-align: left" colspan="2">Sertifikat Pelatih yang diikuti</td>
-                                        </tr>
-                                        <tr>
-                                            <td class="px-6 py-4 border-b" colspan="2">{{ $peserta->sertifikat }}</td>
-                                        </tr>
-
-                                        {{-- @foreach ($peserta->PertandinganPeserta as $a)
-                                            <tr>
-                                                <td class="px-6 py-4 border-b">{{ $a->urutan }}</td>
-                                                <td class="px-6 py-4 border-b">{{ $a->list_kategori->pertandingan->nama ?? "" }}</td>
-                                            </tr>
-                                        @endforeach --}}
-
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
+                    <div class="kempo-table-wrapper">
+                        <table class="kempo-table">
+                            <tbody>
+                                <tr>
+                                    <th class="w-48 text-neutral-500 font-semibold text-xs bg-neutral-50/70">Kontingen</th>
+                                    <td class="font-bold text-foreground">{{ $peserta->kabupaten->name ?? '-' }}</td>
+                                </tr>
+                                <tr>
+                                    <th class="text-neutral-500 font-semibold text-xs bg-neutral-50/70">Nama Lengkap</th>
+                                    <td class="font-bold text-foreground">{{ $peserta->nama }}</td>
+                                </tr>
+                                <tr>
+                                    <th class="text-neutral-500 font-semibold text-xs bg-neutral-50/70">Jenis Kelamin</th>
+                                    <td class="text-foreground">
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold {{ $peserta->jenis_kelamin == 'L' ? 'bg-blue-50 text-btn-4 border border-blue-200' : 'bg-pink-50 text-pink-700 border border-pink-200' }}">
+                                            {{ $peserta->jenis_kelamin == 'L' ? 'Laki-laki (L)' : 'Perempuan (P)' }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th class="text-neutral-500 font-semibold text-xs bg-neutral-50/70">Golongan Darah</th>
+                                    <td class="text-foreground font-semibold">{{ $peserta->golongan_darah ?? '-' }}</td>
+                                </tr>
+                                <tr>
+                                    <th class="text-neutral-500 font-semibold text-xs bg-neutral-50/70">NIK</th>
+                                    <td class="text-foreground font-semibold tabular-nums">{{ $peserta->nik }}</td>
+                                </tr>
+                                <tr>
+                                    <th class="text-neutral-500 font-semibold text-xs bg-neutral-50/70">Tingkat / Sabuk</th>
+                                    <td>
+                                        <span class="inline-block px-2.5 py-0.5 text-xs font-bold rounded-md bg-neutral-100 text-neutral-800 border border-input">
+                                            {{ $peserta->tingkat }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th class="text-neutral-500 font-semibold text-xs bg-neutral-50/70">Tempat, Tgl Lahir</th>
+                                    <td class="text-foreground">{{ $peserta->tempat }}, {{ $peserta->tanggal_lahir }}</td>
+                                </tr>
+                                <tr>
+                                    <th class="text-neutral-500 font-semibold text-xs bg-neutral-50/70">Alamat Rumah</th>
+                                    <td class="text-foreground text-xs leading-relaxed">{{ $peserta->alamat }}</td>
+                                </tr>
+                                <tr>
+                                    <th class="text-neutral-500 font-semibold text-xs bg-neutral-50/70">Telepon / WhatsApp</th>
+                                    <td class="text-foreground tabular-nums">{{ $peserta->telepon ?? '-' }}</td>
+                                </tr>
+                                <tr>
+                                    <th class="text-neutral-500 font-semibold text-xs bg-neutral-50/70">Keterangan Khusus</th>
+                                    <td class="text-foreground text-xs">{{ $peserta->keterangan ?? '-' }}</td>
+                                </tr>
+                                <tr>
+                                    <th class="text-neutral-500 font-semibold text-xs bg-neutral-50/70">Sertifikat Pelatih</th>
+                                    <td class="text-foreground text-xs font-medium">{{ $peserta->sertifikat ?? '-' }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-
 @endsection
