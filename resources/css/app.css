@@ -5,7 +5,185 @@
 @source '../**/*.blade.php';
 @source '../**/*.js';
 
+/* =========================================================
+   Shorinji Kempo Design System - Tailwind v4 Theme Tokens
+   ========================================================= */
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+  --color-primary: #f2470c;
+  --color-primary-fg: #ffffff;
+  --color-background: #fdfdfd;
+  --color-foreground: #000000;
+  --color-paragraph: oklch(0.708 0 0);
+  --color-accent: #fff0eb;
+  --color-input: #ebebeb;
+  --color-destructive: #e54b4f;
+
+  --color-btn-1: #f2470c;
+  --color-btn-2: #ffad9e;
+  --color-btn-3: #fd822b;
+  --color-btn-4: #3276e4;
+  --color-btn-5: #ffd375;
+
+  --font-heading: 'Plus Jakarta Sans', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+}
+
+/* =========================================================
+   Global CSS Variables & Base Styles
+   ========================================================= */
+:root {
+  /* Color Tokens */
+  --color-primary: #f2470c;
+  --color-primary-fg: #ffffff;
+  --color-background: #fdfdfd;
+  --color-foreground: #000000;
+  --color-paragraph: oklch(0.708 0 0);
+  --color-accent: #fff0eb;
+  --color-input: #ebebeb;
+  --color-destructive: #e54b4f;
+
+  /* Button Tokens */
+  --btn-1: #f2470c;
+  --btn-2: #ffad9e;
+  --btn-3: #fd822b;
+  --btn-4: #3276e4;
+  --btn-5: #ffd375;
+
+  /* Typography Tokens */
+  --font-heading: 'Plus Jakarta Sans', sans-serif;
+  --font-body: 'Inter', sans-serif;
+}
+
+/* Base Global Override */
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-body);
+}
+
+h1, h2, h3, h4, h5, h6, .font-heading {
+  font-family: var(--font-heading) !important;
+  color: var(--color-foreground);
+  letter-spacing: -0.02em;
+}
+
+.font-body {
+  font-family: var(--font-body) !important;
+}
+
+p, .font-paragraph, .text-paragraph {
+  color: var(--color-paragraph) !important;
+}
+
+/* Form Elements */
+input, select, textarea {
+  background-color: #ffffff;
+  border: 1px solid var(--color-input);
+  color: var(--color-foreground);
+  font-family: var(--font-body);
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: var(--color-primary);
+  outline: none;
+  box-shadow: 0 0 0 3px var(--color-accent);
+}
+
+/* Standardized Button Classes */
+.btn-kempo-1 {
+  background-color: var(--btn-1) !important;
+  color: var(--color-primary-fg) !important;
+  font-family: var(--font-body) !important;
+  border-radius: 1rem !important;
+  transition: all 0.2s ease-in-out;
+}
+.btn-kempo-1:hover {
+  background-color: #d83d09 !important;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(242, 71, 12, 0.28);
+}
+.btn-kempo-1:active {
+  transform: translateY(0);
+  opacity: 0.92;
+}
+
+.btn-kempo-2 {
+  background-color: var(--btn-2) !important;
+  color: var(--color-foreground) !important;
+  font-family: var(--font-body) !important;
+  border-radius: 1rem !important;
+  transition: all 0.2s ease-in-out;
+}
+.btn-kempo-3 {
+  background-color: var(--btn-3) !important;
+  color: #ffffff !important;
+  font-family: var(--font-body) !important;
+  border-radius: 1rem !important;
+  transition: all 0.2s ease-in-out;
+}
+.btn-kempo-4 {
+  background-color: var(--btn-4) !important;
+  color: #ffffff !important;
+  font-family: var(--font-body) !important;
+  border-radius: 1rem !important;
+  transition: all 0.2s ease-in-out;
+}
+.btn-kempo-5 {
+  background-color: var(--btn-5) !important;
+  color: var(--color-foreground) !important;
+  font-family: var(--font-body) !important;
+  border-radius: 1rem !important;
+  transition: all 0.2s ease-in-out;
+}
+
+/* Input & Form Elements Strict Styling */
+.ref-input-group {
+  background-color: #ffffff !important;
+  border: 1.5px solid var(--color-input) !important;
+  border-radius: 1rem !important;
+  transition: all 0.2s ease-in-out;
+}
+
+.ref-input-group:focus-within {
+  background-color: #ffffff !important;
+  border-color: var(--color-primary) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px var(--color-accent) !important;
+}
+
+.ref-input-group input {
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  color: var(--color-foreground) !important;
+  font-family: var(--font-body) !important;
+}
+
+/* Numeric Alignment for Scoresheet & Timer */
+.score-number, .timer-display, .tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* SweetAlert Override */
+.swal2-confirm {
+  background-color: var(--color-primary) !important;
+  color: var(--color-primary-fg) !important;
+}
+.swal2-cancel {
+  background-color: var(--color-destructive) !important;
+  color: #ffffff !important;
+}
+
+/* Custom scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--color-input);
+  border-radius: 10px;
 }
