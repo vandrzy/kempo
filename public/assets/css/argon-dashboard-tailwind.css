@@ -4405,3 +4405,62 @@ h6 {
     opacity: 0.65;
   }
 }
+
+/* =========================================================
+   Shorinji Kempo Design System Variables & Utilities
+   ========================================================= */
+:root {
+  /* Color Tokens */
+  --color-primary: #f2470c;
+  --color-primary-fg: #ffffff;
+  --color-background: #fdfdfd;
+  --color-foreground: #000000;
+  --color-accent: #fff0eb;
+  --color-input: #ebebeb;
+  --color-destructive: #e54b4f;
+
+  /* Button Tokens */
+  --btn-1: #f2470c;
+  --btn-2: #ffad9e;
+  --btn-3: #fd822b;
+  --btn-4: #3276e4;
+  --btn-5: #ffd375;
+
+  /* Typography Tokens */
+  --font-heading: 'Plus Jakarta Sans', sans-serif;
+  --font-body: 'Inter', sans-serif;
+}
+
+.font-heading {
+  font-family: var(--font-heading) !important;
+}
+
+.font-body {
+  font-family: var(--font-body) !important;
+}
+
+.btn-kempo-1 {
+  background-color: var(--btn-1) !important;
+  color: var(--color-primary-fg) !important;
+}
+.btn-kempo-2 {
+  background-color: var(--btn-2) !important;
+  color: var(--color-foreground) !important;
+}
+.btn-kempo-3 {
+  background-color: var(--btn-3) !important;
+  color: #ffffff !important;
+}
+.btn-kempo-4 {
+  background-color: var(--btn-4) !important;
+  color: #ffffff !important;
+}
+.btn-kempo-5 {
+  background-color: var(--btn-5) !important;
+  color: var(--color-foreground) !important;
+}
+
+.score-number, .timer-display, .tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
