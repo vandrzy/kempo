@@ -15,7 +15,6 @@
     .big-checkbox:disabled {
         accent-color: green; /* tetap hijau meski disabled */
     }
-}
 </style>
     <div class="flex flex-wrap -mx-3">
         <div class="flex-none w-full max-w-full px-3">
@@ -182,91 +181,87 @@
 
 @endsection
 
+@section('script')
+    function kegiatan_id(id) {
+        $('#kategori_id').attr('status', 'true');
+        $('#kategori_id').html('');
 
+        $('#pertandingan_id').attr('status', 'false');
+        $('#pertandingan_id').html('<option value="">Cari Kategori Dulu</option>');
+        $.ajax({
+            url: `{{url("pertandingans")}}/${id}?type=kategori_id`, // URL API
+            type: 'GET',
+            dataType: 'json', // bisa 'html', 'text', dll tergantung respon
+            success: function(response) {
+                $('#kategori_id').html('');
 
-<script>
-    @section('script')
-
-        function kegiatan_id(id) {
-            $('#kategori_id').attr('status', 'true');
-            $('#kategori_id').html('');
-
-            $('#pertandingan_id').attr('status', 'false');
-            $('#pertandingan_id').html('<option value="">Cari Kategori Dulu</option>');
-            $.ajax({
-                url: `{{url("pertandingans")}}/${id}?type=kategori_id`, // URL API
-                type: 'GET',
-                dataType: 'json', // bisa 'html', 'text', dll tergantung respon
-                success: function(response) {
-                    $('#kategori_id').html('');
-
-                    let data = "";
-                    // console.log(response);
-                    // alert(response.data.length);
-                    if(response.data.length > 0) {
-                        data += `<option value="">Cari Kategori</option>`;
-                        $.each(response.data, function(index, value) {
-                            data += `<option value="${value.kategori.id}">${value.kategori.nama}</option>`;
-                        });
-                    } else {
-                        data += `<option value="">Kategori Tidak Tersedia!</option>`;
-                    }
-                    $('#kategori_id').html(data);
-
-                },
-                error: function(xhr, status, error) {
-                    console.error('Gagal:', error);
-                    alert('Gagal mengambil data!');
+                let data = "";
+                // console.log(response);
+                // alert(response.data.length);
+                if(response.data.length > 0) {
+                    data += `<option value="">Cari Kategori</option>`;
+                    $.each(response.data, function(index, value) {
+                        data += `<option value="${value.kategori.id}">${value.kategori.nama}</option>`;
+                    });
+                } else {
+                    data += `<option value="">Kategori Tidak Tersedia!</option>`;
                 }
-            });
-        }
+                $('#kategori_id').html(data);
 
-        function kategori_id(kegiatan_id,id) {
-            $('#pertandingan_id').attr('status', 'true');
-            $('#pertandingan_id').html('');
-            $.ajax({
-                url: `{{url("pertandingans")}}/${id}?type=pertandingan_id&kegiatan_id=${kegiatan_id}`, // URL API
-                type: 'GET',
-                dataType: 'json', // bisa 'html', 'text', dll tergantung respon
-                success: function(response) {
-                    $('#pertandingan_id').html('');
-                    let data = "";
+            },
+            error: function(xhr, status, error) {
+                console.error('Gagal:', error);
+                alert('Gagal mengambil data!');
+            }
+        });
+    }
 
-                    if(response.data.length > 0) {
-                        data += `<option value="">Cari Tanding</option>`;
-                        $.each(response.data, function(index, value) {
-                            data += `<option value="${value.pertandingan.id}">${value.pertandingan.nama}</option>`;
-                        });
-                    } else {
-                        data += `<option value="">Tanding Tidak Tersedia!</option>`;
-                    }
+    function kategori_id(kegiatan_id,id) {
+        $('#pertandingan_id').attr('status', 'true');
+        $('#pertandingan_id').html('');
+        $.ajax({
+            url: `{{url("pertandingans")}}/${id}?type=pertandingan_id&kegiatan_id=${kegiatan_id}`, // URL API
+            type: 'GET',
+            dataType: 'json', // bisa 'html', 'text', dll tergantung respon
+            success: function(response) {
+                $('#pertandingan_id').html('');
+                let data = "";
 
-
-
-                    $('#pertandingan_id').html(data);
-                },
-                error: function(xhr, status, error) {
-                    console.error('Gagal:', error);
-                    alert('Gagal mengambil data!');
+                if(response.data.length > 0) {
+                    data += `<option value="">Cari Tanding</option>`;
+                    $.each(response.data, function(index, value) {
+                        data += `<option value="${value.pertandingan.id}">${value.pertandingan.nama}</option>`;
+                    });
+                } else {
+                    data += `<option value="">Tanding Tidak Tersedia!</option>`;
                 }
-            });
-        }
 
-        @if (Request('kategori_id') == "")
-            kegiatan_id($('#kegiatan_id').val());
-        @endif
 
-        @if (Request('pertandingan_id') == "")
-            kategori_id($("#kegiatan_id").val(),$("#kategori_id").val());
-        @endif
 
-        $('#kegiatan_id').on('change', function (e) {
-            kegiatan_id($(this).val());
+                $('#pertandingan_id').html(data);
+            },
+            error: function(xhr, status, error) {
+                console.error('Gagal:', error);
+                alert('Gagal mengambil data!');
+            }
         });
+    }
+
+    @if (Request('kategori_id') == "")
+        kegiatan_id($('#kegiatan_id').val());
+    @endif
+
+    @if (Request('pertandingan_id') == "")
+        kategori_id($("#kegiatan_id").val(),$("#kategori_id").val());
+    @endif
+
+    $('#kegiatan_id').on('change', function (e) {
+        kegiatan_id($(this).val());
+    });
 
 
-        $('#kategori_id').on('change', function (e) {
-            kategori_id($("#kegiatan_id").val(),$(this).val());
-        });
-    @endsection
-</script>
+    $('#kategori_id').on('change', function (e) {
+        kategori_id($("#kegiatan_id").val(),$(this).val());
+    });
+@endsection
+

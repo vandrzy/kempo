@@ -177,13 +177,37 @@ input:focus, select:focus, textarea:focus {
 }
 
 /* Custom scrollbar */
-.custom-scrollbar::-webkit-scrollbar {
+.custom-scrollbar::-webkit-scrollbar,
+.kempo-scrollbar::-webkit-scrollbar {
   width: 5px;
+  height: 5px;
 }
-.custom-scrollbar::-webkit-scrollbar-track {
+.custom-scrollbar::-webkit-scrollbar-track,
+.kempo-scrollbar::-webkit-scrollbar-track {
   background: transparent;
 }
-.custom-scrollbar::-webkit-scrollbar-thumb {
+.custom-scrollbar::-webkit-scrollbar-thumb,
+.kempo-scrollbar::-webkit-scrollbar-thumb {
   background: var(--color-input);
   border-radius: 10px;
 }
+.kempo-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--color-primary);
+}
+
+/* ==========================================================================
+   COMPATIBILITY LAYER (PENGGANTI ARGON DASHBOARD CSS AGAR HALAMAN TIDAK RUSAK)
+   ========================================================================== */
+.ease-nav-brand {
+  transition: all 0.2s ease-in-out;
+}
+.ease-soft-in-out {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.shadow-soft-xl {
+  box-shadow: 0 20px 27px 0 rgba(0, 0, 0, 0.05);
+}
+.shadow-dark-blur {
+  box-shadow: inset 0 0 1px 1px rgba(254, 254, 254, 0.9), 0 20px 27px 0 rgba(0, 0, 0, 0.05);
+}
+
