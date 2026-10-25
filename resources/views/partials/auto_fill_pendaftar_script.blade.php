@@ -87,6 +87,21 @@
                             if (item.personal_data && item.personal_data.nama) {
                                 userDismissedQuery = item.personal_data.nama.trim();
                             }
+
+                            // Jika data pendaftar memiliki foto lama, tampilkan di preview dan set existing_foto
+                            if (item.foto_url) {
+                                const previewEl = document.getElementById('preview');
+                                if (previewEl) {
+                                    previewEl.src = item.foto_url;
+                                    previewEl.classList.remove('hidden');
+                                    previewEl.style.display = 'block';
+                                }
+                                const existingFotoEl = document.getElementById('existing_foto');
+                                if (existingFotoEl) {
+                                    existingFotoEl.value = item.foto_path || '';
+                                }
+                            }
+
                             setTimeout(() => {
                                 isAutoFilling = false;
                             }, 500);

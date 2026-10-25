@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\DB;
 use Intervention\Image\ImageManager;
 use Maatwebsite\Excel\Facades\Excel;
 use Intervention\Image\Drivers\Gd\Driver as GdDriver;
+use App\Helpers\FotoHelper;
 
 class OfficialController extends Controller
 {
@@ -125,6 +126,8 @@ class OfficialController extends Controller
 
 
 
+            $fotoPath = FotoHelper::simpanFoto($request->file('foto'), $request->existing_foto) ?? '';
+
             $peserta = Official::create([
                 'nama' => $request->nama,
                 'jenis_kelamin'=> $request->jenis_kelamin,
@@ -139,33 +142,13 @@ class OfficialController extends Controller
                 // 'berat_badan'=> $request->berat_badan,
                 'keterangan'=> $request->keterangan,
                 'sertifikat'=> $request->sertifikat,
-                'foto' => 'lol',
+                'foto' => $fotoPath,
                 'kabupaten_id' => $request->kabupaten_id,
                 // 'kecamatan_id' => $request->kecamatan_id,
                 // 'kelurahan_id' => $request->kelurahan_id,
                 'kegiatan_id' => $request->kegiatan_id,
                 'tingkat' => $request->tingkatan_sabuk_a."-".$request->tingkatan_sabuk_b,
             ]);
-
-            $image = $request->file('foto');
-
-            $filename = time() . '.' . $image->getClientOriginalExtension();
-            $path = storage_path('app/public/foto_peserta/' . $filename);
-
-            // 'foto' => 'storage/'.$request->foto->store('foto_peserta', 'public'),
-            // Resize dan compress (quality 75)
-
-
-            $manager = new ImageManager(new GdDriver());
-
-            $manager->read($image->getRealPath())
-                ->scale(width: 1200) // gunakan scale() di v3, bukan resize() sds
-                ->save($path, quality: 50);
-
-
-            $peserta_image = Official::find($peserta->id);
-            $peserta_image->foto = 'storage/foto_peserta/' . $filename;
-            $peserta_image->save();
 
 
             return back()->with('success', 'Official telah terdaftar, mohon tunggu konfirmasi berikutnya!');
@@ -338,7 +321,8 @@ class OfficialController extends Controller
     }
 
     public function store(Request $request) {
-        // dd('asd');
+            $fotoPath = FotoHelper::simpanFoto($request->file('foto'), $request->existing_foto) ?? '';
+
             $peserta = Official::create([
                 'nama' => $request->nama,
                 'jenis_kelamin'=> $request->jenis_kelamin,
@@ -352,33 +336,13 @@ class OfficialController extends Controller
                 // 'berat_badan'=> $request->berat_badan,
                 'keterangan'=> $request->keterangan,
                 'sertifikat'=> $request->sertifikat,
-                'foto' => 'lol',
+                'foto' => $fotoPath,
                 'kabupaten_id' => $request->kabupaten_id,
                 // 'kecamatan_id' => $request->kecamatan_id,
                 // 'kelurahan_id' => $request->kelurahan_id,
                 'kegiatan_id' => $request->kegiatan_id,
                 'tingkat' => $request->tingkatan_sabuk_a."-".$request->tingkatan_sabuk_b,
             ]);
-
-            $image = $request->file('foto');
-
-            $filename = time() . '.' . $image->getClientOriginalExtension();
-            $path = storage_path('app/public/foto_peserta/' . $filename);
-
-            // 'foto' => 'storage/'.$request->foto->store('foto_peserta', 'public'),
-            // Resize dan compress (quality 75)
-
-
-            $manager = new ImageManager(new GdDriver());
-
-            $manager->read($image->getRealPath())
-                ->scale(width: 1200) // gunakan scale() di v3, bukan resize() sds
-                ->save($path, quality: 50);
-
-
-            $peserta_image = Official::find($peserta->id);
-            $peserta_image->foto = 'storage/foto_peserta/' . $filename;
-            $peserta_image->save();
 
 
             return redirect('official')->with('success', 'Official telah disimpan');
@@ -473,25 +437,12 @@ class OfficialController extends Controller
             ]);
 
             if($request->foto) {
-                $image = $request->file('foto');
-
-                $filename = time() . '.' . $image->getClientOriginalExtension();
-                $path = storage_path('app/public/foto_peserta/' . $filename);
-
-                // 'foto' => 'storage/'.$request->foto->store('foto_peserta', 'public'),
-                // Resize dan compress (quality 75)
-
-
-                $manager = new ImageManager(new GdDriver());
-
-                $manager->read($image->getRealPath())
-                    ->scale(width: 1200) // gunakan scale() di v3, bukan resize() sds
-                    ->save($path, quality: 50);
-
-
-                $peserta_image = Peserta::find($peserta->id);
-                $peserta_image->foto = 'storage/foto_peserta/' . $filename;
-                $peserta_image->save();
+                $fotoPath = FotoHelper::simpanFoto($request->file('foto'));
+                if ($fotoPath) {
+                    $peserta_image = Official::find($id);
+                    $peserta_image->foto = $fotoPath;
+                    $peserta_image->save();
+                }
             }
 
 

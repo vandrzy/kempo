@@ -31,12 +31,20 @@
             // document.querySelector('input[name="berat_badan"]').addEventListener('keydown', function(e) {
             // if (['e', 'E', '+', '-', '.'].includes(e.key)) e.preventDefault();
             // });
-        document.getElementById('imageInput').addEventListener('change', function (event) {
-            const file = event.target.files[0];
-            if (file) {
-                document.getElementById('preview').src = URL.createObjectURL(file);
-            }
-        });
+        const imageInput = document.getElementById('imageInput');
+        if (imageInput) {
+            imageInput.addEventListener('change', function (event) {
+                const file = event.target.files && event.target.files[0];
+                const preview = document.getElementById('preview');
+                const existingFoto = document.getElementById('existing_foto');
+                if (existingFoto) existingFoto.value = '';
+                if (file && preview) {
+                    preview.src = URL.createObjectURL(file);
+                    preview.classList.remove('hidden');
+                    preview.style.display = 'block';
+                }
+            });
+        }
         document.getElementById('form-peserta').addEventListener('submit', function(e) {
         e.preventDefault();
             Swal.fire({
@@ -86,15 +94,12 @@
                         // if (selected.length === 0) return 'Minimal pilih satu kategori!';
                         // },
                         foto: file => {
-                            if (!file) {
-                                return 'Foto Peserta Wajib Diisi!';
-                            } else {
-                                if (!file) {
-                                    const allowed = ['image/jpeg', 'image/png', 'image/jpg', 'image/svg+xml'];
-                                    if (!allowed.includes(file.type)) return 'Foto hanya boleh JPEG, PNG, JPG, atau SVG!';
-                                    if (file.size > 1024 * 1024) return 'Foto tidak boleh lebih dari 1MB, mohon dikompres!';
-                                }
-                            }
+                            const existingFoto = form.querySelector('[name="existing_foto"]')?.value;
+                            if (existingFoto) return;
+                            if (!file || (file instanceof File && !file.name)) return 'Foto Official Wajib Diisi!';
+                            const allowed = ['image/jpeg', 'image/png', 'image/jpg', 'image/svg+xml'];
+                            if (!allowed.includes(file.type)) return 'Foto hanya boleh JPEG, PNG, JPG, atau SVG!';
+                            if (file.size > 1024 * 1024) return 'Foto tidak boleh lebih dari 1MB, mohon dikompres!';
                         }
                     };
 

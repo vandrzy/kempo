@@ -187,13 +187,6 @@
                 <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#fff0eb] text-[#f2470c] border border-[#f2470c]/20">
                     <i class="fa-solid fa-flag text-[11px]"></i> {{ count($klasemen) }} Kontingen
                 </span>
-                @if($selectedKegiatanId)
-                <a href="{{ route('laporan.kegiatan', $selectedKegiatanId) }}" target="_blank"
-                    class="btn-kempo-4 inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-xl shadow-2xs hover:opacity-90 transition-all no-underline">
-                    <i class="fa-solid fa-book text-[11px]"></i>
-                    <span>Buku Laporan</span>
-                </a>
-                @endif
             </div>
         </div>
 

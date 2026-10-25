@@ -23,6 +23,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Intervention\Image\Drivers\Gd\Driver as GdDriver;
 use Intervention\Image\ImageManager;
+use App\Helpers\FotoHelper;
 
 class HomePageController extends Controller
 {
@@ -282,6 +283,8 @@ class HomePageController extends Controller
 
 
 
+            $fotoPath = FotoHelper::simpanFoto($request->file('foto'), $request->existing_foto) ?? '';
+
             $peserta = Peserta::create([
                 'nama' => $request->nama,
                 'jenis_kelamin'=> $request->jenis_kelamin,
@@ -295,33 +298,13 @@ class HomePageController extends Controller
                 'telepon'=> $request->telepon,
                 'berat_badan'=> $request->berat_badan,
                 'keterangan'=> $request->keterangan,
-                'foto' => 'lol',
+                'foto' => $fotoPath,
                 'kabupaten_id' => $request->kabupaten_id,
                 'kecamatan_id' => $request->kecamatan_id,
                 'kelurahan_id' => $request->kelurahan_id,
                 'disabilitas' => $request->disabilitas,
                 'tingkatan_sabuk' => $request->tingkatan_sabuk_a."-".$request->tingkatan_sabuk_b,
             ]);
-
-            $image = $request->file('foto');
-
-            $filename = time() . '.' . $image->getClientOriginalExtension();
-            $path = storage_path('app/public/foto_peserta/' . $filename);
-
-            // 'foto' => 'storage/'.$request->foto->store('foto_peserta', 'public'),
-            // Resize dan compress (quality 75)
-
-
-            $manager = new ImageManager(new GdDriver());
-
-            $manager->read($image->getRealPath())
-                ->scale(width: 1200) // gunakan scale() di v3, bukan resize() sds
-                ->save($path, quality: 50);
-
-
-            $peserta_image = Peserta::find($peserta->id);
-            $peserta_image->foto = 'storage/foto_peserta/' . $filename;
-            $peserta_image->save();
 
 
             foreach($request->pertandingan_id as $index => $a) {
@@ -572,6 +555,8 @@ class HomePageController extends Controller
                     'nama' => $row->nama,
                     'peran' => 'official',
                     'nama_kegiatan' => $namaKegiatan,
+                    'foto_url' => !empty($row->foto) ? url($row->foto) : '',
+                    'foto_path' => $row->foto ?? '',
                     'personal_data' => [
                         'nama' => $row->nama,
                         'jenis_kelamin' => $row->jenis_kelamin,
@@ -614,6 +599,8 @@ class HomePageController extends Controller
                 'nama' => $row->nama,
                 'peran' => 'peserta',
                 'nama_kegiatan' => $namaKegiatan,
+                'foto_url' => !empty($row->foto) ? url($row->foto) : '',
+                'foto_path' => $row->foto ?? '',
                 'personal_data' => [
                     'nama' => $row->nama,
                     'jenis_kelamin' => $row->jenis_kelamin,

@@ -28,12 +28,20 @@
 @endsection
 
 @section('script')
-        document.getElementById('imageInput').addEventListener('change', function (event) {
-            const file = event.target.files[0];
-            if (file) {
-                document.getElementById('preview').src = URL.createObjectURL(file);
-            }
-        });
+        const imageInput = document.getElementById('imageInput');
+        if (imageInput) {
+            imageInput.addEventListener('change', function (event) {
+                const file = event.target.files && event.target.files[0];
+                const preview = document.getElementById('preview');
+                const existingFoto = document.getElementById('existing_foto');
+                if (existingFoto) existingFoto.value = '';
+                if (file && preview) {
+                    preview.src = URL.createObjectURL(file);
+                    preview.classList.remove('hidden');
+                    preview.style.display = 'block';
+                }
+            });
+        }
         const komposisi = @json($peserta->PertandinganPeserta);
         // console.log(komposisi[0]);
             document.querySelector('input[name="berat_badan"]').addEventListener('keydown', function(e) {

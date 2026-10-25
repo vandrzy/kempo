@@ -213,10 +213,11 @@
                 <label class="block text-xs font-bold text-[#000000] uppercase tracking-wider font-heading mb-2">
                     Foto Berwarna 4x6 (Pasfoto) <span class="text-[#e54b4f]">*</span>
                 </label>
+                <input type="hidden" name="existing_foto" id="existing_foto" value="{{ old('existing_foto', @$peserta->foto) }}">
                 <input type="file" name="foto" id="imageInput" class="w-full px-3 py-2 text-xs font-medium rounded-xl bg-neutral-50 border border-[#ebebeb] text-neutral-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-[#f2470c] file:text-white hover:file:bg-[#d83d09] file:cursor-pointer">
                 <span class="error text-xs font-semibold text-[#e54b4f] mt-1 inline-block"></span>
                 <div class="mt-3">
-                    <img src="{{ url($peserta->foto ?? '') }}" id="preview" alt="Preview Foto" class="w-32 h-40 object-cover rounded-xl border border-[#ebebeb] shadow-2xs {{ empty($peserta->foto) ? 'hidden' : '' }}">
+                    <img src="{{ !empty($peserta->foto) ? url($peserta->foto) : '' }}" id="preview" alt="Preview Foto" class="w-32 h-40 object-cover rounded-xl border border-[#ebebeb] shadow-2xs {{ empty($peserta->foto) ? 'hidden' : '' }}">
                 </div>
             </div>
         </div>
