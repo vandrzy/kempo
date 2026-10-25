@@ -191,4 +191,6 @@
     $('#copy_link').on('click', function() {
         copyText("{{ url()->current() }}");
     });
+
+    @include('partials.auto_fill_pendaftar_script', ['tipe' => 'official'])
 @endsection

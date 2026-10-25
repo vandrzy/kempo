@@ -12,4 +12,8 @@ class Official extends Model
     public function kabupaten() {
         return $this->belongsTo(Kabupaten::class);
     }
+
+    public function kegiatan() {
+        return $this->belongsTo(Kegiatan::class);
+    }
 }

@@ -27,8 +27,12 @@
                 <label class="block text-xs font-bold text-[#000000] uppercase tracking-wider font-heading mb-2">
                     Nama Lengkap Atlet <span class="text-[#e54b4f]">*</span>
                 </label>
-                <input type="text" name="nama" value="{{ old('nama', @$peserta->nama) }}" class="w-full px-4 py-2.5 text-xs font-medium rounded-xl bg-white border border-[#ebebeb] text-[#000000] placeholder:text-neutral-400 focus:border-[#f2470c] focus:ring-2 focus:ring-[#f2470c]/20 outline-none transition-all shadow-2xs" placeholder="Nama lengkap atlet" id="nama">
+                <input type="text" name="nama" value="{{ old('nama', @$peserta->nama) }}" class="w-full px-4 py-2.5 text-xs font-medium rounded-xl bg-white border border-[#ebebeb] text-[#000000] placeholder:text-neutral-400 focus:border-[#f2470c] focus:ring-2 focus:ring-[#f2470c]/20 outline-none transition-all shadow-2xs" placeholder="Nama lengkap atlet" id="nama" autocomplete="off">
                 <span class="error text-xs font-semibold text-[#e54b4f] mt-1 inline-block"></span>
+
+                <!-- Container Konfirmasi Data Lama (Auto-Fill) -->
+                <div id="existing-data-confirmation" class="hidden mt-2.5 space-y-2"></div>
+                <input type="hidden" name="existing_reference_id" id="existing-reference-id" value="">
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">

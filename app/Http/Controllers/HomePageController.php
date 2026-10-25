@@ -542,4 +542,103 @@ class HomePageController extends Controller
         return redirect('/');
     }
 
+    /**
+     * API pencarian & auto-fill data lama pendaftar (Peserta & Official)
+     */
+    public function checkExistingPendaftar(Request $request)
+    {
+        $nama = trim($request->query('nama', ''));
+        $tipe = $request->query('tipe', 'peserta'); // 'peserta' atau 'official'
+
+        if (strlen($nama) < 3) {
+            return response()->json(['found' => false, 'items' => []]);
+        }
+
+        if ($tipe === 'official') {
+            $records = Official::with('kegiatan')
+                ->where('nama', 'LIKE', "%{$nama}%")
+                ->latest()
+                ->limit(10)
+                ->get()
+                ->unique(fn ($item) => strtolower(trim($item->nama)))
+                ->take(3);
+
+            $items = $records->map(function ($row) {
+                $namaKegiatan = $row->kegiatan->nama ?? 'Kegiatan Sebelumnya';
+                $tingkat = explode('-', $row->tingkat ?? '');
+
+                return [
+                    'id' => $row->id,
+                    'nama' => $row->nama,
+                    'peran' => 'official',
+                    'nama_kegiatan' => $namaKegiatan,
+                    'personal_data' => [
+                        'nama' => $row->nama,
+                        'jenis_kelamin' => $row->jenis_kelamin,
+                        'golongan_darah' => $row->golongan_darah,
+                        'nik' => $row->nik,
+                        'tempat' => $row->tempat,
+                        'tanggal_lahir' => $row->tanggal_lahir ? date('Y-m-d', strtotime($row->tanggal_lahir)) : '',
+                        'alamat' => $row->alamat,
+                        'telepon' => $row->telepon,
+                        'keterangan' => $row->keterangan,
+                        'sertifikat' => $row->sertifikat,
+                        'kabupaten_id' => $row->kabupaten_id,
+                        'tingkatan_sabuk_a' => $tingkat[0] ?? '',
+                        'tingkatan_sabuk_b' => $tingkat[1] ?? '',
+                    ],
+                ];
+            })->values();
+
+            return response()->json([
+                'found' => $items->isNotEmpty(),
+                'items' => $items
+            ]);
+        }
+
+        // Tipe 'peserta'
+        $records = Peserta::where('nama', 'LIKE', "%{$nama}%")
+            ->latest()
+            ->limit(10)
+            ->get()
+            ->unique(fn ($item) => strtolower(trim($item->nama)) . ($item->tanggal_lahir ?? ''))
+            ->take(3);
+
+        $items = $records->map(function ($row) {
+            $lastPivot = $row->PertandinganPeserta()->with('kegiatan')->latest()->first();
+            $namaKegiatan = $lastPivot?->kegiatan?->nama ?? 'Kegiatan Sebelumnya';
+            $tingkat = explode('-', $row->tingkatan_sabuk ?? '');
+
+            return [
+                'id' => $row->id,
+                'nama' => $row->nama,
+                'peran' => 'peserta',
+                'nama_kegiatan' => $namaKegiatan,
+                'personal_data' => [
+                    'nama' => $row->nama,
+                    'jenis_kelamin' => $row->jenis_kelamin,
+                    'golongan_darah' => $row->golongan_darah,
+                    'nik' => $row->nik,
+                    'status' => $row->status ?? 'P',
+                    'tempat' => $row->tempat,
+                    'tanggal_lahir' => $row->tanggal_lahir ? date('Y-m-d', strtotime($row->tanggal_lahir)) : '',
+                    'alamat' => $row->alamat,
+                    'telepon' => $row->telepon,
+                    'berat_badan' => $row->berat_badan,
+                    'keterangan' => $row->keterangan,
+                    'kabupaten_id' => $row->kabupaten_id,
+                    'kecamatan_id' => $row->kecamatan_id,
+                    'kelurahan_id' => $row->kelurahan_id,
+                    'disabilitas' => $row->disabilitas,
+                    'tingkatan_sabuk_a' => $tingkat[0] ?? '',
+                    'tingkatan_sabuk_b' => $tingkat[1] ?? '',
+                ],
+            ];
+        })->values();
+
+        return response()->json([
+            'found' => $items->isNotEmpty(),
+            'items' => $items
+        ]);
+    }
 }

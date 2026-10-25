@@ -41,6 +41,9 @@ Route::middleware('guest')->group(function () {
 
 
 Route::get('/getWilayah/{wilayah}/{id}', [HomePageController::class, 'getWilayah']);
+Route::get('/api/check-existing-pendaftar', [HomePageController::class, 'checkExistingPendaftar'])
+    ->middleware('throttle:60,1')
+    ->name('pendaftar.check-existing');
 Route::get('/pendaftaran/{id}/daftar', [HomePageController::class, 'index']);
 Route::get('/teknik/{id}', [HomePageController::class, 'teknik_input']);
 Route::post('/teknik/{id}', [HomePageController::class, 'teknik_process']);

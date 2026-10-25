@@ -36,4 +36,8 @@ class PertandinganPeserta extends Model
     public function UrutanKomposisiPeserta() {
         return $this->hasOne(UrutanKomposisiPeserta::class);
     }
+
+    public function kegiatan() {
+        return $this->belongsTo(Kegiatan::class);
+    }
 }

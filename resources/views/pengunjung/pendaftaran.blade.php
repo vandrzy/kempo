@@ -420,4 +420,6 @@
             kosong.slice(1).remove();
         });
     });
+
+    @include('partials.auto_fill_pendaftar_script', ['tipe' => 'peserta'])
 @endsection
