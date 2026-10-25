@@ -75,8 +75,8 @@
                                 <tr>
                                     <th class="text-neutral-500 font-semibold text-xs bg-neutral-50/70">Jenis Kelamin</th>
                                     <td class="text-foreground">
-                                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold {{ $peserta->jenis_kelamin == 'L' ? 'bg-blue-50 text-btn-4 border border-blue-200' : 'bg-pink-50 text-pink-700 border border-pink-200' }}">
-                                            {{ $peserta->jenis_kelamin == 'L' ? 'Laki-laki (L)' : 'Perempuan (P)' }}
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold {{ strtoupper(substr($peserta->jenis_kelamin, 0, 1)) == 'L' ? 'bg-blue-50 text-btn-4 border border-blue-200' : 'bg-pink-50 text-pink-700 border border-pink-200' }}">
+                                            {{ strtoupper(substr($peserta->jenis_kelamin, 0, 1)) == 'L' ? 'Laki-laki (L)' : 'Perempuan (P)' }}
                                         </span>
                                     </td>
                                 </tr>

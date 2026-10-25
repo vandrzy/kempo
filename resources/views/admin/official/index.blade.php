@@ -70,6 +70,7 @@
                     <!-- Tombol Hapus Duplikat (Destructive Outline) -->
                     <form action="" method="get" class="delete-form m-0 inline shrink-0">
                         @csrf
+                        <input type="hidden" name="kegiatan_id" value="{{ Request('kegiatan_id') ?? @$kegiatan_get->id }}">
                         <input type="hidden" name="delete_duplikat" value="delete">
                         <button type="submit"
                             class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-[#e54b4f] bg-rose-50 hover:bg-[#e54b4f] hover:text-white border border-[#e54b4f]/30 shadow-2xs hover:-translate-y-px transition-all cursor-pointer">
@@ -309,6 +310,7 @@
     @endif
 
     $('#kegiatan_id').on('change', function (e) {
+        $('.delete-form input[name="kegiatan_id"]').val($(this).val());
         kegiatan_id($(this).val());
     });
 
