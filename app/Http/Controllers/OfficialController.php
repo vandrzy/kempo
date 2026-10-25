@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Exports\PesertaExport;
+use App\Exports\OfficialExport;
 use App\Models\Kabupaten;
 use App\Models\Kegiatan;
 use App\Models\ListKategori;
@@ -213,7 +213,9 @@ class OfficialController extends Controller
         }
 
         if(isset($_GET['submit']) && $_GET['submit'] == 'export') {
-            return Excel::download(new PesertaExport($_GET['kegiatan_id'], $_GET['kategori_id'],  $_GET['pertandingan_id']), 'rekap_peserta.xlsx');
+            $kegiatanId = !empty($_GET['kegiatan_id']) ? $_GET['kegiatan_id'] : optional(Kegiatan::orderBy('created_at', 'DESC')->first())->id;
+            $nama = !empty($_GET['nama']) ? $_GET['nama'] : null;
+            return Excel::download(new OfficialExport($kegiatanId, $nama), 'rekap_official.xlsx');
         } else {
             if(isset($_GET['nama'])  && $_GET['nama'] != "") {
                 $data['peserta'] = $data['peserta']->where('nama','like','%'.$_GET['nama'].'%');

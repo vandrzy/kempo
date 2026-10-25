@@ -81,7 +81,11 @@ class PesertaController extends Controller
         }
 
         if(isset($_GET['submit']) && $_GET['submit'] == 'export') {
-            return Excel::download(new PesertaExport($_GET['kegiatan_id'], $_GET['kategori_id'],  $_GET['pertandingan_id']), 'rekap_peserta.xlsx');
+            $kegiatanId = !empty($_GET['kegiatan_id']) ? $_GET['kegiatan_id'] : optional(Kegiatan::orderBy('created_at', 'DESC')->first())->id;
+            $kategoriId = !empty($_GET['kategori_id']) ? $_GET['kategori_id'] : null;
+            $pertandinganId = !empty($_GET['pertandingan_id']) ? $_GET['pertandingan_id'] : null;
+            $nama = !empty($_GET['nama']) ? $_GET['nama'] : null;
+            return Excel::download(new PesertaExport($kegiatanId, $kategoriId, $pertandinganId, $nama), 'rekap_peserta.xlsx');
         } else {
             if(isset($_GET['nama'])  && $_GET['nama'] != "") {
                 $data['peserta'] = $data['peserta']->where('nama','like','%'.$_GET['nama'].'%');

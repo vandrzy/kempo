@@ -21,87 +21,64 @@ class PesertaExport implements FromView, WithStyles, WithColumnWidths
     protected $kegiatan;
     protected $kategori;
     protected $pertandingan;
+    protected $nama;
 
-
-
-    public function __construct($kegiatan = null, $kategori = null, $pertandingan = null)
+    public function __construct($kegiatan = null, $kategori = null, $pertandingan = null, $nama = null)
     {
         $this->kegiatan = $kegiatan;
         $this->kategori = $kategori;
         $this->pertandingan = $pertandingan;
-
+        $this->nama = $nama;
     }
-
 
     public function view(): View
     {
-        // return Peserta::all();
-        $data['peserta'] = Peserta::whereNotNull('created_at');
+        $data['peserta'] = Peserta::where('status', 'P')->whereNotNull('created_at');
 
-        $kegiatan = Kegiatan::find($this->kegiatan);
+        if (!empty($this->nama)) {
+            $data['peserta'] = $data['peserta']->where('nama', 'like', '%' . $this->nama . '%');
+        }
 
-        $kegiatan_id = $this->kegiatan;
+        $kegiatan = $this->kegiatan ? Kegiatan::find($this->kegiatan) : Kegiatan::orderBy('created_at', 'DESC')->first();
+        $kegiatan_id = $kegiatan ? $kegiatan->id : null;
         $kategori_id = $this->kategori;
         $pertandingan_id = $this->pertandingan;
 
-        if($kategori_id != "") {
+        if (!empty($kategori_id)) {
             $data['kategori_id'] = Kategori::find($kategori_id);
         }
 
-        if($pertandingan_id != "") {
+        if (!empty($pertandingan_id)) {
             $data['pertandingan_id'] = Pertandingan::find($pertandingan_id);
         }
 
-        // $kegiatan_id = $kegiatan->id;
-        $data['peserta'] = $data['peserta']->whereHas('PertandinganPesertaUtama', function ($q1) use ($kegiatan_id, $kategori_id, $pertandingan_id) {
-            $q1->WhereHas('list_kategori', function ($q2) use ($kegiatan_id, $kategori_id, $pertandingan_id) {
-                $q2 = $q2->where('kegiatan_id', $kegiatan_id);
+        if ($kegiatan_id) {
+            $data['peserta'] = $data['peserta']->whereHas('PertandinganPesertaUtama', function ($q1) use ($kegiatan_id, $kategori_id, $pertandingan_id) {
+                $q1->whereHas('list_kategori', function ($q2) use ($kegiatan_id, $kategori_id, $pertandingan_id) {
+                    $q2->where('kegiatan_id', $kegiatan_id);
 
-                if(isset($kategori_id)  && $kategori_id != "") {
-                    $q2 = $q2->where('kategori_id', $kategori_id);
-                }
+                    if (!empty($kategori_id)) {
+                        $q2->where('kategori_id', $kategori_id);
+                    }
 
-                if(isset($pertandingan_id)  && $pertandingan_id != "") {
-                    $q2 = $q2->where('pertandingan_id', $pertandingan_id);
-                }
+                    if (!empty($pertandingan_id)) {
+                        $q2->where('pertandingan_id', $pertandingan_id);
+                    }
+                });
             });
-        });
+        }
 
-        $data['peserta'] = $data['peserta']->get();
+        $data['peserta'] = $data['peserta']->orderBy('nama', 'ASC')->get();
         $data['kegiatan'] = $kegiatan;
         return view('admin.peserta.excel', $data);
     }
 
     public function styles(Worksheet $sheet)
     {
-
-        $data['peserta'] = Peserta::whereNotNull('created_at');
-
-        $kegiatan = Kegiatan::find($this->kegiatan);
-
-        $kegiatan_id = $this->kegiatan;
-        $kategori_id = $this->kategori;
-        $pertandingan_id = $this->pertandingan;
-
-        // $kegiatan_id = $kegiatan->id;
-        $data['peserta'] = $data['peserta']->whereHas('PertandinganPesertaUtama', function ($q1) use ($kegiatan_id, $kategori_id, $pertandingan_id) {
-            $q1->WhereHas('list_kategori', function ($q2) use ($kegiatan_id, $kategori_id, $pertandingan_id) {
-                $q2 = $q2->where('kegiatan_id', $kegiatan_id);
-
-                if(isset($kategori_id)  && $kategori_id != "") {
-                    $q2 = $q2->where('kategori_id', $kategori_id);
-                }
-
-                if(isset($pertandingan_id)  && $pertandingan_id != "") {
-                    $q2 = $q2->where('pertandingan_id', $pertandingan_id);
-                }
-            });
-        });
-
-        $lastRow = $data['peserta']->count() + 6;
+        $lastRow = $sheet->getHighestRow();
 
         return [
-            'A5:J' . $lastRow => [
+            'A4:J' . $lastRow => [
                 'borders' => [
                     'allBorders' => [
                         'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
@@ -115,11 +92,16 @@ class PesertaExport implements FromView, WithStyles, WithColumnWidths
     public function columnWidths(): array
     {
         return [
-            'A' => 5,   // No
-            'B' => 20,  // Nama
-            'C' => 20,  // NIK
-            'D' => 10,  // Telepon
-            'E' => 12,  // Alamat
+            'A' => 6,   // No
+            'B' => 28,  // Nama
+            'C' => 22,  // NIK
+            'D' => 14,  // Usia
+            'E' => 6,   // L
+            'F' => 6,   // P
+            'G' => 6,   // K
+            'H' => 6,   // D
+            'I' => 6,   // P
+            'J' => 6,   // O
         ];
     }
 
