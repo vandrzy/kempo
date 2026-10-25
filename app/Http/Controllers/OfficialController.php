@@ -187,29 +187,8 @@ class OfficialController extends Controller
 
         $data['peserta'] = Official::where('status', 'O')->whereNotNull('created_at');
 
-        if(isset($_GET['delete_duplikat'])) {
-            $kegiatan_pertama = Kegiatan::first();
-
-            $kegiatan_id = $_GET['kegiatan_id'] ?? $kegiatan_pertama->id;
-            $data['kategori'] = ListKategori::with('kategori')->where('kegiatan_id', $kegiatan_id)->get()->unique('kategori_id')->values();
-
-            $data['peserta'] = Official::select('nama', DB::raw('COUNT(*) as jumlah'))->where('kegiatan_id', $kegiatan_id);
-            $data['peserta'] = $data['peserta']->groupBy('nama')->having('jumlah', '>', 1)->get();
-
-            foreach ($data['peserta'] as $item) {
-                // ambil semua peserta dengan nama yang sama, urutkan terbaru dulu
-                $pesertas = Official::where('nama', $item->nama)->where('kegiatan_id', $kegiatan_id)->orderBy('id', 'desc')->get();
-
-                // simpan 1 data terbaru, hapus sisanya
-                $pesertas->skip(1)->each(function ($peserta) {
-                    // terakhir hapus Peserta itu sendiri
-                    $peserta->delete();
-                });
-
-            }
-
-            return back()->with('success', 'Data Duplikat Berhasil Dihapus');
-
+        if(isset($_GET['delete_duplikat']) || isset($_POST['delete_duplikat'])) {
+            return $this->hapusDuplikat(request());
         }
 
         if(isset($_GET['submit']) && $_GET['submit'] == 'export') {
@@ -241,6 +220,114 @@ class OfficialController extends Controller
         // dd($data);
         return view('admin.official.index', $data);
 
+    }
+
+    /**
+     * Membersihkan data duplikat official secara cerdas dan aman:
+     * 1. Menghapus record duplikat berdasarkan NIK pada kegiatan yang sama.
+     * 2. Menghapus record duplikat berdasarkan normalisasi Nama + Kabupaten pada kegiatan yang sama.
+     * 3. Menghapus file fisik duplikat (foto & sertifikat) dari storage jika tidak digunakan oleh primary.
+     */
+    public function hapusDuplikat(Request $request)
+    {
+        if (Auth::user()->role === 'wasit') {
+            abort(403, 'Unauthorized');
+        }
+
+        $kegiatan_id = $request->kegiatan_id ?? optional(Kegiatan::orderBy('created_at', 'DESC')->first())->id;
+
+        if (!$kegiatan_id) {
+            return back()->with('error', 'Kegiatan tidak ditemukan.');
+        }
+
+        $totalDeleted = 0;
+
+        DB::beginTransaction();
+        try {
+            $processedIds = [];
+
+            // 1. DUPLIKAT BERDASARKAN NIK PADA KEGIATAN YANG SAMA
+            $duplicateNiks = Official::where('kegiatan_id', $kegiatan_id)
+                ->whereNotNull('nik')
+                ->where('nik', '!=', '')
+                ->select('nik', DB::raw('COUNT(*) as total'))
+                ->groupBy('nik')
+                ->having('total', '>', 1)
+                ->pluck('nik');
+
+            foreach ($duplicateNiks as $nik) {
+                $officials = Official::where('kegiatan_id', $kegiatan_id)
+                    ->where('nik', $nik)
+                    ->orderBy('id', 'asc')
+                    ->get();
+
+                if ($officials->count() <= 1) {
+                    continue;
+                }
+
+                $primary = $officials->first();
+                $processedIds[] = $primary->id;
+                $duplicates = $officials->slice(1);
+
+                foreach ($duplicates as $dup) {
+                    $processedIds[] = $dup->id;
+
+                    // Hapus file fisik foto jika berbeda dari primary
+                    if (!empty($dup->foto) && $dup->foto !== $primary->foto && file_exists(public_path($dup->foto))) {
+                        @unlink(public_path($dup->foto));
+                    }
+
+                    // Hapus file fisik sertifikat jika berbeda dari primary
+                    if (!empty($dup->sertifikat) && $dup->sertifikat !== $primary->sertifikat && file_exists(public_path($dup->sertifikat))) {
+                        @unlink(public_path($dup->sertifikat));
+                    }
+
+                    $dup->delete();
+                    $totalDeleted++;
+                }
+            }
+
+            // 2. DUPLIKAT BERDASARKAN NORMALISASI NAMA + KABUPATEN
+            $allOfficials = Official::where('kegiatan_id', $kegiatan_id)
+                ->whereNotIn('id', $processedIds)
+                ->orderBy('id', 'asc')
+                ->get();
+
+            $groupedByNameKab = [];
+            foreach ($allOfficials as $off) {
+                $normalizedName = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', $off->nama));
+                $key = $off->kabupaten_id . '_' . $normalizedName;
+                $groupedByNameKab[$key][] = $off;
+            }
+
+            foreach ($groupedByNameKab as $group) {
+                if (count($group) > 1) {
+                    $primary = $group[0];
+                    for ($i = 1; $i < count($group); $i++) {
+                        $dup = $group[$i];
+
+                        if (!empty($dup->foto) && $dup->foto !== $primary->foto && file_exists(public_path($dup->foto))) {
+                            @unlink(public_path($dup->foto));
+                        }
+
+                        if (!empty($dup->sertifikat) && $dup->sertifikat !== $primary->sertifikat && file_exists(public_path($dup->sertifikat))) {
+                            @unlink(public_path($dup->sertifikat));
+                        }
+
+                        $dup->delete();
+                        $totalDeleted++;
+                    }
+                }
+            }
+
+            DB::commit();
+
+            return back()->with('success', "Pembersihan duplikat official berhasil! {$totalDeleted} data duplikat dibersihkan.");
+
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            return back()->with('error', 'Gagal membersihkan data duplikat official: ' . $e->getMessage());
+        }
     }
 
     public function create() {

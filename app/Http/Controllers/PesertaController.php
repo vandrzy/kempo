@@ -32,52 +32,8 @@ class PesertaController extends Controller
 
         $data['peserta'] = Peserta::where('status', 'P')->whereNotNull('created_at');
 
-        if(isset($_GET['delete_duplikat'])) {
-            $data['peserta'] = Peserta::select('nama', DB::raw('COUNT(*) as jumlah'));
-            $kegiatan_pertama = Kegiatan::first();
-
-            $kegiatan_id = $_GET['kegiatan_id'] ?? $kegiatan_pertama->id;
-            $data['kategori'] = ListKategori::with('kategori')->where('kegiatan_id', $kegiatan_id)->get()->unique('kategori_id')->values();
-
-
-
-            $data['peserta'] = $data['peserta']->WhereHas('PertandinganPesertaUtama', function ($q1) use ($kegiatan_id) {
-                $q1->WhereHas('list_kategori', function ($q2) use ($kegiatan_id) {
-                    $q2 = $q2->where('kegiatan_id', $kegiatan_id);
-                });
-            });
-
-
-            $data['peserta'] = $data['peserta']->groupBy('nama')->having('jumlah', '>', 1)->get();
-            foreach ($data['peserta'] as $item) {
-                // ambil semua peserta dengan nama yang sama, urutkan terbaru dulu
-                $pesertas = Peserta::where('nama', $item->nama)->WhereHas('PertandinganPesertaUtama', function ($q1) use ($kegiatan_id) {
-                    $q1->WhereHas('list_kategori', function ($q2) use ($kegiatan_id) {
-                        $q2 = $q2->where('kegiatan_id', $kegiatan_id);
-                    });
-                })->orderBy('id', 'desc')->get();
-
-                // simpan 1 data terbaru, hapus sisanya
-                $pesertas->skip(1)->each(function ($peserta) {
-
-                    // pastikan relasinya di-load dulu agar aman
-                    $peserta->load(['PertandinganPeserta.UrutanKomposisiPeserta']);
-
-                    // hapus relasi terdalam dulu (UrutanKomposisiPeserta)
-                    foreach ($peserta->PertandinganPeserta as $pertandinganPeserta) {
-                        $pertandinganPeserta->UrutanKomposisiPeserta()->delete();
-                    }
-
-                    // lalu hapus PertandinganPeserta
-                    $peserta->PertandinganPeserta()->delete();
-
-                    // terakhir hapus Peserta itu sendiri
-                    $peserta->delete();
-                });
-            }
-
-            return back()->with('success', 'Data Duplikat Berhasil Dihapus');
-
+        if(isset($_GET['delete_duplikat']) || isset($_POST['delete_duplikat'])) {
+            return $this->hapusDuplikat(request());
         }
 
         if(isset($_GET['submit']) && $_GET['submit'] == 'export') {
@@ -136,6 +92,119 @@ class PesertaController extends Controller
         $data['kegiatan'] = Kegiatan::orderBy('created_at', 'DESC')->get();
         // dd($data);
                 return view('admin.peserta.index', $data);
+    }
+
+    /**
+     * Membersihkan data duplikat secara cerdas dan aman:
+     * 1. Menjaga nomor tanding yang sah (multi-nomor tanding) agar tidak terhapus.
+     * 2. Menghapus pendaftaran ganda pada nomor tanding yang sama persis.
+     * 3. Membersihkan record orphan/sampah (tanpa pertandingan).
+     * 4. Menghapus file fisik duplikat dari storage.
+     */
+    public function hapusDuplikat(Request $request)
+    {
+        if (Auth::user()->role === 'wasit') {
+            abort(403, 'Unauthorized');
+        }
+
+        $kegiatan_id = $request->kegiatan_id ?? optional(Kegiatan::orderBy('created_at', 'DESC')->first())->id;
+
+        if (!$kegiatan_id) {
+            return back()->with('error', 'Kegiatan tidak ditemukan.');
+        }
+
+        $totalMerged = 0;
+        $totalDeleted = 0;
+
+        DB::beginTransaction();
+        try {
+            // 1. CARI SEMUA ATLET YANG TERDAFTAR DI KEGIATAN INI BERDASARKAN NIK
+            $duplicateNiks = Peserta::where('status', 'P')
+                ->whereNotNull('nik')
+                ->where('nik', '!=', '')
+                ->whereHas('PertandinganPeserta', function ($q) use ($kegiatan_id) {
+                    $q->where('kegiatan_id', $kegiatan_id);
+                })
+                ->select('nik', DB::raw('COUNT(*) as total'))
+                ->groupBy('nik')
+                ->having('total', '>', 1)
+                ->pluck('nik');
+
+            foreach ($duplicateNiks as $nik) {
+                // Ambil semua record peserta dengan NIK tersebut di kegiatan ini
+                $pesertaList = Peserta::where('status', 'P')
+                    ->where('nik', $nik)
+                    ->whereHas('PertandinganPeserta', function ($q) use ($kegiatan_id) {
+                        $q->where('kegiatan_id', $kegiatan_id);
+                    })
+                    ->with('PertandinganPeserta.UrutanKomposisiPeserta')
+                    ->orderBy('id', 'asc') // Record ID terkecil dijadikan primary/survivor
+                    ->get();
+
+                if ($pesertaList->count() <= 1) {
+                    continue;
+                }
+
+                $primary = $pesertaList->first();
+                $duplicates = $pesertaList->slice(1);
+
+                foreach ($duplicates as $dup) {
+                    foreach ($dup->PertandinganPeserta as $dupPP) {
+                        // Periksa apakah primary sudah terdaftar di nomor tanding yang sama
+                        $existingPP = PertandinganPeserta::where('peserta_id', $primary->id)
+                            ->where('list_kategori_id', $dupPP->list_kategori_id)
+                            ->first();
+
+                        if (!$existingPP) {
+                            // BUKAN DUPLIKAT: Ini nomor tanding lain yang sah (misal Randori vs Embu Beregu)
+                            // Pindahkan PertandinganPeserta ke primary record agar nomor tanding atlet tidak hilang!
+                            $dupPP->update(['peserta_id' => $primary->id]);
+                            $totalMerged++;
+                        } else {
+                            // DUPLIKAT SEJATI PADA NOMOR TANDING YANG SAMA
+                            $dupPP->UrutanKomposisiPeserta()->delete();
+                            $dupPP->delete();
+                        }
+                    }
+
+                    // Hapus file foto duplikat jika berbeda dari primary
+                    if (!empty($dup->foto) && $dup->foto !== $primary->foto && file_exists(public_path($dup->foto))) {
+                        @unlink(public_path($dup->foto));
+                    }
+
+                    $dup->delete();
+                    $totalDeleted++;
+                }
+            }
+
+            // 2. BERSIHKAN DATA SAMPAH / ORPHAN (Peserta tanpa pertandingan sama sekali)
+            $orphanPesertas = Peserta::where('status', 'P')
+                ->whereDoesntHave('PertandinganPeserta')
+                ->get();
+
+            foreach ($orphanPesertas as $orphan) {
+                if (!empty($orphan->foto) && file_exists(public_path($orphan->foto))) {
+                    @unlink(public_path($orphan->foto));
+                }
+                $orphan->delete();
+                $totalDeleted++;
+            }
+
+            DB::commit();
+
+            $pesan = "Pembersihan duplikat peserta berhasil! {$totalDeleted} data duplikat/orphan dibersihkan";
+            if ($totalMerged > 0) {
+                $pesan .= ", dan {$totalMerged} nomor tanding atlet multi-tanding berhasil diamankan dan disatukan.";
+            } else {
+                $pesan .= ".";
+            }
+
+            return back()->with('success', $pesan);
+
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            return back()->with('error', 'Gagal membersihkan data duplikat: ' . $e->getMessage());
+        }
     }
 
     public function export() {

@@ -76,6 +76,9 @@ Route::middleware('auth')->group(function () {
     Route::delete('pertandingans/tanding-delete', [PertandinganController::class, 'batal_tanding']);
     // Route::get('pertandingans/{id}/print', [PertandinganController::class, 'print_no_tanding']);
 
+    Route::post('peserta/hapus-duplikat', [PesertaController::class, 'hapusDuplikat'])->name('peserta.hapus-duplikat');
+    Route::post('official/hapus-duplikat', [OfficialController::class, 'hapusDuplikat'])->name('official.hapus-duplikat');
+
     Route::resource('peserta', PesertaController::class);
     Route::resource('official', OfficialController::class);
 
