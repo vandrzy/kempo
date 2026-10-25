@@ -134,7 +134,7 @@ class OfficialController extends Controller
                 'golongan_darah'=> $request->golongan_darah,
                 'nik'=> $request->nik,
                 // 'tingkat'=> $request->tingkat,
-                'status'=> $request->status,
+                'status'=> $request->status ?? 'O',
                 'tempat'=> $request->tempat,
                 'tanggal_lahir'=> $request->tanggal_lahir,
                 'alamat'=> $request->alamat,

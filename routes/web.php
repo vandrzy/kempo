@@ -15,21 +15,11 @@ use App\Models\Kegiatan;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
-    // Route::get('/', [HomePageController::class, 'index']);
-    Route::post('daftar', [HomePageController::class, 'daftarProcess']);
-
-    // Route::get('/detail/{id}', [HomePageController::class, 'detail']);
-
     Route::get('/', [HomePageController::class, 'login'])->name('login');
     Route::post('/login', [HomePageController::class, 'loginPost']);
 
     Route::get('/register', [HomePageController::class, 'register']);
     Route::post('/register', [HomePageController::class, 'register_proses']);
-
-
-    Route::get('/official/{id}/daftar', [OfficialController::class, 'daftar']);
-    Route::post('/official_register', [OfficialController::class, 'daftar_proses']);
-
 
     Route::get('/test', function() {
         $happiness = WaHelpers::sendWa('081212379429', 'Coba WaHelpers');
@@ -39,12 +29,16 @@ Route::middleware('guest')->group(function () {
     });
 });
 
+// Pendaftaran Peserta & Official (Bisa diakses baik saat belum login maupun dalam mode login)
+Route::get('/pendaftaran/{id}/daftar', [HomePageController::class, 'index']);
+Route::post('daftar', [HomePageController::class, 'daftarProcess']);
+Route::get('/official/{id}/daftar', [OfficialController::class, 'daftar']);
+Route::post('/official_register', [OfficialController::class, 'daftar_proses']);
 
 Route::get('/getWilayah/{wilayah}/{id}', [HomePageController::class, 'getWilayah']);
 Route::get('/api/check-existing-pendaftar', [HomePageController::class, 'checkExistingPendaftar'])
     ->middleware('throttle:60,1')
     ->name('pendaftar.check-existing');
-Route::get('/pendaftaran/{id}/daftar', [HomePageController::class, 'index']);
 Route::get('/teknik/{id}', [HomePageController::class, 'teknik_input']);
 Route::post('/teknik/{id}', [HomePageController::class, 'teknik_process']);
 Route::get('pertandingans/{kategori}', [PesertaController::class, 'get_pertandingan']);

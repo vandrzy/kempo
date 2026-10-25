@@ -307,41 +307,38 @@ class HomePageController extends Controller
             ]);
 
 
-            foreach($request->pertandingan_id as $index => $a) {
-                $existing = PertandinganPeserta::where('list_kategori_id', $a)
-                ->orderBy('urutan')
-                ->pluck('urutan')
-                ->toArray();
+            if ($request->has('pertandingan_id') && is_array($request->pertandingan_id)) {
+                foreach($request->pertandingan_id as $index => $a) {
+                    $existing = PertandinganPeserta::where('list_kategori_id', $a)
+                    ->orderBy('urutan')
+                    ->pluck('urutan')
+                    ->toArray();
 
-                // Cari urutan kosong
-                $urutanBaru = 1;
-                foreach ($existing as $num) {
-                    if ($num == $urutanBaru) {
-                        $urutanBaru++;
-                    } else {
-                        break; // lubang ditemukan
+                    // Cari urutan kosong
+                    $urutanBaru = 1;
+                    foreach ($existing as $num) {
+                        if ($num == $urutanBaru) {
+                            $urutanBaru++;
+                        } else {
+                            break; // lubang ditemukan
+                        }
                     }
+
+                    $PPA = PertandinganPeserta::create([
+                        'peserta_id' => $peserta->id,
+                        'list_kategori_id' => $a,
+                        'urutan' => $urutanBaru,
+                        'kegiatan_id' => $request->kegiatan_id
+                    ]);
+
+                    $UKP = new UrutanKomposisiPeserta();
+                    $UKP->pertandingan_peserta_id = $PPA->id;
+                    $UKP->nama = $request->nama_tanding[$a] ?? "-";
+                    $UKP->tingkat = $request->tingkat_tanding[$a] ?? "-";
+                    $deskripsiUKP = "";
+                    $UKP->urutan_komposisi = $deskripsiUKP;
+                    $UKP->save();
                 }
-
-                $PPA = PertandinganPeserta::create([
-                    'peserta_id' => $peserta->id,
-                    'list_kategori_id' => $a,
-                    'urutan' => $urutanBaru,
-                    'kegiatan_id' => $request->kegiatan_id
-                ]);
-
-                $UKP = new UrutanKomposisiPeserta();
-                $UKP->pertandingan_peserta_id = $PPA->id;
-                $UKP->nama = $request->nama_tanding[$a] ?? "-";
-                $UKP->tingkat = $request->tingkat_tanding[$a] ?? "-";
-                $deskripsiUKP = "";
-                // foreach($request->urutan_tanding[$a] as $b) {
-                //     if($b != "") {
-                //         $deskripsiUKP .= ($b ?? "-").",";
-                //     }
-                // }
-                $UKP->urutan_komposisi = $deskripsiUKP;
-                $UKP->save();
             }
 
 
