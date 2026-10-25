@@ -343,32 +343,20 @@
 
         @isset($peserta)
             $('.kategori_show').html('');
-            // $('.kategori_pertandingan_show').html('');
-            for(var i = 0; i < $("#kategori_id").val().length; i++) {
-                AmbilDataPertandinganKategori($('#tanggal_lahir').val(), $('#jenis_kelamin').val(), $('#kegiatan_id').val(), $("#kategori_id").val()[i], true);
+            let initialKategori = $("#kategori_id").val() || [];
+            for(var i = 0; i < initialKategori.length; i++) {
+                AmbilDataPertandinganKategori($('#tanggal_lahir').val(), $('#jenis_kelamin').val(), $('#kegiatan_id').val(), initialKategori[i], true);
             }
             $('#kabupaten_id').val('{{ $peserta->kabupaten_id }}').trigger('change');
-
         @endisset
 
-        $('#jenis_kelamin').on('change', function (e) {
-
+        $('#jenis_kelamin, #tanggal_lahir').on('change', function (e) {
             $('.kategori_show').html('');
             $('.kategori_pertandingan_show').html('');
-            for(var i = 0; i < $("#kategori_id").val().length; i++) {
-                AmbilDataPertandinganKategori($('#tanggal_lahir').val(), $('#jenis_kelamin').val(), $('#kegiatan_id').val(), $("#kategori_id").val()[i]);
+            let currentKategori = $("#kategori_id").val() || [];
+            for(var i = 0; i < currentKategori.length; i++) {
+                AmbilDataPertandinganKategori($('#tanggal_lahir').val(), $('#jenis_kelamin').val(), $('#kegiatan_id').val(), currentKategori[i]);
             }
-            // AmbilDataPertandingan($('#tanggal_lahir').val(), $('#jenis_kelamin').val(), $('#kegiatan_id').val());
-        });
-
-        $('#tanggal_lahir').on('change', function (e) {
-
-            $('.kategori_show').html('');
-            $('.kategori_pertandingan_show').html('');
-            for(var i = 0; i < $("#kategori_id").val().length; i++) {
-                AmbilDataPertandinganKategori($('#tanggal_lahir').val(), $('#jenis_kelamin').val(), $('#kegiatan_id').val(), $("#kategori_id").val()[i]);
-            }
-            // AmbilDataPertandingan($('#tanggal_lahir').val(), $('#jenis_kelamin').val(), $('#kegiatan_id').val());
         });
 
         function PertandinganKategori(selected_value, kategori_id_value, element, exist = null) {
@@ -599,9 +587,11 @@
             kategori_choose = selected;
 
             pertandingan_choose = {};;
-            for(var i = 0; i < $(this).val().length; i++) {
-                pertandingan_choose[$(this).val()[i]] = [];
-                AmbilDataPertandinganKategori($('#tanggal_lahir').val(), $('#jenis_kelamin').val(), $('#kegiatan_id').val(), $(this).val()[i]);
+            let katSelected = $(this).val() || [];
+            pertandingan_choose = {};
+            for(var i = 0; i < katSelected.length; i++) {
+                pertandingan_choose[katSelected[i]] = [];
+                AmbilDataPertandinganKategori($('#tanggal_lahir').val(), $('#jenis_kelamin').val(), $('#kegiatan_id').val(), katSelected[i]);
             }
 
             console.log(pertandingan_choose);

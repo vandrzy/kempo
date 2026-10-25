@@ -315,117 +315,124 @@
                 $('.tanding_list').html(data_urutan_list);
         });
 
-        $('#jenis_kelamin').on('change', function (e) {
+        function muatPertandinganBerdasarkanKategori() {
+            let kategoriVal = $("#kategori_id").val() || [];
+            let tanggal_lahir = $('#tanggal_lahir').val();
+            let jenis_kelamin = $('#jenis_kelamin').val();
+            let kegiatan_id = $('#kegiatan_id').val();
 
-            $('.kategori_show').html('');
-            $('.kategori_pertandingan_show').html('');
-            for(var i = 0; i < $("#kategori_id").val().length; i++) {
-                AmbilDataPertandinganKategori($('#tanggal_lahir').val(), $('#jenis_kelamin').val(), $('#kegiatan_id').val(), $("#kategori_id").val()[i]);
+            // 1. Jika belum ada kategori yang dipilih
+            if (!kategoriVal.length) {
+                $('.kategori_show').html(`
+                    <div class="p-4 rounded-2xl bg-neutral-50 border border-[#ebebeb] text-center text-xs text-neutral-500">
+                        <i class="fas fa-info-circle text-[#f2470c] mr-1.5"></i>
+                        Silakan pilih satu atau lebih <strong>Pilihan Kategori Tanding</strong> di atas.
+                    </div>
+                `);
+                $('.kategori_pertandingan_show').html('');
+                return;
             }
-            // AmbilDataPertandingan($('#tanggal_lahir').val(), $('#jenis_kelamin').val(), $('#kegiatan_id').val());
-        });
 
-        $('#tanggal_lahir').on('change', function (e) {
-
-            $('.kategori_show').html('');
-            $('.kategori_pertandingan_show').html('');
-            for(var i = 0; i < $("#kategori_id").val().length; i++) {
-                AmbilDataPertandinganKategori($('#tanggal_lahir').val(), $('#jenis_kelamin').val(), $('#kegiatan_id').val(), $("#kategori_id").val()[i]);
+            // 2. Jika tanggal lahir atau jenis kelamin belum diisi
+            if (!tanggal_lahir || !jenis_kelamin) {
+                $('.kategori_show').html(`
+                    <div class="p-4 rounded-2xl bg-[#fff0eb] border border-[#f2470c]/25 text-xs text-[#000000] flex items-center gap-2.5">
+                        <i class="fas fa-exclamation-triangle text-[#f2470c] shrink-0 text-base"></i>
+                        <div class="leading-relaxed">
+                            Mohon lengkapi <strong>Tanggal Lahir</strong> dan <strong>Jenis Kelamin</strong> terlebih dahulu agar sistem dapat memfilter nomor tanding yang sesuai dengan atlet.
+                        </div>
+                    </div>
+                `);
+                $('.kategori_pertandingan_show').html('');
+                return;
             }
-            // AmbilDataPertandingan($('#tanggal_lahir').val(), $('#jenis_kelamin').val(), $('#kegiatan_id').val());
-        });
 
+            // 3. Batasi maksimal 4 kategori
+            if (kategoriVal.length > 4) {
+                alert('Maksimal hanya bisa memilih 4 Kategori!');
+                kategoriVal = kategoriVal.slice(0, 4);
+                $('#kategori_id').val(kategoriVal).trigger('change.select2');
+                return;
+            }
+
+            $('.kategori_show').html(`
+                <div class="p-4 rounded-2xl bg-neutral-50 border border-[#ebebeb] text-center text-xs text-neutral-500 loading-pertandingan">
+                    <i class="fas fa-circle-notch fa-spin text-[#f2470c] mr-1.5"></i> Memuat daftar nomor pertandingan...
+                </div>
+            `);
+            $('.kategori_pertandingan_show').html('');
+
+            for (var i = 0; i < kategoriVal.length; i++) {
+                AmbilDataPertandinganKategori(tanggal_lahir, jenis_kelamin, kegiatan_id, kategoriVal[i]);
+            }
+        }
 
         function AmbilDataPertandinganKategori(tanggal_lahir, jenis_kelamin, kegiatan_id, kategori_id) {
-                                            // <h1 class="mt-4 ml-4">Pertandingan kategori : </h1>
-                                            // <div class="mt-4 ml-4">
-                                            //     <label for="">Kategori</label>
-                                            //     <select name="pertandingan_id[]" class="pilihan w-full pl-9 text-sm focus:shadow-primary-outline ease leading-5.6 relative -ml-px block min-w-0 flex-auto rounded-lg border border-solid border-gray-300 dark:bg-slate-850 dark:text-white bg-white bg-clip-padding py-2 pr-3 text-gray-700 transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:transition-shadow" multiple="multiple" status="{{ (is_array(old('pertandingan_id')) && count(old('pertandingan_id'))) > 0 ? 'true' : 'false' }}" id="pertandingan_id">
-                                            //     </select>
-                                            // </div>
+            if (!tanggal_lahir || !jenis_kelamin || !kegiatan_id || !kategori_id) {
+                return;
+            }
+
             $.ajax({
-                url: `{{url("pendaftarans")}}/${tanggal_lahir}/${jenis_kelamin}?kegiatan_id=${kegiatan_id}&kategori_id=${kategori_id}`, // URL API
+                url: `{{url("pendaftarans")}}/${tanggal_lahir}/${jenis_kelamin}?kegiatan_id=${kegiatan_id}&kategori_id=${kategori_id}`,
                 type: 'GET',
-                dataType: 'json', // bisa 'html', 'text', dll tergantung respon
+                dataType: 'json',
                 success: function(response) {
-                    console.log(response);
+                    $('.loading-pertandingan').remove();
                     let html = "";
                     let html2 = "";
                     let option = "";
-                    if(response.data.length > 0) {
+                    if(response.data && response.data.length > 0) {
                         $.each(response.data, function(index, value) {
                             option += `<option value="${value.id}">${value.pertandingan.nama} | Urutan ${response.urutan[index]}</option>`;
                         });
                     } else {
-                        option += `<option value="" selected>Usia anda tidak tersedia untuk pertandingan ini!</option>`
+                        option += `<option value="" disabled selected>Usia anda tidak tersedia untuk kategori ini!</option>`;
                     }
                     html += `
-                            <div class="mt-4 ml-4">
-                                <label for="">${response.kategori.nama}</label>
-                                <select name="pertandingan_id[]" ${response.data.length == 0 ? 'disabled' : ''}  class="pertandingan_kategori w-full pl-9 text-sm focus:shadow-primary-outline ease leading-5.6 relative -ml-px block min-w-0 flex-auto rounded-lg border border-solid border-gray-300 dark:bg-slate-850 dark:text-white bg-white bg-clip-padding py-2 pr-3 text-gray-700 transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:transition-shadow" multiple="multiple" status="{{ (is_array(old('pertandingan_id')) && count(old('pertandingan_id'))) > 0 ? 'true' : 'false' }}" kategori_id="${response.kategori.id}" id="pilihan_${response.kategori.id}">
-                                    ${option}
-                                </select>
-                            </div>
-
-                    `;
-
-                    html2 += `
-                        <div class="mt-4 ml-4">
-                            <h5>${response.kategori.nama}</h5>
-                            <div id="pertandingan_tahapan_teknik_${response.kategori.id}">
-
-                            </div>
+                        <div class="p-4 rounded-2xl bg-white border border-[#ebebeb] shadow-2xs mb-4" id="box_kat_${response.kategori.id}">
+                            <label class="block text-xs font-bold text-[#000000] uppercase tracking-wider font-heading mb-2">
+                                Kategori: <span class="text-[#f2470c] font-bold">${response.kategori.nama}</span>
+                            </label>
+                            <select name="pertandingan_id[]" ${(!response.data || response.data.length == 0) ? 'disabled' : ''} class="pertandingan_kategori w-full" multiple="multiple" status="{{ (is_array(old('pertandingan_id')) && count(old('pertandingan_id'))) > 0 ? 'true' : 'false' }}" kategori_id="${response.kategori.id}" id="pilihan_${response.kategori.id}">
+                                ${option}
+                            </select>
                         </div>
                     `;
 
+                    html2 += `
+                        <div class="p-4 rounded-2xl bg-white border border-[#ebebeb] shadow-2xs mb-4">
+                            <h5 class="font-heading font-bold text-sm text-[#000000] mb-3">${response.kategori.nama}</h5>
+                            <div id="pertandingan_tahapan_teknik_${response.kategori.id}"></div>
+                        </div>
+                    `;
 
                     $('.kategori_show').append(html);
                     $('.kategori_pertandingan_show').append(html2);
                     $(`#pilihan_${response.kategori.id}`).select2({
-                        theme: 'mytheme', // atau 'bootstrap5' jika pakai tema lain
+                        theme: 'mytheme',
                         allowClear: true,
                         width: '100%',
-                        minimumResultsForSearch: 0 /// biar full lebar // Biar serasi dengan Bootstrap form-control
+                        dropdownAutoWidth: true,
+                        placeholder: 'Pilih nomor pertandingan...',
+                        closeOnSelect: false,
                     });
-                    // alert('Judul: ' + response.title);
                 },
                 error: function(xhr, status, error) {
-                    console.error('Gagal:', error);
-                    alert('Gagal mengambil data!');
+                    $('.loading-pertandingan').remove();
+                    console.error('Gagal memuat pertandingan:', error);
                 }
             });
         }
 
-        let kategori_choose = [];
-        let pertandingan_choose = [];
-        $('#kategori_id').on('change', function (e) {
-            console.log($(this).val());
-
-            $('.kategori_show').html('');
-            $('.kategori_pertandingan_show').html('');
-
-            const selected = $(this).val();
-
-            // console.log()
-            if (selected && selected.length > 4) {
-                alert('Maksimal hanya bisa memilih 4 Kategori!');
-                // $('#pertandingan_id').val(null).trigger('change');
-                $('#kategori_id').val(kategori_choose).trigger('change');
-                return; // stop function
-            }
-
-            kategori_choose = selected;
-
-            pertandingan_choose = {};;
-            for(var i = 0; i < $(this).val().length; i++) {
-                pertandingan_choose[$(this).val()[i]] = [];
-                AmbilDataPertandinganKategori($('#tanggal_lahir').val(), $('#jenis_kelamin').val(), $('#kegiatan_id').val(), $(this).val()[i]);
-            }
-
-            console.log(pertandingan_choose);
-
-            // AmbilDataPertandingan($('#tanggal_lahir').val(), $('#jenis_kelamin').val(), $('#kegiatan_id').val());
+        // Event listener: perubahan pada Kategori, Tanggal Lahir, atau Jenis Kelamin langsung memicu pembaruan nomor pertandingan
+        $('#kategori_id, #jenis_kelamin, #tanggal_lahir').on('change', function () {
+            muatPertandinganBerdasarkanKategori();
         });
+
+        // Inisialisasi awal jika kategori sudah terisi
+        if ($('#kategori_id').val() && $('#kategori_id').val().length > 0) {
+            muatPertandinganBerdasarkanKategori();
+        }
 
 
         $(document).on('change', '.pertandingan_kategori',function(e) {
