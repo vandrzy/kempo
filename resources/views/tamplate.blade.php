@@ -4,8 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <link rel="apple-touch-icon" sizes="76x76" href="{{ asset('assets/img/apple-icon.png') }}" />
-    <link rel="icon" type="image/png" href="{{ asset('assets/img/favicon.png') }}" />
+    <link rel="apple-touch-icon" sizes="76x76" href="{{ asset('assets/img/logo-removebg.png') }}" />
+    <link rel="icon" type="image/png" href="{{ asset('assets/img/logo-removebg.png') }}" />
     <title>@yield('title') | Shorinji Kempo</title>
 
     <!-- Google Fonts: Inter & Plus Jakarta Sans Sesuai Spesifikasi Desain -->
