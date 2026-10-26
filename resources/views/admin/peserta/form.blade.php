@@ -33,6 +33,7 @@
                 <!-- Container Konfirmasi Data Lama (Auto-Fill) -->
                 <div id="existing-data-confirmation" class="hidden mt-2.5 space-y-2"></div>
                 <input type="hidden" name="existing_reference_id" id="existing-reference-id" value="">
+                <input type="hidden" name="unlocked_fields" id="unlocked-fields" value="">
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -218,6 +219,13 @@
                 <span class="error text-xs font-semibold text-[#e54b4f] mt-1 inline-block"></span>
                 <div class="mt-3">
                     <img src="{{ !empty($peserta->foto) ? url($peserta->foto) : '' }}" id="preview" alt="Preview Foto" class="w-32 h-40 object-cover rounded-xl border border-[#ebebeb] shadow-2xs {{ empty($peserta->foto) ? 'hidden' : '' }}">
+                    <div id="card-foto-lama" class="hidden w-32 h-40 rounded-xl bg-neutral-100 border-2 border-dashed border-neutral-300 flex flex-col items-center justify-center p-3 text-center text-neutral-600 shadow-2xs transition-all">
+                        <div class="w-10 h-10 rounded-full bg-neutral-200 text-[#f2470c] flex items-center justify-center text-lg mb-2 shadow-2xs">
+                            <i class="fas fa-id-badge"></i>
+                        </div>
+                        <span class="text-xs font-bold font-heading text-neutral-800 leading-tight">Menggunakan Pas Foto Lama</span>
+                        <span class="text-[10px] text-neutral-400 mt-1 leading-tight">Foto tersimpan aman</span>
+                    </div>
                 </div>
             </div>
         </div>

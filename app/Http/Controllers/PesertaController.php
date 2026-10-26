@@ -288,27 +288,66 @@ class PesertaController extends Controller
      * Store a newly created resource in storage.
      */
     public function store(Request $request) {
-            $fotoPath = FotoHelper::simpanFoto($request->file('foto'), $request->existing_foto) ?? '';
+            $oldPeserta = null;
+            if ($request->filled('existing_reference_id')) {
+                $oldPeserta = Peserta::find($request->existing_reference_id);
+            }
+
+            $unlocked = [];
+            if ($request->filled('unlocked_fields')) {
+                $unlocked = is_array($request->unlocked_fields) 
+                    ? $request->unlocked_fields 
+                    : explode(',', $request->unlocked_fields);
+                $unlocked = array_map('trim', $unlocked);
+            }
+
+            $getValue = function($field, $default = null) use ($request, $oldPeserta, $unlocked) {
+                if ($oldPeserta && !in_array($field, $unlocked)) {
+                    return $oldPeserta->$field ?? $default;
+                }
+                return $request->$field ?? $default;
+            };
+
+            $nik = $getValue('nik', $request->nik);
+            $jenis_kelamin = $getValue('jenis_kelamin', $request->jenis_kelamin);
+            $golongan_darah = $getValue('golongan_darah', $request->golongan_darah);
+            $status = $getValue('status', $request->status ?? 'P');
+            $tempat = $getValue('tempat', $request->tempat);
+            $alamat = $getValue('alamat', $request->alamat);
+            $telepon = $getValue('telepon', $request->telepon);
+            $keterangan = $getValue('keterangan', $request->keterangan);
+            $kabupaten_id = $getValue('kabupaten_id', $request->kabupaten_id);
+            $kecamatan_id = $getValue('kecamatan_id', $request->kecamatan_id);
+            $kelurahan_id = $getValue('kelurahan_id', $request->kelurahan_id);
+            $disabilitas = $getValue('disabilitas', $request->disabilitas);
+
+            $fotoPath = '';
+            if ($request->hasFile('foto')) {
+                $fotoPath = FotoHelper::simpanFoto($request->file('foto')) ?? '';
+            } elseif ($oldPeserta && !empty($oldPeserta->foto)) {
+                $fotoPath = $oldPeserta->foto;
+            } elseif (!empty($request->existing_foto) && $request->existing_foto !== 'USE_OLD_PHOTO') {
+                $fotoPath = $request->existing_foto;
+            }
 
             $peserta = Peserta::create([
                 'nama' => $request->nama,
-                'jenis_kelamin'=> $request->jenis_kelamin,
-                'golongan_darah'=> $request->golongan_darah,
-                'nik'=> $request->nik,
-                // 'tingkat'=> $request->tingkat,
-                'status'=> $request->status,
-                'tempat'=> $request->tempat,
-                'tanggal_lahir'=> $request->tanggal_lahir,
-                'alamat'=> $request->alamat,
-                'telepon'=> $request->telepon,
-                'berat_badan'=> $request->berat_badan,
-                'keterangan'=> $request->keterangan,
+                'jenis_kelamin' => $jenis_kelamin,
+                'golongan_darah' => $golongan_darah,
+                'nik' => $nik,
+                'status' => $status,
+                'tempat' => $tempat,
+                'tanggal_lahir' => $request->tanggal_lahir,
+                'alamat' => $alamat,
+                'telepon' => $telepon,
+                'berat_badan' => $request->berat_badan,
+                'keterangan' => $keterangan,
                 'foto' => $fotoPath,
-                'kabupaten_id' => $request->kabupaten_id,
-                'kecamatan_id' => $request->kecamatan_id,
-                'kelurahan_id' => $request->kelurahan_id,
-                'disabilitas' => $request->disabilitas,
-                'tingkatan_sabuk' => $request->tingkatan_sabuk_a."-".$request->tingkatan_sabuk_b,
+                'kabupaten_id' => $kabupaten_id,
+                'kecamatan_id' => $kecamatan_id,
+                'kelurahan_id' => $kelurahan_id,
+                'disabilitas' => $disabilitas,
+                'tingkatan_sabuk' => $request->tingkatan_sabuk_a . "-" . $request->tingkatan_sabuk_b,
             ]);
 
 

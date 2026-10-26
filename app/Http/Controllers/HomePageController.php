@@ -283,27 +283,68 @@ class HomePageController extends Controller
 
 
 
-            $fotoPath = FotoHelper::simpanFoto($request->file('foto'), $request->existing_foto) ?? '';
+            $oldPeserta = null;
+            if ($request->filled('existing_reference_id')) {
+                $oldPeserta = Peserta::find($request->existing_reference_id);
+            }
+
+            $unlocked = [];
+            if ($request->filled('unlocked_fields')) {
+                $unlocked = is_array($request->unlocked_fields) 
+                    ? $request->unlocked_fields 
+                    : explode(',', $request->unlocked_fields);
+                $unlocked = array_map('trim', $unlocked);
+            }
+
+            // Helper untuk mengambil nilai: jika ada data lama dan field TIDAK di-unlock oleh user, ambil dari data lama
+            $getValue = function($field, $default = null) use ($request, $oldPeserta, $unlocked) {
+                if ($oldPeserta && !in_array($field, $unlocked)) {
+                    return $oldPeserta->$field ?? $default;
+                }
+                return $request->$field ?? $default;
+            };
+
+            $nik = $getValue('nik', $request->nik);
+            $jenis_kelamin = $getValue('jenis_kelamin', $request->jenis_kelamin);
+            $golongan_darah = $getValue('golongan_darah', $request->golongan_darah);
+            $status = $getValue('status', $request->status ?? 'P');
+            $tempat = $getValue('tempat', $request->tempat);
+            $alamat = $getValue('alamat', $request->alamat);
+            $telepon = $getValue('telepon', $request->telepon);
+            $keterangan = $getValue('keterangan', $request->keterangan);
+            $kabupaten_id = $getValue('kabupaten_id', $request->kabupaten_id);
+            $kecamatan_id = $getValue('kecamatan_id', $request->kecamatan_id);
+            $kelurahan_id = $getValue('kelurahan_id', $request->kelurahan_id);
+            $disabilitas = $getValue('disabilitas', $request->disabilitas);
+
+            // Foto: jika upload file baru, simpan file baru. Jika tidak, pakai foto lama.
+            $fotoPath = '';
+            if ($request->hasFile('foto')) {
+                $fotoPath = FotoHelper::simpanFoto($request->file('foto')) ?? '';
+            } elseif ($oldPeserta && !empty($oldPeserta->foto)) {
+                $fotoPath = $oldPeserta->foto;
+            } elseif (!empty($request->existing_foto) && $request->existing_foto !== 'USE_OLD_PHOTO') {
+                $fotoPath = $request->existing_foto;
+            }
 
             $peserta = Peserta::create([
                 'nama' => $request->nama,
-                'jenis_kelamin'=> $request->jenis_kelamin,
-                'golongan_darah'=> $request->golongan_darah,
-                'nik'=> $request->nik,
-                // 'tingkat'=> $request->tingkat,
-                'status'=> $request->status,
-                'tempat'=> $request->tempat,
-                'tanggal_lahir'=> $request->tanggal_lahir,
-                'alamat'=> $request->alamat,
-                'telepon'=> $request->telepon,
-                'berat_badan'=> $request->berat_badan,
-                'keterangan'=> $request->keterangan,
+                'jenis_kelamin' => $jenis_kelamin,
+                'golongan_darah' => $golongan_darah,
+                'nik' => $nik,
+                'status' => $status,
+                'tempat' => $tempat,
+                'tanggal_lahir' => $request->tanggal_lahir,
+                'alamat' => $alamat,
+                'telepon' => $telepon,
+                'berat_badan' => $request->berat_badan,
+                'keterangan' => $keterangan,
                 'foto' => $fotoPath,
-                'kabupaten_id' => $request->kabupaten_id,
-                'kecamatan_id' => $request->kecamatan_id,
-                'kelurahan_id' => $request->kelurahan_id,
-                'disabilitas' => $request->disabilitas,
-                'tingkatan_sabuk' => $request->tingkatan_sabuk_a."-".$request->tingkatan_sabuk_b,
+                'kabupaten_id' => $kabupaten_id,
+                'kecamatan_id' => $kecamatan_id,
+                'kelurahan_id' => $kelurahan_id,
+                'disabilitas' => $disabilitas,
+                'tingkatan_sabuk' => $request->tingkatan_sabuk_a . "-" . $request->tingkatan_sabuk_b,
             ]);
 
 
@@ -537,94 +578,136 @@ class HomePageController extends Controller
         }
 
         if ($tipe === 'official') {
-            $records = Official::with('kegiatan')
-                ->where('nama', 'LIKE', "%{$nama}%")
+            // Cari 1 data official yang paling sesuai
+            $record = Official::with('kegiatan')
+                ->whereRaw('LOWER(TRIM(nama)) = ?', [strtolower($nama)])
                 ->latest()
-                ->limit(10)
-                ->get()
-                ->unique(fn ($item) => strtolower(trim($item->nama)))
-                ->take(3);
+                ->first();
 
-            $items = $records->map(function ($row) {
-                $namaKegiatan = $row->kegiatan->nama ?? 'Kegiatan Sebelumnya';
-                $tingkat = explode('-', $row->tingkat ?? '');
+            if (!$record) {
+                $record = Official::with('kegiatan')
+                    ->where('nama', 'LIKE', "{$nama}%")
+                    ->latest()
+                    ->first();
+            }
 
-                return [
-                    'id' => $row->id,
-                    'nama' => $row->nama,
-                    'peran' => 'official',
-                    'nama_kegiatan' => $namaKegiatan,
-                    'foto_url' => !empty($row->foto) ? url($row->foto) : '',
-                    'foto_path' => $row->foto ?? '',
-                    'personal_data' => [
-                        'nama' => $row->nama,
-                        'jenis_kelamin' => $row->jenis_kelamin,
-                        'golongan_darah' => $row->golongan_darah,
-                        'nik' => $row->nik,
-                        'tempat' => $row->tempat,
-                        'tanggal_lahir' => $row->tanggal_lahir ? date('Y-m-d', strtotime($row->tanggal_lahir)) : '',
-                        'alamat' => $row->alamat,
-                        'telepon' => $row->telepon,
-                        'keterangan' => $row->keterangan,
-                        'sertifikat' => $row->sertifikat,
-                        'kabupaten_id' => $row->kabupaten_id,
-                        'tingkatan_sabuk_a' => $tingkat[0] ?? '',
-                        'tingkatan_sabuk_b' => $tingkat[1] ?? '',
-                    ],
-                ];
-            })->values();
+            if (!$record) {
+                $record = Official::with('kegiatan')
+                    ->where('nama', 'LIKE', "%{$nama}%")
+                    ->latest()
+                    ->first();
+            }
+
+            if (!$record) {
+                return response()->json(['found' => false, 'items' => []]);
+            }
+
+            $namaKegiatan = $record->kegiatan->nama ?? 'Kegiatan Sebelumnya';
+            $tingkat = explode('-', $record->tingkat ?? '');
+            $isGuest = !Auth::check();
+
+            $personalData = [
+                'nama' => $record->nama,
+                'tingkatan_sabuk_a' => $tingkat[0] ?? '',
+                'tingkatan_sabuk_b' => $tingkat[1] ?? '',
+            ];
+
+            if (!$isGuest) {
+                $personalData['jenis_kelamin'] = $record->jenis_kelamin;
+                $personalData['golongan_darah'] = $record->golongan_darah;
+                $personalData['nik'] = $record->nik;
+                $personalData['tempat'] = $record->tempat;
+                $personalData['tanggal_lahir'] = $record->tanggal_lahir ? date('Y-m-d', strtotime($record->tanggal_lahir)) : '';
+                $personalData['alamat'] = $record->alamat;
+                $personalData['telepon'] = $record->telepon;
+                $personalData['keterangan'] = $record->keterangan;
+                $personalData['sertifikat'] = $record->sertifikat;
+                $personalData['kabupaten_id'] = $record->kabupaten_id;
+            }
+
+            $item = [
+                'id' => $record->id,
+                'nama' => $record->nama,
+                'peran' => 'official',
+                'nama_kegiatan' => $namaKegiatan,
+                'foto_url' => !empty($record->foto) ? url($record->foto) : '',
+                'foto_path' => $record->foto ?? '',
+                'is_guest' => $isGuest,
+                'personal_data' => $personalData,
+            ];
 
             return response()->json([
-                'found' => $items->isNotEmpty(),
-                'items' => $items
+                'found' => true,
+                'items' => [$item]
             ]);
         }
 
-        // Tipe 'peserta'
-        $records = Peserta::where('nama', 'LIKE', "%{$nama}%")
+        // Tipe 'peserta' - Hanya mengambil 1 data yang paling sesuai
+        $record = Peserta::whereRaw('LOWER(TRIM(nama)) = ?', [strtolower($nama)])
             ->latest()
-            ->limit(10)
-            ->get()
-            ->unique(fn ($item) => strtolower(trim($item->nama)) . ($item->tanggal_lahir ?? ''))
-            ->take(3);
+            ->first();
 
-        $items = $records->map(function ($row) {
-            $lastPivot = $row->PertandinganPeserta()->with('kegiatan')->latest()->first();
-            $namaKegiatan = $lastPivot?->kegiatan?->nama ?? 'Kegiatan Sebelumnya';
-            $tingkat = explode('-', $row->tingkatan_sabuk ?? '');
+        if (!$record) {
+            $record = Peserta::where('nama', 'LIKE', "{$nama}%")
+                ->latest()
+                ->first();
+        }
 
-            return [
-                'id' => $row->id,
-                'nama' => $row->nama,
-                'peran' => 'peserta',
-                'nama_kegiatan' => $namaKegiatan,
-                'foto_url' => !empty($row->foto) ? url($row->foto) : '',
-                'foto_path' => $row->foto ?? '',
-                'personal_data' => [
-                    'nama' => $row->nama,
-                    'jenis_kelamin' => $row->jenis_kelamin,
-                    'golongan_darah' => $row->golongan_darah,
-                    'nik' => $row->nik,
-                    'status' => $row->status ?? 'P',
-                    'tempat' => $row->tempat,
-                    'tanggal_lahir' => $row->tanggal_lahir ? date('Y-m-d', strtotime($row->tanggal_lahir)) : '',
-                    'alamat' => $row->alamat,
-                    'telepon' => $row->telepon,
-                    'berat_badan' => $row->berat_badan,
-                    'keterangan' => $row->keterangan,
-                    'kabupaten_id' => $row->kabupaten_id,
-                    'kecamatan_id' => $row->kecamatan_id,
-                    'kelurahan_id' => $row->kelurahan_id,
-                    'disabilitas' => $row->disabilitas,
-                    'tingkatan_sabuk_a' => $tingkat[0] ?? '',
-                    'tingkatan_sabuk_b' => $tingkat[1] ?? '',
-                ],
-            ];
-        })->values();
+        if (!$record) {
+            $record = Peserta::where('nama', 'LIKE', "%{$nama}%")
+                ->latest()
+                ->first();
+        }
+
+        if (!$record) {
+            return response()->json(['found' => false, 'items' => []]);
+        }
+
+        $lastPivot = $record->PertandinganPeserta()->with('kegiatan')->latest()->first();
+        $namaKegiatan = $lastPivot?->kegiatan?->nama ?? 'Kegiatan Sebelumnya';
+        $tingkat = explode('-', $record->tingkatan_sabuk ?? '');
+        $isGuest = !Auth::check();
+
+        // Untuk tamu / user yang tidak login: hanya berikan 4 data yang boleh dilihat/diedit
+        // (nama, tingkatan sabuk/grade, berat badan, tanggal lahir)
+        $personalData = [
+            'nama' => $record->nama,
+            'tingkatan_sabuk_a' => $tingkat[0] ?? '',
+            'tingkatan_sabuk_b' => $tingkat[1] ?? '',
+            'berat_badan' => $record->berat_badan,
+            'tanggal_lahir' => $record->tanggal_lahir ? date('Y-m-d', strtotime($record->tanggal_lahir)) : '',
+        ];
+
+        // Jika user login (admin/operator): sediakan semua data asli
+        if (!$isGuest) {
+            $personalData['jenis_kelamin'] = $record->jenis_kelamin;
+            $personalData['golongan_darah'] = $record->golongan_darah;
+            $personalData['nik'] = $record->nik;
+            $personalData['status'] = $record->status ?? 'P';
+            $personalData['tempat'] = $record->tempat;
+            $personalData['alamat'] = $record->alamat;
+            $personalData['telepon'] = $record->telepon;
+            $personalData['keterangan'] = $record->keterangan;
+            $personalData['kabupaten_id'] = $record->kabupaten_id;
+            $personalData['kecamatan_id'] = $record->kecamatan_id;
+            $personalData['kelurahan_id'] = $record->kelurahan_id;
+            $personalData['disabilitas'] = $record->disabilitas;
+        }
+
+        $item = [
+            'id' => $record->id,
+            'nama' => $record->nama,
+            'peran' => 'peserta',
+            'nama_kegiatan' => $namaKegiatan,
+            'foto_url' => !empty($record->foto) ? url($record->foto) : '',
+            'foto_path' => $record->foto ?? '',
+            'is_guest' => $isGuest,
+            'personal_data' => $personalData,
+        ];
 
         return response()->json([
-            'found' => $items->isNotEmpty(),
-            'items' => $items
+            'found' => true,
+            'items' => [$item]
         ]);
     }
 }

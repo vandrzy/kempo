@@ -32,8 +32,10 @@
             imageInput.addEventListener('change', function (event) {
                 const file = event.target.files && event.target.files[0];
                 const preview = document.getElementById('preview');
+                const cardFotoLama = document.getElementById('card-foto-lama');
                 const existingFoto = document.getElementById('existing_foto');
                 if (existingFoto) existingFoto.value = '';
+                if (cardFotoLama) cardFotoLama.classList.add('hidden');
                 if (file && preview) {
                     preview.src = URL.createObjectURL(file);
                     preview.classList.remove('hidden');
@@ -104,6 +106,11 @@
                     };
 
                     for (const [field, message] of Object.entries(rules)) {
+                        // Lewati validasi jika field sedang dalam status menggunakan data lama yang disensor
+                        if (window.isFieldMasked && window.isFieldMasked(field)) {
+                            continue;
+                        }
+
                         const input = form.querySelector(`[name="${field}"]`);
                         if (typeof message === 'function') {
                             const val = field === 'foto' ? data.get(field) : data.get(field)?.trim();
