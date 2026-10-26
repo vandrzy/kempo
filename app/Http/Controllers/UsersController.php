@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
 class UsersController extends Controller
@@ -83,6 +84,7 @@ class UsersController extends Controller
 
             return redirect('users')->with('success', 'Data Berhasil Disimpan');
         } catch (\Throwable $th) {
+            Log::error('Terjadi kesalahan saat simpan user baru: ' . $th->getMessage());
             return redirect()->back()
                 ->with('gagal', 'Terjadi kesalahan saat menyimpan data!')
                 ->withInput();
@@ -125,6 +127,7 @@ class UsersController extends Controller
             'email' => ['required', 'email', 'unique:users,email,' . $id],
             'no_wa' => ['required', 'numeric'],
             'role' => ['required', 'in:admin,operator,wasit,1,2,user'],
+            'verifikasi' => ['nullable', 'in:0,1'],
         ],[
             'name.required' => 'Nama Lengkap wajib diisi!',
             'email.required' => 'Email wajib diisi!',
@@ -144,41 +147,54 @@ class UsersController extends Controller
         }
 
         try {
-            $checkValidasi = null;
             $user = User::find($id);
+            if (!$user) {
+                return redirect('users')->with('gagal', 'Data pengguna tidak ditemukan!');
+            }
 
             $user->name = $request->name;
             $user->email = $request->email;
             $user->no_wa = $request->no_wa;
             $user->role = $request->role;
 
-            if($user->email_verified_at != null) {
-                $checkValidasi = 1;
+            $checkValidasi = !is_null($user->email_verified_at) ? 1 : 0;
+            $newVerifikasi = (int) $request->verifikasi;
+
+            if ($newVerifikasi === 1) {
+                if (is_null($user->email_verified_at)) {
+                    $user->email_verified_at = now();
+                }
             } else {
-                $checkValidasi = 0;
+                $user->email_verified_at = null;
             }
 
-            $user->email_verified_at = $request->verifikasi == 1 ? now() : null;
-
-            if($request->password) {
+            if ($request->filled('password')) {
                 $user->password = Hash::make($request->password);
             }
             $user->save();
 
-            if($request->verifikasi != $checkValidasi) {
-                if($request->verifikasi == 0) {
-                    WaHelpers::sendEmail($request->email, 'Akun registrasi anda telah ditolak!');
-                    WaHelpers::sendWa($request->no_wa, 'Akun registrasi anda telah ditolak!');
-                } else {
-                    WaHelpers::sendEmail($request->email, 'Akun Registrasi anda telah diterima!');
-                    WaHelpers::sendWa($request->no_wa, 'Akun Registrasi anda telah diterima!');
+            // Kirim notifikasi secara aman (kegagalan kirim email/WA tidak membatalkan penyimpanan data)
+            if ($newVerifikasi !== $checkValidasi) {
+                try {
+                    if ($newVerifikasi === 0) {
+                        WaHelpers::sendEmail($request->email, 'Akun registrasi anda telah ditolak!');
+                        WaHelpers::sendWa($request->no_wa, 'Akun registrasi anda telah ditolak!');
+                    } else {
+                        WaHelpers::sendEmail($request->email, 'Akun Registrasi anda telah diterima!');
+                        WaHelpers::sendWa($request->no_wa, 'Akun Registrasi anda telah diterima!');
+                    }
+                } catch (\Throwable $notifEx) {
+                    Log::warning('Gagal mengirim notifikasi email/WA verifikasi user: ' . $notifEx->getMessage());
                 }
             }
 
             return redirect('users')->with('success', 'Data Berhasil Diubah');
         } catch (\Throwable $th) {
+            Log::error('Terjadi kesalahan saat update user: ' . $th->getMessage(), [
+                'exception' => $th
+            ]);
             return redirect()->back()
-                ->with('gagal', 'Terjadi kesalahan saat menyimpan data!')
+                ->with('gagal', 'Terjadi kesalahan saat menyimpan data: ' . (config('app.debug') ? $th->getMessage() : 'Silakan periksa kembali data Anda.'))
                 ->withInput();
         }
     }
@@ -193,10 +209,13 @@ class UsersController extends Controller
         }
         try {
             $user = User::find($id);
-            $user->delete();
+            if ($user) {
+                $user->delete();
+            }
 
             return redirect('users')->with('success', 'Data Berhasil Dihapus');
         } catch (\Throwable $th) {
+            Log::error('Terjadi kesalahan saat hapus user: ' . $th->getMessage());
             return redirect()->back()->with('gagal', 'Terjadi kesalahan saat menghapus data!');
         }
     }

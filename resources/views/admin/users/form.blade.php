@@ -40,7 +40,7 @@
         <select name="role" id="role" class="w-full px-4 py-2.5 text-xs font-medium rounded-xl bg-white border border-[#ebebeb] text-[#000000] focus:border-[#f2470c] focus:ring-2 focus:ring-[#f2470c]/20 outline-none transition-all shadow-2xs">
             <option value="" disabled {{ !isset($user) && !old('role') ? 'selected' : '' }}>Pilih Role Pengguna</option>
             <option value="admin" {{ (old('role', @$user->role) == 'admin' || old('role', @$user->role) == '1') ? 'selected' : '' }}>Super Admin</option>
-            <option value="operator" {{ (old('role', @$user->role) == 'operator' || old('role', @$user->role) == '2') ? 'selected' : '' }}>Operator</option>
+            <option value="operator" {{ (in_array(old('role', @$user->role), ['operator', '2', 'user', '0'])) ? 'selected' : '' }}>Operator</option>
             <option value="wasit" {{ old('role', @$user->role) == 'wasit' ? 'selected' : '' }}>Wasit</option>
         </select>
         @error('role')
