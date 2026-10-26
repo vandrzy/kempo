@@ -62,9 +62,8 @@
                                     @php
                                         $displayRole = match($a->role) {
                                             'admin', 1, '1' => 'Super Admin',
-                                            'operator', 2, '2' => 'Operator',
+                                            'operator', 2, '2', 'user', 0, '0' => 'Operator',
                                             'wasit' => 'Wasit',
-                                            'user', 0, '0' => 'User / Kontingen',
                                             default => ucfirst($a->role ?? '-'),
                                         };
                                     @endphp

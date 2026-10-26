@@ -432,12 +432,14 @@ class HomePageController extends Controller
             // Ambil user yang sedang login
             $user = Auth::user();
 
-            // Cek apakah email sudah diverifikasi
-            if (is_null($user->email_verified_at) && $user->role != 0 && $user->role !== 'user') {
+            // Cek apakah akun sudah diverifikasi oleh admin
+            if (is_null($user->email_verified_at)) {
                 Auth::logout(); // langsung logout
-                return back()->withErrors([
-                    'error' => 'Email Anda belum diverifikasi. Mohon bersabar untuk menerima konfirmasi Whatsapp yang akan diberikan kepada anda!.',
-                ]);
+                return back()->with('error', 'Akun Anda belum diverifikasi oleh admin. Mohon tunggu verifikasi terlebih dahulu.')
+                             ->withErrors([
+                                 'email' => 'Akun Anda belum diverifikasi oleh admin. Mohon tunggu verifikasi terlebih dahulu.',
+                             ])
+                             ->withInput($request->only('email'));
             }
 
             // Kalau verified, lanjut
@@ -501,9 +503,9 @@ class HomePageController extends Controller
                 'email' => $request->email,
                 'no_wa' => $request->no_wa,
                 'password' => Hash::make($request->password),
-                'role' => 'user',
+                'role' => 'operator',
             ]);
-            return redirect('/')->with('success', 'Registrasi telah Berhasil mohon tunggu akan dikonfirmasi ke Whatsapp anda!!');
+            return redirect('/')->with('success', 'Mohon tunggu, data anda akan diverifikasi admin.');
         } catch (\Throwable $th) {
             //throw $th;
             return back()->with('error', 'Terjadi Kesalahan!');

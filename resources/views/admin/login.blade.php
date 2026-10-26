@@ -173,17 +173,17 @@
     @if(session('success'))
       Swal.fire({
         icon: "success",
-        title: "Horee...",
+        title: "Pendaftaran Berhasil",
         text: "{{ session('success') }}",
+        confirmButtonColor: '#f2470c'
       });
     @endif
-  </script>
-  <script>
     @if(session('error'))
       Swal.fire({
-        icon: "error",
-        title: "Maaf...",
+        icon: "warning",
+        title: "Perhatian",
         text: "{{ session('error') }}",
+        confirmButtonColor: '#f2470c'
       });
     @endif
   </script>
