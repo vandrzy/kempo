@@ -150,7 +150,7 @@
                             $kategori_id = 0;
                         @endphp
                         @forelse ($peserta->PertandinganPeserta as $a)
-                            @if($kategori_id != $a->list_kategori->kategori_id)
+                            @if($a->list_kategori && $kategori_id != $a->list_kategori->kategori_id)
                                 @php
                                     $kategori_id = $a->list_kategori->kategori_id;
                                 @endphp

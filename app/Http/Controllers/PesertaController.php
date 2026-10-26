@@ -349,8 +349,10 @@ class PesertaController extends Controller
      */
     public function show(string $id)
     {
-        //
         $data['peserta'] = Peserta::find($id);
+        if (!$data['peserta']) {
+            return redirect()->back()->with('gagal', 'Data Peserta tidak ditemukan!');
+        }
         return view('admin.peserta.detail', $data);
     }
 

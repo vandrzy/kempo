@@ -131,25 +131,15 @@
                                     @endif
                                 </td>
                                 <td class="text-center">
-                                    @if(isset($_GET['status']))
-                                        @if($_GET['status'] == "official")
-                                            <a href="{{ url('official/'.$a->id) }}?kontigen={{ $kabupaten->id }}&ehh={{ $_GET['kegiatan_id'] }}"
-                                                class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-[#3276e4] hover:bg-[#2862c2] shadow-2xs hover:-translate-y-px transition-all">
-                                                <i class="fas fa-eye text-[10px]"></i> Detail
-                                            </a>
-                                        @endif
-                                        @if($_GET['status'] == "peserta")
-                                            <a href="{{ url('official/'.$a->id) }}?kontigen={{ $kabupaten->id }}&ehh={{ $_GET['kegiatan_id'] }}"
-                                                class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-[#3276e4] hover:bg-[#2862c2] shadow-2xs hover:-translate-y-px transition-all">
-                                                <i class="fas fa-eye text-[10px]"></i> Detail
-                                            </a>
-                                        @endif
-                                    @else
-                                        <a href="{{ url('peserta/'.$a->id) }}?kontigen={{ $kabupaten->id }}&ehh={{ $_GET['kegiatan_id'] }}"
-                                            class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-[#3276e4] hover:bg-[#2862c2] shadow-2xs hover:-translate-y-px transition-all">
-                                            <i class="fas fa-eye text-[10px]"></i> Detail
-                                        </a>
-                                    @endif
+                                    @php
+                                        $statusType = request('status', 'peserta');
+                                        $routePrefix = ($statusType == 'official') ? 'official' : 'peserta';
+                                        $kegId = request('kegiatan_id', $kegiatan->id ?? '');
+                                    @endphp
+                                    <a href="{{ url($routePrefix . '/' . $a->id) }}?kontigen={{ $kabupaten->id }}&ehh={{ $kegId }}"
+                                        class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-[#3276e4] hover:bg-[#2862c2] shadow-2xs hover:-translate-y-px transition-all">
+                                        <i class="fas fa-eye text-[10px]"></i> Detail
+                                    </a>
                                 </td>
                             </tr>
                         @empty

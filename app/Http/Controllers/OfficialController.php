@@ -358,8 +358,10 @@ class OfficialController extends Controller
 
     public function show(string $id)
     {
-        //
         $data['peserta'] = Official::find($id);
+        if (!$data['peserta']) {
+            return redirect()->back()->with('gagal', 'Data Official tidak ditemukan!');
+        }
         return view('admin.official.detail', $data);
     }
 
