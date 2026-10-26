@@ -160,20 +160,37 @@ class KegiatanController extends Controller
             $kegiatan->nama = $request->nama;
             $kegiatan->user_id = Auth::user()->id;
 
-            ListKategori::where('kegiatan_id', $kegiatan->id)->delete();
+            $activeListIds = [];
             if (!empty($request->list_kategori_id) && is_array($request->list_kategori_id)) {
                 foreach($request->list_kategori_id as $index => $a) {
                     if (!empty($request->list_pertandingan_id[$a])) {
                         foreach($request->list_pertandingan_id[$a] as $index2 => $b) {
-                            ListKategori::create([
-                                'kegiatan_id' => $kegiatan->id,
-                                'pertandingan_id' => $b,
-                                'kategori_id' => $a,
-                            ]);
+                            $existingLK = ListKategori::where('kegiatan_id', $kegiatan->id)
+                                ->where('kategori_id', $a)
+                                ->where('pertandingan_id', $b)
+                                ->first();
+
+                            if ($existingLK) {
+                                $activeListIds[] = $existingLK->id;
+                            } else {
+                                $newLK = ListKategori::create([
+                                    'kegiatan_id' => $kegiatan->id,
+                                    'pertandingan_id' => $b,
+                                    'kategori_id' => $a,
+                                ]);
+                                $activeListIds[] = $newLK->id;
+                            }
                         }
                     }
                 }
             }
+
+            // Hapus list kategori yang tidak lagi dicentang, KECUALI yang sudah memiliki peserta terdaftar
+            ListKategori::where('kegiatan_id', $kegiatan->id)
+                ->whereNotIn('id', $activeListIds)
+                ->whereDoesntHave('pertandingan_peserta')
+                ->whereDoesntHave('list_kategori')
+                ->delete();
 
             $kegiatan->save();
 

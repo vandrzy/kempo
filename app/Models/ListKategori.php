@@ -32,4 +32,8 @@ class ListKategori extends Model
     public function list_kategori() {
         return $this->hasMany(PertandinganPeserta::class);
     }
+
+    public function pertandingan_peserta() {
+        return $this->hasMany(PertandinganPeserta::class);
+    }
 }

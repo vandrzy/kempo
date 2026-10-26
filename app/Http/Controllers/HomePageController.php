@@ -327,7 +327,7 @@ class HomePageController extends Controller
                 $fotoPath = $request->existing_foto;
             }
 
-            $peserta = Peserta::create([
+            $dataPeserta = [
                 'nama' => $request->nama,
                 'jenis_kelamin' => $jenis_kelamin,
                 'golongan_darah' => $golongan_darah,
@@ -345,11 +345,26 @@ class HomePageController extends Controller
                 'kelurahan_id' => $kelurahan_id,
                 'disabilitas' => $disabilitas,
                 'tingkatan_sabuk' => $request->tingkatan_sabuk_a . "-" . $request->tingkatan_sabuk_b,
-            ]);
+            ];
 
+            if ($oldPeserta) {
+                // Update peserta lama agar tidak terjadi duplikasi data (data foto lama vs baru)
+                $oldPeserta->update($dataPeserta);
+                $peserta = $oldPeserta;
+            } else {
+                $peserta = Peserta::create($dataPeserta);
+            }
 
             if ($request->has('pertandingan_id') && is_array($request->pertandingan_id)) {
                 foreach($request->pertandingan_id as $index => $a) {
+                    // Hindari duplikasi nomor tanding yang sama untuk peserta yang sama
+                    $alreadyInPertandingan = PertandinganPeserta::where('peserta_id', $peserta->id)
+                        ->where('list_kategori_id', $a)
+                        ->first();
+
+                    if ($alreadyInPertandingan) {
+                        continue;
+                    }
                     $existing = PertandinganPeserta::where('list_kategori_id', $a)
                     ->orderBy('urutan')
                     ->pluck('urutan')

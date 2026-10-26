@@ -126,30 +126,69 @@ class OfficialController extends Controller
 
 
 
-            $fotoPath = FotoHelper::simpanFoto($request->file('foto'), $request->existing_foto) ?? '';
+            $oldOfficial = null;
+            if ($request->filled('existing_reference_id')) {
+                $oldOfficial = Official::find($request->existing_reference_id);
+            }
 
-            $peserta = Official::create([
+            $unlocked = [];
+            if ($request->filled('unlocked_fields')) {
+                $unlocked = is_array($request->unlocked_fields) 
+                    ? $request->unlocked_fields 
+                    : explode(',', $request->unlocked_fields);
+                $unlocked = array_map('trim', $unlocked);
+            }
+
+            $getValue = function($field, $default = null) use ($request, $oldOfficial, $unlocked) {
+                if ($oldOfficial && !in_array($field, $unlocked)) {
+                    return $oldOfficial->$field ?? $default;
+                }
+                return $request->$field ?? $default;
+            };
+
+            $nik = $getValue('nik', $request->nik);
+            $jenis_kelamin = $getValue('jenis_kelamin', $request->jenis_kelamin);
+            $golongan_darah = $getValue('golongan_darah', $request->golongan_darah);
+            $status = $getValue('status', $request->status ?? 'O');
+            $tempat = $getValue('tempat', $request->tempat);
+            $alamat = $getValue('alamat', $request->alamat);
+            $telepon = $getValue('telepon', $request->telepon);
+            $keterangan = $getValue('keterangan', $request->keterangan);
+            $kabupaten_id = $getValue('kabupaten_id', $request->kabupaten_id);
+
+            $fotoPath = '';
+            if ($request->hasFile('foto')) {
+                $fotoPath = FotoHelper::simpanFoto($request->file('foto')) ?? '';
+            } elseif ($oldOfficial && !empty($oldOfficial->foto)) {
+                $fotoPath = $oldOfficial->foto;
+            } elseif (!empty($request->existing_foto) && $request->existing_foto !== 'USE_OLD_PHOTO') {
+                $fotoPath = $request->existing_foto;
+            }
+
+            $dataOfficial = [
                 'nama' => $request->nama,
-                'jenis_kelamin'=> $request->jenis_kelamin,
-                'golongan_darah'=> $request->golongan_darah,
-                'nik'=> $request->nik,
-                // 'tingkat'=> $request->tingkat,
-                'status'=> $request->status ?? 'O',
-                'tempat'=> $request->tempat,
-                'tanggal_lahir'=> $request->tanggal_lahir,
-                'alamat'=> $request->alamat,
-                'telepon'=> $request->telepon,
-                // 'berat_badan'=> $request->berat_badan,
-                'keterangan'=> $request->keterangan,
-                'sertifikat'=> $request->sertifikat,
+                'jenis_kelamin' => $jenis_kelamin,
+                'golongan_darah' => $golongan_darah,
+                'nik' => $nik,
+                'status' => $status,
+                'tempat' => $tempat,
+                'tanggal_lahir' => $request->tanggal_lahir,
+                'alamat' => $alamat,
+                'telepon' => $telepon,
+                'keterangan' => $keterangan,
+                'sertifikat' => $request->sertifikat ?? ($oldOfficial->sertifikat ?? null),
                 'foto' => $fotoPath,
-                'kabupaten_id' => $request->kabupaten_id,
-                // 'kecamatan_id' => $request->kecamatan_id,
-                // 'kelurahan_id' => $request->kelurahan_id,
+                'kabupaten_id' => $kabupaten_id,
                 'kegiatan_id' => $request->kegiatan_id,
-                'tingkat' => $request->tingkatan_sabuk_a."-".$request->tingkatan_sabuk_b,
-            ]);
+                'tingkat' => $request->tingkatan_sabuk_a . "-" . $request->tingkatan_sabuk_b,
+            ];
 
+            if ($oldOfficial) {
+                $oldOfficial->update($dataOfficial);
+                $peserta = $oldOfficial;
+            } else {
+                $peserta = Official::create($dataOfficial);
+            }
 
             return back()->with('success', 'Official telah terdaftar, mohon tunggu konfirmasi berikutnya!');
 
