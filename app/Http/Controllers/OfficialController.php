@@ -174,7 +174,7 @@ class OfficialController extends Controller
             return $this->hapusDuplikat(request());
         }
 
-        if(isset($_GET['submit']) && $_GET['submit'] == 'export') {
+        if((isset($_GET['submit']) && $_GET['submit'] == 'export') || (isset($_GET['action']) && $_GET['action'] == 'export')) {
             $kegiatanId = !empty($_GET['kegiatan_id']) ? $_GET['kegiatan_id'] : optional(Kegiatan::orderBy('created_at', 'DESC')->first())->id;
             $nama = !empty($_GET['nama']) ? $_GET['nama'] : null;
             return Excel::download(new OfficialExport($kegiatanId, $nama), 'rekap_official.xlsx');

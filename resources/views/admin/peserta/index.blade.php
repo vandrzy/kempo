@@ -37,9 +37,9 @@
 
                 <!-- Baris Filter & Pencarian -->
                 <div class="pt-3 border-t border-[#ebebeb]/60 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
-                    <form action="" method="get" class="flex flex-wrap items-center gap-2.5 m-0 flex-1">
+                    <form action="{{ url('peserta') }}" method="get" id="filterFormPeserta" class="flex flex-wrap items-center gap-2.5 m-0 flex-1">
                         <!-- Select Kegiatan -->
-                        <select name="kegiatan_id" id="kegiatan_id"
+                        <select name="kegiatan_id" id="kegiatan_id" onchange="document.getElementById('kategori_id').value=''; HTMLFormElement.prototype.submit.call(this.form);"
                             class="px-3.5 py-2 text-xs rounded-xl bg-white border border-[#ebebeb] focus:border-[#f2470c] focus:ring-2 focus:ring-[#f2470c]/20 outline-none transition-all shadow-2xs text-[#000000] font-medium min-w-[180px]">
                             @foreach ($kegiatan as $a)
                                 <option value="{{ $a->id }}" {{ Request('kegiatan_id') == $a->id ? 'selected' : (@$kegiatan_get->id == $a->id ? 'selected' : '') }}>
@@ -49,17 +49,17 @@
                         </select>
 
                         <!-- Select Kategori -->
-                        <select name="kategori_id" id="kategori_id"
+                        <select name="kategori_id" id="kategori_id" onchange="HTMLFormElement.prototype.submit.call(this.form);"
                             class="px-3.5 py-2 text-xs rounded-xl bg-white border border-[#ebebeb] focus:border-[#f2470c] focus:ring-2 focus:ring-[#f2470c]/20 outline-none transition-all shadow-2xs text-[#000000] font-medium min-w-[160px]">
-                            @if(isset($_GET['kategori_id']) && $_GET['kategori_id'] != "")
-                                <option value="">Pilih Kategori</option>
+                            <option value="">Semua Kategori</option>
+                            @if(isset($kategori))
                                 @foreach ($kategori as $a)
-                                    <option value="{{ $a->kategori->id }}" {{ Request('kategori_id') == $a->kategori->id ? 'selected' : '' }}>
-                                        {{ $a->kategori->nama }}
-                                    </option>
+                                    @if($a->kategori)
+                                        <option value="{{ $a->kategori->id }}" {{ Request('kategori_id') == $a->kategori->id ? 'selected' : '' }}>
+                                            {{ $a->kategori->nama }}
+                                        </option>
+                                    @endif
                                 @endforeach
-                            @else
-                                <option value="">Pilih Kegiatan Dulu</option>
                             @endif
                         </select>
 
@@ -68,14 +68,14 @@
                             class="px-3.5 py-2 text-xs rounded-xl bg-white border border-[#ebebeb] focus:border-[#f2470c] focus:ring-2 focus:ring-[#f2470c]/20 outline-none transition-all shadow-2xs text-[#000000] placeholder:text-neutral-400 min-w-[160px]">
 
                         <!-- Tombol Cari (Button 1 Primary) -->
-                        <button type="submit" name="submit" value="cari"
+                        <button type="submit"
                             class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold text-white bg-[#f2470c] hover:bg-[#d83d09] shadow-xs hover:-translate-y-px transition-all cursor-pointer">
                             <i class="fas fa-search text-[10px]"></i>
                             <span>Cari</span>
                         </button>
 
                         <!-- Tombol Export (Button 4 Info/Utility) -->
-                        <button type="submit" name="submit" value="export"
+                        <button type="submit" name="action" value="export"
                             class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold text-white bg-[#3276e4] hover:bg-[#2862c2] shadow-xs hover:-translate-y-px transition-all cursor-pointer">
                             <i class="fas fa-file-excel text-[10px]"></i>
                             <span>Export Excel</span>
@@ -231,7 +231,7 @@
 @endsection
 
 @section('script')
-    function copyText(texts) {
+    window.copyText = function(texts) {
         let text = texts;
         if (navigator.clipboard && navigator.clipboard.writeText) {
             navigator.clipboard.writeText(text).then(() => {
@@ -246,86 +246,17 @@
             $temp.remove();
             alert("Url berhasil disalin!");
         }
-    }
+    };
 
-    function kegiatan_id(id) {
-        $('#kategori_id').attr('status', 'true');
-        $('#kategori_id').html('');
-
-        $('#pertandingan_id').attr('status', 'false');
-        $('#pertandingan_id').html('<option value="">Cari Kategori Dulu</option>');
-        $.ajax({
-            url: `{{url("pertandingans")}}/${id}?type=kategori_id`, // URL API
-            type: 'GET',
-            dataType: 'json', // bisa 'html', 'text', dll tergantung respon
-            success: function(response) {
-                $('#kategori_id').html('');
-
-                let data = "";
-                // console.log(response);
-                // alert(response.data.length);
-                if(response.data.length > 0) {
-                    data += `<option value="">Cari Kategori</option>`;
-                    $.each(response.data, function(index, value) {
-                        data += `<option value="${value.kategori.id}">${value.kategori.nama}</option>`;
-                    });
-                } else {
-                    data += `<option value="">Kategori Tidak Tersedia!</option>`;
-                }
-                $('#kategori_id').html(data);
-
-            },
-            error: function(xhr, status, error) {
-                console.error('Gagal:', error);
-                alert('Gagal mengambil data!');
-            }
-        });
-    }
-
-    function kategori_id(kegiatan_id,id) {
-        $('#pertandingan_id').attr('status', 'true');
-        $('#pertandingan_id').html('');
-        $.ajax({
-            url: `{{url("pertandingans")}}/${id}?type=pertandingan_id&kegiatan_id=${kegiatan_id}`, // URL API
-            type: 'GET',
-            dataType: 'json', // bisa 'html', 'text', dll tergantung respon
-            success: function(response) {
-                $('#pertandingan_id').html('');
-                let data = "";
-
-                if(response.data.length > 0) {
-                    data += `<option value="">Cari Tanding</option>`;
-                    $.each(response.data, function(index, value) {
-                        data += `<option value="${value.pertandingan.id}">${value.pertandingan.nama}</option>`;
-                    });
-                } else {
-                    data += `<option value="">Tanding Tidak Tersedia!</option>`;
-                }
-
-                $('#pertandingan_id').html(data);
-            },
-            error: function(xhr, status, error) {
-                console.error('Gagal:', error);
-                alert('Gagal mengambil data!');
-            }
-        });
-    }
-
-    @if (Request('kategori_id') == "")
-        kegiatan_id($('#kegiatan_id').val());
-    @endif
-
-    @if (Request('pertandingan_id') == "")
-        kategori_id($("#kegiatan_id").val(),$("#kategori_id").val());
-    @endif
-
-    $('#kegiatan_id').on('change', function (e) {
-        $('.delete-form input[name="kegiatan_id"]').val($(this).val());
-        kegiatan_id($(this).val());
+    $('#kegiatan_id').on('change', function() {
+        $('#kategori_id').val('');
+        const form = document.getElementById('filterFormPeserta');
+        if (form) HTMLFormElement.prototype.submit.call(form);
     });
 
-    $('#kategori_id').on('change', function (e) {
-        kategori_id($("#kegiatan_id").val(),$(this).val());
+    $('#kategori_id').on('change', function() {
+        const form = document.getElementById('filterFormPeserta');
+        if (form) HTMLFormElement.prototype.submit.call(form);
     });
 @endsection
 

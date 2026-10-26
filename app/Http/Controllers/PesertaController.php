@@ -36,7 +36,7 @@ class PesertaController extends Controller
             return $this->hapusDuplikat(request());
         }
 
-        if(isset($_GET['submit']) && $_GET['submit'] == 'export') {
+        if((isset($_GET['submit']) && $_GET['submit'] == 'export') || (isset($_GET['action']) && $_GET['action'] == 'export')) {
             $kegiatanId = !empty($_GET['kegiatan_id']) ? $_GET['kegiatan_id'] : optional(Kegiatan::orderBy('created_at', 'DESC')->first())->id;
             $kategoriId = !empty($_GET['kategori_id']) ? $_GET['kategori_id'] : null;
             $pertandinganId = !empty($_GET['pertandingan_id']) ? $_GET['pertandingan_id'] : null;
@@ -50,36 +50,51 @@ class PesertaController extends Controller
             if(isset($_GET['kegiatan_id'])  && $_GET['kegiatan_id'] != "") {
 
                 $kegiatan = Kegiatan::find($_GET['kegiatan_id']);
-                $data['kegiatan_get'] = Kegiatan::find($_GET['kegiatan_id']);
+                $data['kegiatan_get'] = $kegiatan;
 
-                $data['kategori'] = ListKategori::with('kategori')->where('kegiatan_id', $kegiatan->id)->get()->unique('kategori_id')->values();
+                if ($kegiatan) {
+                    $data['kategori'] = ListKategori::with('kategori')->where('kegiatan_id', $kegiatan->id)->get()->unique('kategori_id')->values();
 
-                $kegiatan_id = $kegiatan->id;
-                $kategori_id = $_GET['kategori_id'] ?? "";
-                $pertandingan_id = $_GET['pertandingan_id'] ?? "";
+                    $kegiatan_id = $kegiatan->id;
+                    $kategori_id = $_GET['kategori_id'] ?? "";
+                    $pertandingan_id = $_GET['pertandingan_id'] ?? "";
 
-
-                $data['peserta'] = $data['peserta']->WhereHas('PertandinganPesertaUtama', function ($q1) use ($kegiatan_id, $kategori_id, $pertandingan_id) {
-                    $q1->WhereHas('list_kategori', function ($q2) use ($kegiatan_id, $kategori_id, $pertandingan_id) {
-                        $q2 = $q2->where('kegiatan_id', $kegiatan_id);
+                    $data['peserta'] = $data['peserta']->whereHas('PertandinganPeserta', function ($q1) use ($kegiatan_id, $kategori_id, $pertandingan_id) {
+                        $q1->where(function ($subQ) use ($kegiatan_id) {
+                            $subQ->where('kegiatan_id', $kegiatan_id)
+                                 ->orWhereHas('list_kategori', function ($q2) use ($kegiatan_id) {
+                                     $q2->where('kegiatan_id', $kegiatan_id);
+                                 });
+                        });
 
                         if(isset($kategori_id)  && $kategori_id != "") {
-                            $q2 = $q2->where('kategori_id', $kategori_id);
+                            $q1->whereHas('list_kategori', function ($q2) use ($kategori_id) {
+                                $q2->where('kategori_id', $kategori_id);
+                            });
                         }
 
                         if(isset($pertandingan_id)  && $pertandingan_id != "") {
-                            $q2 = $q2->where('pertandingan_id', $pertandingan_id);
+                            $q1->whereHas('list_kategori', function ($q2) use ($pertandingan_id) {
+                                $q2->where('pertandingan_id', $pertandingan_id);
+                            });
                         }
                     });
-                });
+                }
             } else {
                 $data['kegiatan_get'] = Kegiatan::orderBy('created_at', 'DESC')->first();
-                $kegiatan_id = $data['kegiatan_get']->id;
-                $kategori_id = $_GET['kategori_id'] ?? "";
+                if ($data['kegiatan_get']) {
+                    $kegiatan_id = $data['kegiatan_get']->id;
+                    $data['kategori'] = ListKategori::with('kategori')->where('kegiatan_id', $kegiatan_id)->get()->unique('kategori_id')->values();
 
-                $data['peserta'] = $data['peserta']->WhereHas('PertandinganPesertaUtama', function ($q1) use ($kegiatan_id, $kategori_id) {
-                    $q1 = $q1->where('kegiatan_id', $kegiatan_id);
-                });
+                    $data['peserta'] = $data['peserta']->whereHas('PertandinganPeserta', function ($q1) use ($kegiatan_id) {
+                        $q1->where(function ($subQ) use ($kegiatan_id) {
+                            $subQ->where('kegiatan_id', $kegiatan_id)
+                                 ->orWhereHas('list_kategori', function ($q2) use ($kegiatan_id) {
+                                     $q2->where('kegiatan_id', $kegiatan_id);
+                                 });
+                        });
+                    });
+                }
             }
 
             if(isset($_GET['kategori_id'])  && $_GET['kategori_id'] != "") {
