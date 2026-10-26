@@ -297,7 +297,7 @@
         <footer class="mx-4 sm:mx-6 mb-4 px-6 py-4 rounded-2xl border border-[#ebebeb] text-center sm:text-left bg-white/70 shadow-2xs shrink-0">
             <div class="text-xs text-neutral-400">
                 © <script>document.write(new Date().getFullYear())</script>
-                <span class="font-semibold text-[#000000]">Shorinji Kempo Tournament System</span>. All rights reserved.
+                <span class="font-semibold text-[#000000]">GreenNusa</span>. All rights reserved.
             </div>
         </footer>
     </main>
