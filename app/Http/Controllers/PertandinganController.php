@@ -117,12 +117,15 @@ class PertandinganController extends Controller
             return redirect()->back()->with('error', 'Akses ditolak');
         }
 
-        $data['peserta_ready'] = PertandinganPeserta::where('sudah_terpilih', 'false')->where('kegiatan_id', $_GET['kegiatan_id'])->where('list_kategori_id', $id)->count();
-        $data['peserta_lawan'] = PesertaTerpilih::where('list_kategori_id', $id)->where('kegiatan_id', $_GET['kegiatan_id'])->paginate(10);
-        // $data['pertandingan'] = Pertandingan::find($id);
-        $data['kegiatan'] = Kegiatan::find($_GET['kegiatan_id']);
-        // dd("las");
         $data['pertandingan'] = ListKategori::where('id', $id)->first();
+        $kegiatan_id = request('kegiatan_id') ?? ($_GET['kegiatan_id'] ?? optional($data['pertandingan'])->kegiatan_id);
+        $data['kegiatan'] = Kegiatan::find($kegiatan_id);
+
+        $is_diacak = KontigenPertandingan::where('list_kategori_id', $id)->exists();
+        $data['is_diacak'] = $is_diacak;
+        $data['peserta_ready'] = $is_diacak ? 0 : PertandinganPeserta::where('sudah_terpilih', 'false')->where('kegiatan_id', $kegiatan_id)->where('list_kategori_id', $id)->count();
+        $data['peserta_lawan'] = PesertaTerpilih::where('list_kategori_id', $id)->where('kegiatan_id', $kegiatan_id)->paginate(10);
+
         $data['kabupaten'] = PertandinganPeserta::with('Peserta.kabupaten')->where('list_kategori_id', $id)->get()->groupBy(function ($item) {
             return $item->Peserta->kabupaten_id;
         });
@@ -245,8 +248,6 @@ class PertandinganController extends Controller
         }
 
         $check = Pertandingan::find($request->pertandingan_id);
-        $kontigen_delete = KontigenPertandingan::where('list_kategori_id', $id)->where('urutan', 1)->delete();
-        $kontigen_delete = KontigenPertandingan::where('list_kategori_id', $id)->where('urutan', 2)->delete();
 
         $data['kabupaten'] = PertandinganPeserta::with('Peserta.kabupaten')
             ->where('list_kategori_id', $id)
@@ -257,147 +258,107 @@ class PertandinganController extends Controller
             ->groupBy(function ($item) {
                 return $item->Peserta->kabupaten_id;
             })
-            ->values(); // ←
+            ->values();
 
+        $totalKabupaten = count($data['kabupaten']);
+        if ($totalKabupaten == 0) {
+            return redirect()->back()->with('error', 'Tidak ada kontingen/peserta yang terdaftar pada nomor tanding ini.');
+        }
 
-        // dd($data['kabupaten']);
+        if ($totalKabupaten < 2) {
+            return redirect()->back()->with('error', 'Jumlah kontingen minimal 2 untuk dapat mengacak nomor tanding.');
+        }
+
+        // Hapus undian sebelumnya jika ada
+        KontigenPertandingan::where('list_kategori_id', $id)->whereIn('urutan', [1, 2])->delete();
 
         $kabupaten_list_1 = [];
         $kabupaten_list_2 = [];
 
-        $limit = count($data['kabupaten']);
-        if( count($data['kabupaten']) <= 8) {
-            $limit = 8;
-        }
-
-        if( count($data['kabupaten']) <= 4) {
-            $limit = 4;
-
-
-        }
-
-        if($check->bagan == null) {
-            $limit = count($data['kabupaten']);
-        }
-
-        // $limit = count($data['kabupaten']) <= 8 ? 8 : 10 ;
-        for($i = 0; $i < $limit; $i++) {
-            if(isset($data['kabupaten'][$i])) {
-                $kabupatenId = optional($data['kabupaten'][$i]->first()->Peserta->Kabupaten)->id;
-                $kabupatenName = optional($data['kabupaten'][$i]->first()->Peserta->Kabupaten)->name;
-                $kabupatenTotalPeserta = $data['kabupaten'][$i]->count();
-                // dd("ASD");
-                $kabupaten_list_1[] = $kabupatenId;
-                $kabupaten_list_2[] = $kabupatenId;
-
+        if ($check && $check->bagan == null) {
+            $limit = $totalKabupaten;
+        } else {
+            if ($totalKabupaten <= 4) {
+                $limit = 4;
+            } elseif ($totalKabupaten <= 8) {
+                $limit = 8;
+            } elseif ($totalKabupaten <= 16) {
+                $limit = 16;
             } else {
-                $kabupaten_list_1[] = null;
-                $kabupaten_list_2[] = null;
-
+                $limit = 32;
             }
         }
 
-        // dd($kabupaten_list_1);
-
-
+        for ($i = 0; $i < $limit; $i++) {
+            if (isset($data['kabupaten'][$i])) {
+                $kabupatenId = optional($data['kabupaten'][$i]->first()->Peserta->Kabupaten)->id;
+                $kabupaten_list_1[] = $kabupatenId;
+                $kabupaten_list_2[] = $kabupatenId;
+            } else {
+                $kabupaten_list_1[] = null;
+                $kabupaten_list_2[] = null;
+            }
+        }
 
         shuffle($kabupaten_list_1);
 
-        // dd($kabupaten_list_1);
-
+        $attempts = 0;
+        $maxAttempts = 100;
         do {
             shuffle($kabupaten_list_2);
 
             $valid = true;
             foreach ($kabupaten_list_1 as $i => $val) {
-                if ($kabupaten_list_2[$i] === $val) {
+                // Abaikan slot Bye (null); hanya cek bentrok jika ID kabupaten bukan null dan berada di indeks yang sama
+                if ($val !== null && $kabupaten_list_2[$i] === $val) {
                     $valid = false;
                     break;
                 }
             }
+            $attempts++;
+        } while (!$valid && $attempts < $maxAttempts);
 
-        } while (!$valid);
-        // dd($kabupaten_list_2);
-
-        foreach($kabupaten_list_1 as $index => $a) {
+        foreach ($kabupaten_list_1 as $index => $a) {
             KontigenPertandingan::create([
                 'list_kategori_id' => $id,
-                'kabupaten_id' => $a,
-                'urutan' => 1,
-                'undian' => $index,
+                'kabupaten_id'     => $a,
+                'urutan'           => 1,
+                'undian'           => $index,
             ]);
         }
 
-
-        foreach($kabupaten_list_2 as $index => $a) {
+        foreach ($kabupaten_list_2 as $index => $a) {
             KontigenPertandingan::create([
                 'list_kategori_id' => $id,
-                'kabupaten_id' => $a,
-                'urutan' => 2,
-                'undian' => $index,
+                'kabupaten_id'     => $a,
+                'urutan'           => 2,
+                'undian'           => $index,
             ]);
         }
-        // dd($kabupaten_list);
-        // foreach ($data['kabupaten'] as $kabId => $items) {
-        //     $kabupatenId = optional($items->first()->Peserta->Kabupaten)->id;
-        //     $kabupatenName = optional($items->first()->Peserta->Kabupaten)->name;
-        //     $kabupatenTotalPeserta = $items->count();
-        // }
-        // dd($data['kabupaten']);
+
+        // Update status peserta agar sistem mencatat nomor tanding ini sudah diacak
+        PertandinganPeserta::where('list_kategori_id', $id)
+            ->update(['sudah_terpilih' => 'true']);
+
         return redirect()->back()
-            ->with('success', 'Kontigen sudah terpilih semua!')
+            ->with('success', 'Kontigen dan nomor undian tanding berhasil diacak!')
             ->withInput();
-        // while (true) {
-        //     $terpilih = 0;
-        //     $listKategori = ListKategori::find($id);
-        //     $pertandinganPertama = PertandinganPeserta::where('sudah_terpilih', 'false')->where('list_kategori_id', $id)->inRandomOrder()->first();
-        //     // dd($pertandinganPertama->Peserta);
-        //     if ($pertandinganPertama) {
-        //         $pertandinganPertama->update(['sudah_terpilih' => 'true']);
-        //         $terpilih += 1;
-        //     } else {
-        //         return redirect()->back()
-        //             ->with('success', 'Peserta sudah terpilih semua!')
-        //             ->withInput();
-        //         break;
-        //     }
-
-        //     // while(true) {
-        //     //     if($pertandinganKedua->Peserta->kabupaten_id != $pertandinganPertama->Peserta->kabupaten_id) {
-        //     //         break;
-        //     //     }
-        //     // }
-        //     $pertandinganKedua = PertandinganPeserta::whereHas('Peserta', function($q) use ($pertandinganPertama) {
-        //         $q->where('kabupaten_id','<>', $pertandinganPertama->Peserta->kabupaten_id);
-        //     })->where('sudah_terpilih', 'false')->where('list_kategori_id', $id)->inRandomOrder()->first();
-
-
-        //     if ($pertandinganKedua) {
-        //         $pertandinganKedua->update(['sudah_terpilih' => 'true']);
-        //         $terpilih += 1;
-        //     } else {
-        //         PesertaTerpilih::create([
-        //             'list_kategori_id' => $id,
-        //             'pertandingan_peserta_kiri_id' => $pertandinganPertama->id,
-        //             'kegiatan_id' => $listKategori->kegiatan_id,
-        //         ]);
-        //     }
-        //     if($terpilih > 1) {
-        //         PesertaTerpilih::create([
-        //             'list_kategori_id' => $id,
-        //             'pertandingan_peserta_kiri_id' => $pertandinganPertama->id,
-        //             'pertandingan_peserta_kanan_id' => $pertandinganKedua->id,
-        //             'kegiatan_id' => $listKategori->kegiatan_id,
-        //         ]);
-        //     }
-        // }
     }
 
     public function batal_tanding(Request $request) {
-        $pesertaTerpilih = PesertaTerpilih::where('list_kategori_id', $request->list_kategori_id)->get();
+        $list_kategori_id = $request->list_kategori_id;
 
+        // 1. Hapus bagan undian aktif
+        KontigenPertandingan::where('list_kategori_id', $list_kategori_id)->delete();
+
+        // 2. Reset status peserta menjadi belum terpilih
+        PertandinganPeserta::where('list_kategori_id', $list_kategori_id)
+            ->update(['sudah_terpilih' => 'false']);
+
+        // 3. Bersihkan PesertaTerpilih lama jika ada
+        $pesertaTerpilih = PesertaTerpilih::where('list_kategori_id', $list_kategori_id)->get();
         if ($pesertaTerpilih) {
-            foreach($pesertaTerpilih as $a) {
+            foreach ($pesertaTerpilih as $a) {
                 PertandinganPeserta::where('id', $a->pertandingan_peserta_kiri_id)
                     ->update(['sudah_terpilih' => 'false']);
 
@@ -406,10 +367,10 @@ class PertandinganController extends Controller
 
                 $a->delete();
             }
-            // $pesertaTerpilih->delete();
         }
+
         return redirect()->back()
-            ->with('success', 'Peserta telah dibatalkan bertanding')
+            ->with('success', 'Bagan nomor tanding telah berhasil dihapus/direset.')
             ->withInput();
     }
 

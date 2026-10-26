@@ -199,10 +199,10 @@
             @if(!$kolom1->isEmpty())
                 @if($pertandingan->pertandingan->bagan == 1)
                     <div class="flex items-center gap-3">
-                        <a href="{{ url('/pertandingan/'.$pertandingan->id.'?kegiatan_id=8&print=1') }}" target="_blank" class="btn-kempo-4 inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold uppercase tracking-wider shadow-xs hover:opacity-90 transition-all">
+                        <a href="{{ url('/pertandingan/'.$pertandingan->id.'?kegiatan_id='.$current_kegiatan_id.'&print=1') }}" target="_blank" class="btn-kempo-4 inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold uppercase tracking-wider shadow-xs hover:opacity-90 transition-all">
                             <i class="fa fa-sitemap"></i> Bagan Babak 1
                         </a>
-                        <a href="{{ url('/pertandingan/'.$pertandingan->id.'?kegiatan_id=8&print=2') }}" target="_blank" class="btn-kempo-4 inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold uppercase tracking-wider shadow-xs hover:opacity-90 transition-all">
+                        <a href="{{ url('/pertandingan/'.$pertandingan->id.'?kegiatan_id='.$current_kegiatan_id.'&print=2') }}" target="_blank" class="btn-kempo-4 inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold uppercase tracking-wider shadow-xs hover:opacity-90 transition-all">
                             <i class="fa fa-sitemap"></i> Bagan Babak 2
                         </a>
                     </div>

@@ -17,8 +17,8 @@
 <html>
 	<head>
 		<title>{{ 'Bagan_Pertandingan_Babak_'.$_GET['print'].'_'.date('Y-m-d').'.pdf' }}</title>
-		<script src="http://code.jquery.com/jquery-1.8.3.min.js"></script>
-		<script src="http://underscorejs.org/underscore-min.js"></script>
+		<script src="https://code.jquery.com/jquery-1.8.3.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.13.6/underscore-min.js"></script>
 		<script>
 			$(document).on('ready', function() {
 
