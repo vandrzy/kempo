@@ -15,6 +15,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Dotenv\Util\Str;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
 class PertandinganController extends Controller
@@ -27,14 +28,18 @@ class PertandinganController extends Controller
         if (Auth::user()->role === 'wasit') {
             return redirect('/kegiatan');
         }
-        $data['pertandingan'] = Pertandingan::whereNotNull('created_at');
+        $data['pertandingan'] = Pertandingan::with('kategori')->whereNotNull('created_at');
 
         if(isset($_GET['kategori_id'])  && $_GET['kategori_id'] != "") {
             $data['pertandingan'] = $data['pertandingan']->where('kategori_id', $_GET['kategori_id']);
         }
 
-        if(isset($_GET['cari'])) {
-            $data['pertandingan'] = $data['pertandingan']->where('nama','like','%'.$_GET['cari'].'%');
+        if(isset($_GET['cari']) && $_GET['cari'] != "") {
+            $cari = $_GET['cari'];
+            $data['pertandingan'] = $data['pertandingan']->where(function($q) use ($cari) {
+                $q->where('nama', 'like', '%'.$cari.'%')
+                  ->orWhere('kelas', 'like', '%'.$cari.'%');
+            });
         }
 
         $data['pertandingan'] = $data['pertandingan']->orderBy('kategori_id', 'ASC')->orderBy('jenis_kelamin','DESC')->paginate(10);
@@ -91,13 +96,14 @@ class PertandinganController extends Controller
                 'perak' => $request->perak ?? 1,
                 'perunggu' => $request->perunggu ?? 1,
                 'user_id' => Auth::user()->id,
-                'bagan' => $request->bagan ?? '',
-
+                'bagan' => (!empty($request->bagan) && $request->bagan == '1') ? 1 : null,
             ]);
-            return redirect('pertandingan?kegiatan_id='.$request->kegiatan_id)->with('success', 'Data Berhasil Disimpan');
+            $redirectUrl = $request->filled('kegiatan_id') ? 'pertandingan?kegiatan_id=' . $request->kegiatan_id : 'pertandingan';
+            return redirect($redirectUrl)->with('success', 'Data Berhasil Disimpan');
         } catch (\Throwable $th) {
+            Log::error('Gagal simpan pertandingan: ' . $th->getMessage(), ['exception' => $th]);
             return redirect()->back()
-                ->with('gagal', 'Terjadi kesalahan saat menyimpan data!')
+                ->with('gagal', 'Terjadi kesalahan saat menyimpan data: ' . (config('app.debug') ? $th->getMessage() : 'Silakan periksa kembali data Anda.'))
                 ->withInput();
         }
     }
@@ -516,22 +522,27 @@ class PertandinganController extends Controller
 
         try {
             $pertandingan = Pertandingan::find($id);
+            if (!$pertandingan) {
+                return redirect('pertandingan')->with('gagal', 'Data pertandingan tidak ditemukan!');
+            }
             $pertandingan->kategori_id = $request->kategori_id;
             $pertandingan->nama = $request->nama;
             $pertandingan->kelas = $request->kelas;
             $pertandingan->jenis_kelamin = $request->jenis_kelamin == "-" ? null : $request->jenis_kelamin;
-            $pertandingan->emas = $request->emas;
-            $pertandingan->perak = $request->perak;
-            $pertandingan->perunggu = $request->perunggu;
+            $pertandingan->emas = $request->emas ?? $pertandingan->emas ?? 1;
+            $pertandingan->perak = $request->perak ?? $pertandingan->perak ?? 1;
+            $pertandingan->perunggu = $request->perunggu ?? $pertandingan->perunggu ?? 1;
             $pertandingan->user_id = Auth::user()->id;
-            $pertandingan->bagan = $request->bagan;
+            $pertandingan->bagan = (!empty($request->bagan) && $request->bagan == '1') ? 1 : null;
 
             $pertandingan->save();
 
-            return redirect('pertandingan?kegiatan_id='.$request->kegiatan_id)->with('success', 'Data Berhasil Diubah');
+            $redirectUrl = $request->filled('kegiatan_id') ? 'pertandingan?kegiatan_id=' . $request->kegiatan_id : 'pertandingan';
+            return redirect($redirectUrl)->with('success', 'Data Berhasil Diubah');
         } catch (\Throwable $th) {
+            Log::error('Gagal update pertandingan: ' . $th->getMessage(), ['exception' => $th]);
             return redirect()->back()
-                ->with('gagal', 'Terjadi kesalahan saat menyimpan data!')
+                ->with('gagal', 'Terjadi kesalahan saat menyimpan data: ' . (config('app.debug') ? $th->getMessage() : 'Silakan periksa kembali data Anda.'))
                 ->withInput();
         }
     }

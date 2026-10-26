@@ -71,23 +71,23 @@ class KegiatanController extends Controller
                 'user_id' => Auth::user()->id,
             ]);
 
-            foreach($request->list_kategori_id as $index => $a) {
-                if (!empty($request->list_pertandingan_id[$a])) {
-                    foreach($request->list_pertandingan_id[$a] as $index2 => $b) {
-                        ListKategori::create([
-                            'kegiatan_id' => $kegiatan->id,
-                            'pertandingan_id' => $b,
-                            'kategori_id' => $a,
-                        ]);
+            if (!empty($request->list_kategori_id) && is_array($request->list_kategori_id)) {
+                foreach($request->list_kategori_id as $index => $a) {
+                    if (!empty($request->list_pertandingan_id[$a])) {
+                        foreach($request->list_pertandingan_id[$a] as $index2 => $b) {
+                            ListKategori::create([
+                                'kegiatan_id' => $kegiatan->id,
+                                'pertandingan_id' => $b,
+                                'kategori_id' => $a,
+                            ]);
+                        }
                     }
                 }
             }
 
-
-
-
             return redirect('kegiatan')->with('success', 'Data Berhasil Disimpan');
         } catch (\Throwable $th) {
+            \Illuminate\Support\Facades\Log::error('Gagal simpan kegiatan: ' . $th->getMessage());
             return redirect()->back()
                 ->with('gagal', 'Terjadi kesalahan saat menyimpan data!')
                 ->withInput();
@@ -161,14 +161,16 @@ class KegiatanController extends Controller
             $kegiatan->user_id = Auth::user()->id;
 
             ListKategori::where('kegiatan_id', $kegiatan->id)->delete();
-            foreach($request->list_kategori_id as $index => $a) {
-                if (!empty($request->list_pertandingan_id[$a])) {
-                    foreach($request->list_pertandingan_id[$a] as $index2 => $b) {
-                        ListKategori::create([
-                            'kegiatan_id' => $kegiatan->id,
-                            'pertandingan_id' => $b,
-                            'kategori_id' => $a,
-                        ]);
+            if (!empty($request->list_kategori_id) && is_array($request->list_kategori_id)) {
+                foreach($request->list_kategori_id as $index => $a) {
+                    if (!empty($request->list_pertandingan_id[$a])) {
+                        foreach($request->list_pertandingan_id[$a] as $index2 => $b) {
+                            ListKategori::create([
+                                'kegiatan_id' => $kegiatan->id,
+                                'pertandingan_id' => $b,
+                                'kategori_id' => $a,
+                            ]);
+                        }
                     }
                 }
             }
@@ -177,6 +179,7 @@ class KegiatanController extends Controller
 
             return redirect('kegiatan')->with('success', 'Data Berhasil Diubah');
         } catch (\Throwable $th) {
+            \Illuminate\Support\Facades\Log::error('Gagal update kegiatan: ' . $th->getMessage());
             return redirect()->back()
                 ->with('gagal', 'Terjadi kesalahan saat menyimpan data!')
                 ->withInput();

@@ -56,9 +56,9 @@
             Status Bagan <span class="text-[#e54b4f]">*</span>
         </label>
         <select name="bagan" id="bagan" class="w-full px-4 py-2.5 text-xs font-medium rounded-xl bg-white border border-[#ebebeb] text-[#000000] focus:border-[#f2470c] focus:ring-2 focus:ring-[#f2470c]/20 outline-none transition-all shadow-2xs">
-            <option value="" selected disabled>Pilih Status Bagan</option>
-            <option value="1" {{ old('bagan', @$pertandingan->bagan) == '1' ? 'selected' : '' }}>Ya (Gunakan Bagan Undian)</option>
-            <option value="" {{ old('bagan', @$pertandingan->bagan) == null ? 'selected' : '' }}>Tidak</option>
+            <option value="" disabled {{ old('bagan', isset($pertandingan) ? (string)$pertandingan->bagan : '') === '' ? 'selected' : '' }}>Pilih Status Bagan</option>
+            <option value="1" {{ old('bagan', isset($pertandingan) ? (string)$pertandingan->bagan : '') === '1' ? 'selected' : '' }}>Ya (Gunakan Bagan Undian)</option>
+            <option value="0" {{ old('bagan', isset($pertandingan) ? ($pertandingan->bagan ? '1' : '0') : '') === '0' ? 'selected' : '' }}>Tidak</option>
         </select>
         @error('bagan')
             <span class="text-xs font-semibold text-[#e54b4f] mt-1.5 inline-block">{{ $message }}</span>
