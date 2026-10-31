@@ -86,7 +86,7 @@
                                 <th style="position: sticky !important; top: 0 !important; z-index: 20 !important; background-color: #fafafa !important; border-bottom: 2px solid #ebebeb !important; border-right: 1px solid #ebebeb !important; width: 85px; padding: 12px 6px; text-align: center;">Wasit 4</th>
                                 <th style="position: sticky !important; top: 0 !important; z-index: 20 !important; background-color: #fafafa !important; border-bottom: 2px solid #ebebeb !important; border-right: 1px solid #ebebeb !important; width: 85px; padding: 12px 6px; text-align: center;">Wasit 5</th>
                                 <th style="position: sticky !important; top: 0 !important; z-index: 20 !important; background-color: #fff0eb !important; border-bottom: 2px solid #fd822b !important; border-right: 1px solid #ebebeb !important; color: #f2470c !important; width: 95px; padding: 12px 8px; text-align: center; font-weight: 800;">Nilai</th>
-                                <th style="position: sticky !important; top: 0 !important; z-index: 20 !important; background-color: #fee2e2 !important; border-bottom: 2px solid #e54b4f !important; border-right: 1px solid #ebebeb !important; color: #e54b4f !important; width: 85px; padding: 12px 6px; text-align: center; font-weight: 800;">Genten</th>
+                                <th style="position: sticky !important; top: 0 !important; z-index: 20 !important; background-color: #fee2e2 !important; border-bottom: 2px solid #e54b4f !important; border-right: 1px solid #ebebeb !important; color: #e54b4f !important; width: 85px; padding: 12px 6px; text-align: center; font-weight: 800;">Denda</th>
                                 <th style="position: sticky !important; top: 0 !important; z-index: 20 !important; background-color: #fff0eb !important; border-bottom: 2px solid #f2470c !important; color: #f2470c !important; width: 130px; padding: 12px 8px; text-align: center; font-weight: 800;">Total Nilai Akhir</th>
                             </tr>
                         </thead>
@@ -298,7 +298,7 @@
                         </td>
                         <td style="padding: 10px 8px; border-bottom: 1px solid #ebebeb; border-right: 1px solid #ebebeb; text-align: center; background-color: #fff0eb;" class="font-heading font-bold text-[#f2470c] text-sm tabular-nums nilai-sum">-</td>
                         <td style="padding: 8px 4px; border-bottom: 1px solid #ebebeb; border-right: 1px solid #ebebeb; text-align: center;">
-                            <input type="number" step="0.01" min="0" max="100" placeholder="0" title="Genten / Minus (0 - 100)" name="scores[${item.id}][minus]" value="${genten}" oninput="validateScoreInput(this); recalcScoresheet();" onwheel="this.blur();" style="width: 76px; padding: 6px 4px; border: 1px solid #fca5a5; border-radius: 10px; text-align: center; font-size: 0.8125rem; font-family: var(--font-body);" class="score-input genten font-bold tabular-nums text-[#e54b4f] bg-white focus:border-[#e54b4f] focus:outline-none focus:ring-2 focus:ring-[#e54b4f]/20 transition-all">
+                            <input type="number" step="0.01" min="0" max="100" placeholder="0" title="Denda / Minus (0 - 100)" name="scores[${item.id}][minus]" value="${genten}" oninput="validateScoreInput(this); recalcScoresheet();" onwheel="this.blur();" style="width: 76px; padding: 6px 4px; border: 1px solid #fca5a5; border-radius: 10px; text-align: center; font-size: 0.8125rem; font-family: var(--font-body);" class="score-input genten font-bold tabular-nums text-[#e54b4f] bg-white focus:border-[#e54b4f] focus:outline-none focus:ring-2 focus:ring-[#e54b4f]/20 transition-all">
                         </td>
                         <td style="padding: 10px 8px; border-bottom: 1px solid #ebebeb; text-align: center; background-color: #fff0eb;" class="font-heading font-extrabold text-[#f2470c] text-base tabular-nums total-akhir-cell">-</td>
                     `;
@@ -416,21 +416,28 @@
                 return;
             }
 
-            const n1 = (v1 !== '' && !isNaN(parseFloat(v1))) ? parseFloat(v1) : 0;
-            const n2 = (v2 !== '' && !isNaN(parseFloat(v2))) ? parseFloat(v2) : 0;
-            const n3 = (v3 !== '' && !isNaN(parseFloat(v3))) ? parseFloat(v3) : 0;
-            const n4 = (v4 !== '' && !isNaN(parseFloat(v4))) ? parseFloat(v4) : 0;
-            const n5 = (v5 !== '' && !isNaN(parseFloat(v5))) ? parseFloat(v5) : 0;
+            const n1 = (v1 !== '' && !isNaN(parseFloat(v1))) ? parseFloat(v1) : null;
+            const n2 = (v2 !== '' && !isNaN(parseFloat(v2))) ? parseFloat(v2) : null;
+            const n3 = (v3 !== '' && !isNaN(parseFloat(v3))) ? parseFloat(v3) : null;
+            const n4 = (v4 !== '' && !isNaN(parseFloat(v4))) ? parseFloat(v4) : null;
+            const n5 = (v5 !== '' && !isNaN(parseFloat(v5))) ? parseFloat(v5) : null;
 
-            // Rumus: Jumlahkan ke-5 nilai wasit lalu dikurangi genten
-            const jumlahNilai = n1 + n2 + n3 + n4 + n5;
-            const totalNilaiAkhir = jumlahNilai - gentenVal;
+            // Rumus: Hilangkan nilai terbesar dan terkecil dari wasit yang aktif (> 0), jumlahkan nilai tengah, lalu dikurangi denda
+            const activeScores = [n1, n2, n3, n4, n5].filter(v => v !== null && v > 0).sort((a, b) => a - b);
+            let jumlahNilai = 0;
+            if (activeScores.length >= 3) {
+                const middle = activeScores.slice(1, activeScores.length - 1);
+                jumlahNilai = middle.reduce((acc, val) => acc + val, 0);
+            }
+            const totalNilaiAkhir = Math.max(0, jumlahNilai - gentenVal);
 
-            const hasJudgesInput = [v1, v2, v3, v4, v5].some(v => v !== '');
+            const hasJudgesInput = activeScores.length > 0;
             row.querySelector('.nilai-sum').textContent = hasJudgesInput
                 ? (Number.isInteger(jumlahNilai) ? jumlahNilai : jumlahNilai.toFixed(2))
                 : '-';
-            row.querySelector('.total-akhir-cell').textContent = Number.isInteger(totalNilaiAkhir) ? totalNilaiAkhir : totalNilaiAkhir.toFixed(2);
+            row.querySelector('.total-akhir-cell').textContent = (hasJudgesInput || gentenVal > 0)
+                ? (Number.isInteger(totalNilaiAkhir) ? totalNilaiAkhir : totalNilaiAkhir.toFixed(2))
+                : '-';
         });
     };
 

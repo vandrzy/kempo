@@ -146,7 +146,7 @@
             @endfor
         </div>
 
-        <!-- BARIS 2: WAKTU & GENTEN (DENDA) -->
+        <!-- BARIS 2: WAKTU & DENDA -->
         <div class="grid grid-cols-12 gap-2 sm:gap-2.5 flex-1 min-h-0">
             <div class="col-span-1 sm:col-span-2 md:col-span-3"></div>
 
@@ -164,11 +164,11 @@
                 </div>
             </div>
 
-            <!-- GENTEN -->
+            <!-- DENDA -->
             <div class="col-span-5 sm:col-span-4 md:col-span-3 bg-white rounded-xl border border-rose-200 shadow-sm flex flex-col overflow-hidden">
                 <div class="py-1 px-2 text-center bg-rose-50 border-b border-rose-200 flex-shrink-0">
                     <span class="text-[11px] sm:text-xs font-black tracking-wider text-rose-800 uppercase">
-                        <i class="fas fa-exclamation-triangle mr-1 text-rose-600"></i> GENTEN
+                        <i class="fas fa-exclamation-triangle mr-1 text-rose-600"></i> DENDA
                     </span>
                 </div>
                 <div class="flex-1 flex items-center justify-center p-1 min-h-0">
@@ -181,25 +181,14 @@
             <div class="col-span-1 sm:col-span-2 md:col-span-3"></div>
         </div>
 
-        <!-- BARIS 3: NILAI & TOTAL NILAI -->
+        <!-- BARIS 3: TOTAL NILAI AKHIR (JUMLAH NILAI WASIT TELAH DIHAPUS) -->
         <div class="grid grid-cols-12 gap-2 sm:gap-2.5 flex-1 min-h-0">
             <div class="col-span-1 sm:col-span-2 md:col-span-3"></div>
 
-            <!-- NILAI -->
-            <div class="col-span-5 sm:col-span-4 md:col-span-3 bg-white rounded-xl border border-amber-300 shadow-sm flex flex-col overflow-hidden">
-                <div class="py-1 px-2 text-center bg-amber-50 border-b border-amber-200 flex-shrink-0">
-                    <span class="text-[11px] sm:text-xs font-black tracking-wider text-amber-800 uppercase">JUMLAH NILAI WASIT</span>
-                </div>
-                <div class="flex-1 flex items-center justify-center p-1 min-h-0">
-                    <div id="displayNilai" class="score-font font-black text-amber-600 text-3xl sm:text-4xl md:text-5xl lg:text-6xl">
-                        0
-                    </div>
-                </div>
-            </div>
-
-            <!-- TOTAL NILAI -->
-            <div class="col-span-5 sm:col-span-4 md:col-span-3 bg-gradient-to-br from-blue-600 to-indigo-700 text-white rounded-xl border-2 border-blue-600 shadow-md flex flex-col overflow-hidden">
-                <div class="py-1 px-2 text-center bg-white/15 border-b border-white/20 flex-shrink-0">
+            <!-- TOTAL NILAI AKHIR -->
+            <div class="col-span-10 sm:col-span-8 md:col-span-6 bg-gradient-to-br from-blue-600 to-indigo-700 text-white rounded-xl border-2 border-blue-600 shadow-md flex flex-col overflow-hidden">
+                <div class="py-1.5 px-3 text-center bg-white/15 border-b border-white/20 flex-shrink-0 flex items-center justify-center gap-1.5">
+                    <i class="fas fa-trophy text-amber-300 text-xs"></i>
                     <span class="text-[11px] sm:text-xs font-black tracking-wider text-blue-100 uppercase">TOTAL NILAI AKHIR</span>
                 </div>
                 <div class="flex-1 flex items-center justify-center p-1 min-h-0">
@@ -258,8 +247,7 @@
             document.getElementById('wasit_5'),
         ];
         const displayWaktu = document.getElementById('displayWaktu');
-        const displayGenten = document.getElementById('displayGenten');
-        const displayNilai = document.getElementById('displayNilai');
+        const displayDenda = document.getElementById('displayDenda') || document.getElementById('displayGenten');
         const displayTotalNilai = document.getElementById('displayTotalNilai');
 
         let currentKategori = null;
@@ -489,29 +477,44 @@
 
             while (scores.length < 5) scores.push(0);
 
-            // Update UI Wasit 1 - 5
+            const parsedScores = scores.slice(0, 5).map(s => parseFloat(s) || 0);
+
+            // Update UI Wasit 1 - 5 (style lama, tanpa badge, tanpa coret)
             for (let i = 1; i <= 5; i++) {
                 const el = document.getElementById('wasit_' + i);
                 if (el) {
-                    const val = scores[i - 1] !== undefined && scores[i - 1] !== null ? scores[i - 1] : 0;
-                    el.textContent = val;
+                    el.textContent = parsedScores[i - 1];
                 }
             }
 
-            // Update Waktu & Genten
+            // Update Waktu & Denda
             const elWaktu = document.getElementById('displayWaktu');
-            const elGenten = document.getElementById('displayGenten');
+            const elDenda = document.getElementById('displayDenda') || document.getElementById('displayGenten');
             if (elWaktu) elWaktu.textContent = waktu || '00:00';
-            if (elGenten) elGenten.textContent = genten !== null && genten !== undefined ? genten : 0;
+            if (elDenda) elDenda.textContent = genten !== null && genten !== undefined ? genten : 0;
 
-            // Hitung Nilai (Jumlah seluruh nilai Wasit 1-5) & Total Nilai Akhir (Nilai - Genten)
-            const sumNilai = scores.reduce((sum, s) => sum + (parseFloat(s) || 0), 0);
-            const totalNilai = explicitTotal !== null ? explicitTotal : Math.max(0, sumNilai - genten);
+            // Hitung skor baru: Hilangkan nilai terbesar dan terkecil dari wasit yang aktif (> 0),
+            // jumlahkan nilai di tengah, lalu dikurangi denda.
+            // Tetap lakukan perhitungan meskipun ada nilai wasit yang masih 0 / belum diisi.
+            const activeScores = parsedScores.filter(s => s > 0).sort((a, b) => a - b);
+            let sumMiddle = 0;
 
-            const elNilai = document.getElementById('displayNilai');
+            if (activeScores.length >= 3) {
+                // Hilangkan 1 nilai terkecil (indeks 0) dan 1 nilai terbesar (indeks terakhir)
+                const middleScores = activeScores.slice(1, activeScores.length - 1);
+                sumMiddle = middleScores.reduce((acc, curr) => acc + curr, 0);
+            } else if (activeScores.length > 0) {
+                // Jika wasit yang memberi nilai kurang dari 3, belum memenuhi syarat eliminasi sepasang max & min
+                sumMiddle = 0;
+            }
+
+            const dendaVal = parseFloat(genten) || 0;
+            const totalNilai = Math.max(0, sumMiddle - dendaVal);
+
             const elTotalNilai = document.getElementById('displayTotalNilai');
-            if (elNilai) elNilai.textContent = Number.isInteger(sumNilai) ? sumNilai : sumNilai.toFixed(1);
-            if (elTotalNilai) elTotalNilai.textContent = Number.isInteger(totalNilai) ? totalNilai : totalNilai.toFixed(1);
+            if (elTotalNilai) {
+                elTotalNilai.textContent = Number.isInteger(totalNilai) ? totalNilai : totalNilai.toFixed(1);
+            }
         }
 
         function resetScoreboard() {
@@ -525,10 +528,8 @@
             }
             const dw = document.getElementById('displayWaktu');
             if (dw) dw.textContent = '00:00';
-            const dg = document.getElementById('displayGenten');
-            if (dg) dg.textContent = '0';
-            const dn = document.getElementById('displayNilai');
-            if (dn) dn.textContent = '0';
+            const dd = document.getElementById('displayDenda') || document.getElementById('displayGenten');
+            if (dd) dd.textContent = '0';
             const dtn = document.getElementById('displayTotalNilai');
             if (dtn) dtn.textContent = '0';
         }

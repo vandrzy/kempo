@@ -1338,9 +1338,23 @@ class PertandinganController extends Controller
             $numericScores[] = 0;
         }
 
-        // Rumus standar: jumlah seluruh nilai wasit (1-5) dikurangi genten
-        $nilai = array_sum($numericScores);
-        $totalNilai = max(0, $nilai - $genten);
+        // Rumus: hilangkan nilai terbesar dan terkecil dari wasit yang aktif (> 0), jumlahkan nilai di tengah, lalu dikurangi denda
+        $activeScores = array_values(array_filter($numericScores, function ($v) {
+            return $v > 0;
+        }));
+
+        if (count($activeScores) >= 3) {
+            sort($activeScores);
+            $middleScores = array_slice($activeScores, 1, count($activeScores) - 2);
+            $nilai = array_sum($middleScores);
+            $totalNilai = max(0, $nilai - $genten);
+        } elseif (!empty($activeScores) || $genten > 0) {
+            $nilai = 0;
+            $totalNilai = max(0, 0 - $genten);
+        } else {
+            $nilai = 0;
+            $totalNilai = 0;
+        }
 
         // Simpan ke struktur rows
         $scoresheetData['rows'][$rowIndex] = [
@@ -1539,9 +1553,19 @@ class PertandinganController extends Controller
                 $hasAnyScore = $hasN1 || $hasN2 || $hasN3 || $hasN4 || $hasN5 || $hasGenten;
                 $genten = $hasGenten ? max(0, min(100, floatval($val['minus']))) : ($hasAnyScore ? 0 : null);
 
-                if ($hasAnyScore) {
-                    $nilai = ($n1 ?? 0) + ($n2 ?? 0) + ($n3 ?? 0) + ($n4 ?? 0) + ($n5 ?? 0);
-                    $totalNilaiAkhir = $nilai - ($genten ?? 0);
+                $activeScores = array_values(array_filter([$n1, $n2, $n3, $n4, $n5], function ($v) {
+                    return !is_null($v) && $v > 0;
+                }));
+
+                if (count($activeScores) >= 3) {
+                    sort($activeScores);
+                    // Hilangkan nilai terbesar dan terkecil dari wasit yang aktif (> 0)
+                    $middleScores = array_slice($activeScores, 1, count($activeScores) - 2);
+                    $nilai = array_sum($middleScores);
+                    $totalNilaiAkhir = max(0, $nilai - ($genten ?? 0));
+                } elseif (!empty($activeScores) || ($genten ?? 0) > 0) {
+                    $nilai = 0;
+                    $totalNilaiAkhir = max(0, 0 - ($genten ?? 0));
                 } else {
                     $nilai = null;
                     $totalNilaiAkhir = null;

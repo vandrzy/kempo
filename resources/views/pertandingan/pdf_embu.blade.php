@@ -201,7 +201,7 @@
                 <th rowspan="2" style="width: 110px;">Kontingen</th>
                 <th rowspan="2">Nama Kenshi / Peserta</th>
                 <th colspan="5">Nilai Wasit / Juri</th>
-                <th rowspan="2" class="col-score">Hukuman (Minus)</th>
+                <th rowspan="2" class="col-score">Denda (Minus)</th>
                 <th rowspan="2" class="col-total">Total Nilai</th>
                 <th rowspan="2" class="col-rank">Peringkat</th>
             </tr>
