@@ -21,6 +21,7 @@
         { name: 'tempat', label: 'Tempat Lahir' },
         { name: 'alamat', label: 'Alamat Lengkap Rumah' },
         { name: 'keterangan', label: 'Keterangan Prestasi' },
+        { name: 'sertifikat', label: 'Sertifikat Pelatih' },
         { name: 'kabupaten_id', label: 'Kabupaten / Kota' },
         { name: 'kecamatan_id', label: 'Kecamatan' },
         { name: 'kelurahan_id', label: 'Kelurahan' },
@@ -62,7 +63,10 @@
 
         lastSearchedQuery = query;
 
-        fetch(`{{ url('/api/check-existing-pendaftar') }}?nama=${encodeURIComponent(query)}&tipe=${TIPE_PENDAFTAR}`)
+        const kegiatanInput = document.querySelector('input[name="kegiatan_id"]') || document.getElementById('kegiatan_id');
+        const currentKegiatanId = kegiatanInput ? kegiatanInput.value : '';
+
+        fetch(`{{ url('/api/check-existing-pendaftar') }}?nama=${encodeURIComponent(query)}&tipe=${TIPE_PENDAFTAR}&current_kegiatan_id=${encodeURIComponent(currentKegiatanId)}`)
             .then(res => res.json())
             .then(res => {
                 confirmBox.innerHTML = '';
@@ -72,41 +76,15 @@
                     return;
                 }
 
-                // HANYA menampilkan 1 data yang paling sesuai
-                const item = res.items[0];
-
-                const alertEl = document.createElement('div');
-                alertEl.className = 'p-3.5 rounded-2xl bg-[#fff0eb] border border-[#f2470c]/25 shadow-2xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xs transition-all animate-fadeIn';
-                
-                alertEl.innerHTML = `
-                    <div class="flex items-start gap-2.5">
-                        <div class="w-6 h-6 rounded-lg bg-[#f2470c]/10 text-[#f2470c] flex items-center justify-center shrink-0 text-xs mt-0.5">
-                            <i class="fas fa-history"></i>
-                        </div>
-                        <div class="text-[#000000] leading-relaxed">
-                            Data <strong class="font-bold text-[#f2470c]">"${escapeHtml(item.nama)}"</strong> pernah terdaftar sebagai <span class="font-semibold text-neutral-800">${escapeHtml(item.peran)}</span> pada kegiatan <strong class="font-bold text-[#000000]">"${escapeHtml(item.nama_kegiatan)}"</strong>. Ingin menggunakan data tersebut?
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-2 shrink-0 self-end sm:self-center">
-                        <button type="button" class="btn-use-data inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold font-heading text-white bg-[#f2470c] hover:bg-[#d83d09] shadow-xs hover:-translate-y-px transition-all cursor-pointer">
-                            <i class="fas fa-check text-[10px]"></i> Ya, Gunakan Data
-                        </button>
-                        <button type="button" class="btn-ignore-data inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-medium text-neutral-600 bg-white hover:bg-neutral-100 border border-[#ebebeb] transition-all cursor-pointer">
-                            Abaikan
-                        </button>
-                    </div>
-                `;
-
-                // Event tombol "Ya, Gunakan Data"
-                alertEl.querySelector('.btn-use-data').addEventListener('click', function () {
+                function applyAutofill(selectedItem) {
                     userDismissedQuery = inputNama.value.trim();
                     confirmBox.classList.add('hidden');
                     confirmBox.innerHTML = '';
 
                     isAutoFilling = true;
-                    fillPersonalData(item.id, item.personal_data || {}, item);
-                    if (item.personal_data && item.personal_data.nama) {
-                        userDismissedQuery = item.personal_data.nama.trim();
+                    fillPersonalData(selectedItem.id, selectedItem.personal_data || {}, selectedItem);
+                    if (selectedItem.personal_data && selectedItem.personal_data.nama) {
+                        userDismissedQuery = selectedItem.personal_data.nama.trim();
                     }
 
                     setTimeout(() => {
@@ -118,15 +96,86 @@
                             toast: true,
                             position: 'top-end',
                             icon: 'success',
-                            title: IS_GUEST ? 'Data terdaftar berhasil dimuat!' : 'Data pribadi berhasil dimuat!',
+                            title: IS_GUEST 
+                                ? `Data dari "${selectedItem.nama_kegiatan}" berhasil dimuat!` 
+                                : `Data pribadi dari "${selectedItem.nama_kegiatan}" berhasil dimuat!`,
                             showConfirmButton: false,
-                            timer: 2000,
+                            timer: 2500,
                             timerProgressBar: true
                         });
                     }
-                });
+                }
 
-                // Event tombol "Abaikan"
+                const alertEl = document.createElement('div');
+                alertEl.className = 'p-3.5 rounded-2xl bg-[#fff0eb] border border-[#f2470c]/25 shadow-2xs flex flex-col gap-3 text-xs transition-all animate-fadeIn';
+
+                if (res.items.length === 1) {
+                    const item = res.items[0];
+                    alertEl.innerHTML = `
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                            <div class="flex items-start gap-2.5">
+                                <div class="w-6 h-6 rounded-lg bg-[#f2470c]/10 text-[#f2470c] flex items-center justify-center shrink-0 text-xs mt-0.5">
+                                    <i class="fas fa-history"></i>
+                                </div>
+                                <div class="text-[#000000] leading-relaxed">
+                                    Data <strong class="font-bold text-[#f2470c]">"${escapeHtml(item.nama)}"</strong> pernah terdaftar sebagai <span class="font-semibold text-neutral-800">${escapeHtml(item.peran)}</span> pada kegiatan <strong class="font-bold text-[#000000]">"${escapeHtml(item.nama_kegiatan)}"</strong>. Ingin menggunakan data tersebut?
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                                <button type="button" class="btn-use-data inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold font-heading text-white bg-[#f2470c] hover:bg-[#d83d09] shadow-xs hover:-translate-y-px transition-all cursor-pointer">
+                                    <i class="fas fa-check text-[10px]"></i> Ya, Gunakan Data
+                                </button>
+                                <button type="button" class="btn-ignore-data inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-medium text-neutral-600 bg-white hover:bg-neutral-100 border border-[#ebebeb] transition-all cursor-pointer">
+                                    Abaikan
+                                </button>
+                            </div>
+                        </div>
+                    `;
+
+                    alertEl.querySelector('.btn-use-data').addEventListener('click', function () {
+                        applyAutofill(item);
+                    });
+                } else {
+                    let buttonsHtml = '';
+                    res.items.forEach((item, idx) => {
+                        buttonsHtml += `
+                            <button type="button" data-idx="${idx}" class="btn-use-multi-data group flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl text-xs font-semibold bg-white hover:bg-[#f2470c] text-neutral-800 hover:text-white border border-[#ebebeb] hover:border-[#f2470c] shadow-2xs transition-all cursor-pointer text-left">
+                                <span class="truncate">
+                                    <i class="fas fa-calendar-alt mr-1.5 text-[#f2470c] group-hover:text-white transition-colors"></i>
+                                    Gunakan Data: <strong>${escapeHtml(item.nama_kegiatan)}</strong>
+                                </span>
+                                <i class="fas fa-arrow-right text-[10px] shrink-0 text-neutral-400 group-hover:text-white transition-colors"></i>
+                            </button>
+                        `;
+                    });
+
+                    alertEl.innerHTML = `
+                        <div class="flex items-start gap-2.5">
+                            <div class="w-6 h-6 rounded-lg bg-[#f2470c]/10 text-[#f2470c] flex items-center justify-center shrink-0 text-xs mt-0.5">
+                                <i class="fas fa-layer-group"></i>
+                            </div>
+                            <div class="text-[#000000] leading-relaxed">
+                                Data <strong class="font-bold text-[#f2470c]">"${escapeHtml(res.items[0].nama)}"</strong> pernah terdaftar pada <span class="font-semibold text-neutral-800">${res.items.length} kegiatan sebelumnya</span>. Silakan pilih riwayat data yang ingin digunakan:
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1">
+                            ${buttonsHtml}
+                        </div>
+                        <div class="flex justify-end pt-1">
+                            <button type="button" class="btn-ignore-data inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-medium text-neutral-600 bg-white hover:bg-neutral-100 border border-[#ebebeb] transition-all cursor-pointer">
+                                Abaikan Semua
+                            </button>
+                        </div>
+                    `;
+
+                    alertEl.querySelectorAll('.btn-use-multi-data').forEach(btn => {
+                        btn.addEventListener('click', function () {
+                            const idx = parseInt(this.getAttribute('data-idx'));
+                            applyAutofill(res.items[idx]);
+                        });
+                    });
+                }
+
                 alertEl.querySelector('.btn-ignore-data').addEventListener('click', function () {
                     userDismissedQuery = inputNama.value.trim();
                     confirmBox.classList.add('hidden');
@@ -137,6 +186,7 @@
                 confirmBox.classList.remove('hidden');
             })
             .catch(err => console.error('Gagal memeriksa data pendaftar:', err));
+
     }
 
     // Jalankan pencarian ketika user SELESAI mengetik nama (blur / change / enter)
@@ -164,10 +214,10 @@
     function fillPersonalData(id, data, item) {
         if (refInput) refInput.value = id;
 
-        if (IS_GUEST && TIPE_PENDAFTAR === 'peserta') {
+        if (IS_GUEST) {
             // ========================================================
             // ATURAN UNTUK USER YANG TIDAK LOGIN (GUEST):
-            // 1. Form selain: nama, tingkat sabuk (grade), berat badan,
+            // 1. Form selain: nama, tingkat sabuk (grade), berat badan (peserta),
             //    tanggal lahir di-disable dan diberikan tulisan
             //    "Menggunakan data yang sebelumnya sudah terdaftar".
             // 2. Data aslinya disensor (TIDAK ditampilkan).
@@ -175,7 +225,7 @@
             // 4. Preview foto diganti card "Menggunakan pas foto lama".
             // ========================================================
 
-            // 1. Isi 4 field yang diizinkan terlihat & diedit
+            // 1. Isi field yang diizinkan terlihat & diedit
             if (data.nama) inputNama.value = data.nama;
             if (data.tingkatan_sabuk_a) {
                 $('#tingkatan_sabuk_a').val(data.tingkatan_sabuk_a).trigger('change');
@@ -188,6 +238,10 @@
             }
             if (data.tanggal_lahir) {
                 $('#tanggal_lahir').val(data.tanggal_lahir).trigger('change');
+            }
+            // Sinkronkan nilai jenis_kelamin sebelum elemen disensor & didisable
+            if (data.jenis_kelamin) {
+                $('#jenis_kelamin').val(data.jenis_kelamin).trigger('change');
             }
 
             // 2. Sensor dan Disable seluruh field lainnya
@@ -410,6 +464,9 @@
                 el.value = value;
                 el.dispatchEvent(new Event('input', { bubbles: true }));
                 el.dispatchEvent(new Event('change', { bubbles: true }));
+                if (typeof $ !== 'undefined') {
+                    $(el).trigger('change');
+                }
             }
         });
     }

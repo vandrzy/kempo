@@ -104,6 +104,11 @@
                     };
 
                     for (const [field, message] of Object.entries(rules)) {
+                        // Lewati validasi jika field sedang dalam status menggunakan data lama yang disensor
+                        if (window.isFieldMasked && window.isFieldMasked(field)) {
+                            continue;
+                        }
+
                         const input = form.querySelector(`[name="${field}"]`);
                         if (typeof message === 'function') {
                             const val = field === 'foto' ? data.get(field) : data.get(field)?.trim();

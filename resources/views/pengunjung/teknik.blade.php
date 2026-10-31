@@ -170,6 +170,12 @@
                                     @foreach ($peserta->PertandinganPeserta as $item)
                                         <input type="hidden" name="pertandingan_peserta_id[]" value="{{ $item->id }}">
                                         <input type="hidden" name="komposisi_id[]" value="{{ @$item->UrutanKomposisiPeserta->id ?? "" }}">
+                                        <div class="hidden">
+                                            <input type="text" hidden name="nama_tanding[{{ $urutan }}]" value="{{ @$item->UrutanKomposisiPeserta->nama ?: $peserta->nama }}">
+                                            <input type="text" hidden name="tingkat_tanding[{{ $urutan }}]" value="{{ @$item->UrutanKomposisiPeserta->tingkat ?: $peserta->tingkatan_sabuk }}">
+                                            <input type="text" hidden readonly value="{{ $item->urutan }}">
+                                        </div>
+
                                         @if($peserta_list == 1)
                                             @php
                                                 if($item->list_kategori->kategori->id != $kategori_id) {
@@ -178,12 +184,6 @@
                                                 }
                                             @endphp
                                             <h6 class="font-heading font-bold text-xs text-neutral-700 mt-3 mb-2">{{ $item->list_kategori->pertandingan->nama }}</h6>
-
-                                            <div class="hidden">
-                                                <input type="text" hidden name="nama_tanding[{{ $urutan }}]" value="{{ @$item->UrutanKomposisiPeserta->nama ?? '' }}">
-                                                <input type="text" hidden name="tingkat_tanding[{{ $urutan }}]" value="{{ @$item->UrutanKomposisiPeserta->tingkat ?? '' }}">
-                                                <input type="text" hidden readonly value="{{ $item->urutan }}">
-                                            </div>
 
                                             <div class="mb-4 urutan_{{$urutan}}">
                                                 <label class="block text-xs font-bold text-[#000000] uppercase tracking-wider font-heading mb-2">
@@ -203,11 +203,11 @@
                                                             }
                                                         @endphp
                                                         @foreach ($value_kelas as $a)
-                                                            <input type="text" name="urutan_tanding[{{ $urutan }}][]" ids="{{ $urutan }}" value="{{ $a }}" class="urutan_tandings dynamic-textarea w-full px-4 py-2.5 text-xs font-medium rounded-xl bg-white border border-[#ebebeb] text-[#000000] placeholder:text-neutral-400 focus:border-[#f2470c] focus:ring-2 focus:ring-[#f2470c]/20 outline-none transition-all shadow-2xs" required placeholder="Urutan komposisi yang dimainkan">
+                                                            <input type="text" name="urutan_tanding[{{ $urutan }}][]" ids="{{ $urutan }}" value="{{ $a }}" class="urutan_tanding dynamic-textarea w-full px-4 py-2.5 text-xs font-medium rounded-xl bg-white border border-[#ebebeb] text-[#000000] placeholder:text-neutral-400 focus:border-[#f2470c] focus:ring-2 focus:ring-[#f2470c]/20 outline-none transition-all shadow-2xs" placeholder="Urutan komposisi yang dimainkan">
                                                         @endforeach
                                                     @else
                                                         @for($i = 0; $i < 6; $i++)
-                                                            <input type="text" name="urutan_tanding[{{ $urutan }}][]" ids="{{ $urutan }}" value="" class="urutan_tandings dynamic-textarea w-full px-4 py-2.5 text-xs font-medium rounded-xl bg-white border border-[#ebebeb] text-[#000000] placeholder:text-neutral-400 focus:border-[#f2470c] focus:ring-2 focus:ring-[#f2470c]/20 outline-none transition-all shadow-2xs" required placeholder="Urutan komposisi yang dimainkan">
+                                                            <input type="text" name="urutan_tanding[{{ $urutan }}][]" ids="{{ $urutan }}" value="" class="urutan_tanding dynamic-textarea w-full px-4 py-2.5 text-xs font-medium rounded-xl bg-white border border-[#ebebeb] text-[#000000] placeholder:text-neutral-400 focus:border-[#f2470c] focus:ring-2 focus:ring-[#f2470c]/20 outline-none transition-all shadow-2xs" placeholder="Urutan komposisi yang dimainkan">
                                                         @endfor
                                                     @endif
                                                 </div>
@@ -275,19 +275,19 @@
         let kategori_id_val = $('#kategori_id').val();
         let pertandingan_id = $('#pertandingan_id').val();
 
-        if (kabupaten_id === null) {
+        if (!kabupaten_id || kabupaten_id === 'Pilih Kabupaten') {
             e.preventDefault();
             Swal.fire("Warning", "Kabupaten masih kosong!", "error");
             return;
         }
 
-        if (kategori_id_val === null) {
+        if (!kategori_id_val || kategori_id_val === 'Pilih Kategori') {
             e.preventDefault();
             Swal.fire("Warning", "Kategori masih kosong!", "error");
             return;
         }
 
-        if (pertandingan_id === null) {
+        if (!pertandingan_id || pertandingan_id === 'Pilih Pertandingan' || pertandingan_id === 'Cari Tanding' || pertandingan_id === 'Tanding Tidak Tersedia!') {
             e.preventDefault();
             Swal.fire("Warning", "Pertandingan masih kosong!", "error");
             return;

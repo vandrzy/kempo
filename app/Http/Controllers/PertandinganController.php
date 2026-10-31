@@ -402,12 +402,37 @@ class PertandinganController extends Controller
         // })->get();
         // s
 
-        $kategori = Kategori::find($_GET['kategori_id']);
+        $kategoriId = request('kategori_id', $_GET['kategori_id'] ?? null);
+        $kegiatanId = request('kegiatan_id', $_GET['kegiatan_id'] ?? null);
+
+        if (!$kategoriId || !$kegiatanId) {
+            return response()->json([
+                'status' => 'false',
+                'message' => 'Parameter kategori_id dan kegiatan_id wajib diisi!',
+                'kategori' => null,
+                'data' => [],
+                'urutan' => [],
+            ]);
+        }
+
+        $kategori = Kategori::find($kategoriId);
+        if (!$kategori) {
+            return response()->json([
+                'status' => 'false',
+                'message' => 'Kategori tidak ditemukan!',
+                'kategori' => null,
+                'data' => [],
+                'urutan' => [],
+            ]);
+        }
+
         $pertandingan = ListKategori::with(['kategori', 'pertandingan'])->whereHas('kategori', function($query) use ($tahun, $kategori) {
             $query->where('tahun_awal', '<=', Date('Y', strtotime($tahun)))->where('tahun_akhir', '>=', Date('Y', strtotime($tahun)))->where('id', $kategori->id);
         })->whereHas('pertandingan', function($qw) use ($kelamin) {
-            $qw->where('jenis_kelamin', $kelamin)->orWhereNull('jenis_kelamin');
-        })->where('kegiatan_id', $_GET['kegiatan_id'])->get();
+            $qw->where(function($q) use ($kelamin) {
+                $q->where('jenis_kelamin', $kelamin)->orWhereNull('jenis_kelamin');
+            });
+        })->where('kegiatan_id', $kegiatanId)->get();
 
         $urutan_number = [];
         foreach($pertandingan as $index => $a) {
@@ -429,15 +454,11 @@ class PertandinganController extends Controller
             $urutan_number[] = $urutanBaru;
         }
 
-
-
-
         return response()->json([
             'status' => 'true',
-            'kategori' =>$kategori,
+            'kategori' => $kategori,
             'data' => $pertandingan,
             'urutan' => $urutan_number,
-            // 'data' => $data['pertandingan'],
         ]);
     }
     /**

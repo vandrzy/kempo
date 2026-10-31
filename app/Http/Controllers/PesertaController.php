@@ -228,16 +228,16 @@ class PesertaController extends Controller
 
 
     public function get_pertandingan(string $id) {
+        $type = request('type', $_GET['type'] ?? null);
+        $kegiatanId = request('kegiatan_id', $_GET['kegiatan_id'] ?? null);
 
-        if(isset($_GET['type'])) {
+        if ($type) {
             $data = [];
-            if($_GET['type'] == 'kategori_id') {
+            if ($type == 'kategori_id') {
                 $data = ListKategori::with('kategori')->where('kegiatan_id', $id)->get()->unique('kategori_id')->values();
-                // $data = Kategori::where('kegiatan_id', $id)->get();
             } else {
-                $data = ListKategori::with('pertandingan')->where('kegiatan_id', $_GET['kegiatan_id'])->where('kategori_id', $id)->get();
+                $data = ListKategori::with('pertandingan')->where('kegiatan_id', $kegiatanId)->where('kategori_id', $id)->get();
             }
-                // dd($data);
 
             return response()->json([
                 'status' => 'true',
@@ -245,6 +245,10 @@ class PesertaController extends Controller
             ]);
         }
 
+        return response()->json([
+            'status' => 'false',
+            'data' => [],
+        ]);
     }
 
     /**
@@ -253,8 +257,9 @@ class PesertaController extends Controller
     public function create()
     {
 
+        $kegiatanId = request('kegiatan_id', $_GET['kegiatan_id'] ?? null);
         $data['kabupatens'] = Kabupaten::get();
-        $data['kegiatan'] = Kegiatan::find($_GET['kegiatan_id']);
+        $data['kegiatan'] = Kegiatan::find($kegiatanId);
 
         $tahun = old('tanggal_lahir');
         $kelamin = old('jenis_kelamin');
@@ -350,13 +355,8 @@ class PesertaController extends Controller
                 'tingkatan_sabuk' => $request->tingkatan_sabuk_a . "-" . $request->tingkatan_sabuk_b,
             ];
 
-            if ($oldPeserta) {
-                // Update peserta lama agar tidak terjadi duplikasi data (data foto lama vs baru)
-                $oldPeserta->update($dataPeserta);
-                $peserta = $oldPeserta;
-            } else {
-                $peserta = Peserta::create($dataPeserta);
-            }
+            // Selalu buat record Peserta baru untuk pendaftaran ini agar tidak mengganggu record lama di kegiatan lain
+            $peserta = Peserta::create($dataPeserta);
 
             if ($request->has('pertandingan_id') && is_array($request->pertandingan_id)) {
                 foreach($request->pertandingan_id as $index => $a) {
@@ -390,10 +390,17 @@ class PesertaController extends Controller
                         'kegiatan_id' => $request->kegiatan_id
                     ]);
 
+                    $namaTanding = (!empty($request->nama_tanding[$a]) && $request->nama_tanding[$a] !== '-')
+                        ? $request->nama_tanding[$a]
+                        : $peserta->nama;
+                    $tingkatTanding = (!empty($request->tingkat_tanding[$a]) && $request->tingkat_tanding[$a] !== '-')
+                        ? $request->tingkat_tanding[$a]
+                        : $peserta->tingkatan_sabuk;
+
                     $UKP = new UrutanKomposisiPeserta();
                     $UKP->pertandingan_peserta_id = $PPA->id;
-                    $UKP->nama = $request->nama_tanding[$a] ?? "-";
-                    $UKP->tingkat = $request->tingkat_tanding[$a] ?? "-";
+                    $UKP->nama = $namaTanding ?? "-";
+                    $UKP->tingkat = $tingkatTanding ?? "-";
                     $deskripsiUKP = "";
                     $UKP->urutan_komposisi = $deskripsiUKP;
                     $UKP->save();
@@ -498,10 +505,12 @@ class PesertaController extends Controller
             ]);
 
             $peserta = Peserta::find($id);
-            foreach($peserta->PertandinganPeserta() as $a) {
-                $a->UrutanKomposisiPeserta()->delete();
+            if ($peserta) {
+                foreach($peserta->PertandinganPeserta as $a) {
+                    $a->UrutanKomposisiPeserta()->delete();
+                }
+                $peserta->PertandinganPeserta()->delete();
             }
-            $peserta->PertandinganPeserta()->delete();
 
             if($request->foto) {
                 $fotoPath = FotoHelper::simpanFoto($request->file('foto'));
@@ -512,42 +521,45 @@ class PesertaController extends Controller
                 }
             }
 
+            if ($request->has('pertandingan_id') && is_array($request->pertandingan_id)) {
+                foreach($request->pertandingan_id as $index => $a) {
+                    $existing = PertandinganPeserta::where('list_kategori_id', $a)
+                    ->orderBy('urutan')
+                    ->pluck('urutan')
+                    ->toArray();
 
-            foreach($request->pertandingan_id as $index => $a) {
-                $existing = PertandinganPeserta::where('list_kategori_id', $a)
-                ->orderBy('urutan')
-                ->pluck('urutan')
-                ->toArray();
-
-                // Cari urutan kosong
-                $urutanBaru = 1;
-                foreach ($existing as $num) {
-                    if ($num == $urutanBaru) {
-                        $urutanBaru++;
-                    } else {
-                        break; // lubang ditemukan
+                    // Cari urutan kosong
+                    $urutanBaru = 1;
+                    foreach ($existing as $num) {
+                        if ($num == $urutanBaru) {
+                            $urutanBaru++;
+                        } else {
+                            break; // lubang ditemukan
+                        }
                     }
+
+                    $PPA = PertandinganPeserta::create([
+                        'peserta_id' => $peserta->id,
+                        'list_kategori_id' => $a,
+                        'urutan' => $urutanBaru,
+                        'kegiatan_id' => $request->kegiatan_id
+                    ]);
+
+                    $namaTanding = (!empty($request->nama_tanding[$a]) && $request->nama_tanding[$a] !== '-')
+                        ? $request->nama_tanding[$a]
+                        : $peserta->nama;
+                    $tingkatTanding = (!empty($request->tingkat_tanding[$a]) && $request->tingkat_tanding[$a] !== '-')
+                        ? $request->tingkat_tanding[$a]
+                        : $peserta->tingkatan_sabuk;
+
+                    $UKP = new UrutanKomposisiPeserta();
+                    $UKP->pertandingan_peserta_id = $PPA->id;
+                    $UKP->nama = $namaTanding ?? "-";
+                    $UKP->tingkat = $tingkatTanding ?? "-";
+                    $deskripsiUKP = "";
+                    $UKP->urutan_komposisi = $deskripsiUKP;
+                    $UKP->save();
                 }
-
-                $PPA = PertandinganPeserta::create([
-                    'peserta_id' => $peserta->id,
-                    'list_kategori_id' => $a,
-                    'urutan' => $urutanBaru,
-                    'kegiatan_id' => $request->kegiatan_id
-                ]);
-
-                $UKP = new UrutanKomposisiPeserta();
-                $UKP->pertandingan_peserta_id = $PPA->id;
-                $UKP->nama = $request->nama_tanding[$a] ?? "-";
-                $UKP->tingkat = $request->tingkat_tanding[$a] ?? "-";
-                $deskripsiUKP = "";
-                // foreach($request->urutan_tanding[$a] as $b) {
-                //     if($b != "") {
-                //         $deskripsiUKP .= ($b ?? "-").",";
-                //     }
-                // }
-                $UKP->urutan_komposisi = $deskripsiUKP;
-                $UKP->save();
             }
 
 

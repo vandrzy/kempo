@@ -33,6 +33,7 @@
                 <!-- Container Konfirmasi Data Lama (Auto-Fill) -->
                 <div id="existing-data-confirmation" class="hidden mt-2.5 space-y-2"></div>
                 <input type="hidden" name="existing_reference_id" id="existing-reference-id" value="">
+                <input type="hidden" name="unlocked_fields" id="unlocked-fields" value="">
             </div>
 
             <div class="mb-4">
