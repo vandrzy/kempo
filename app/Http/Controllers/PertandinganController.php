@@ -289,34 +289,43 @@ class PertandinganController extends Controller
             }
         }
 
+        $isRandori = ($check && $check->bagan == 1) ||
+                     stripos($check->nama ?? '', 'randori') !== false;
+
         for ($i = 0; $i < $limit; $i++) {
             if (isset($data['kabupaten'][$i])) {
                 $kabupatenId = optional($data['kabupaten'][$i]->first()->Peserta->Kabupaten)->id;
                 $kabupaten_list_1[] = $kabupatenId;
-                $kabupaten_list_2[] = $kabupatenId;
+                if (!$isRandori) {
+                    $kabupaten_list_2[] = $kabupatenId;
+                }
             } else {
                 $kabupaten_list_1[] = null;
-                $kabupaten_list_2[] = null;
+                if (!$isRandori) {
+                    $kabupaten_list_2[] = null;
+                }
             }
         }
 
         shuffle($kabupaten_list_1);
 
-        $attempts = 0;
-        $maxAttempts = 100;
-        do {
-            shuffle($kabupaten_list_2);
+        if (!$isRandori) {
+            $attempts = 0;
+            $maxAttempts = 100;
+            do {
+                shuffle($kabupaten_list_2);
 
-            $valid = true;
-            foreach ($kabupaten_list_1 as $i => $val) {
-                // Abaikan slot Bye (null); hanya cek bentrok jika ID kabupaten bukan null dan berada di indeks yang sama
-                if ($val !== null && $kabupaten_list_2[$i] === $val) {
-                    $valid = false;
-                    break;
+                $valid = true;
+                foreach ($kabupaten_list_1 as $i => $val) {
+                    // Abaikan slot Bye (null); hanya cek bentrok jika ID kabupaten bukan null dan berada di indeks yang sama
+                    if ($val !== null && $kabupaten_list_2[$i] === $val) {
+                        $valid = false;
+                        break;
+                    }
                 }
-            }
-            $attempts++;
-        } while (!$valid && $attempts < $maxAttempts);
+                $attempts++;
+            } while (!$valid && $attempts < $maxAttempts);
+        }
 
         foreach ($kabupaten_list_1 as $index => $a) {
             KontigenPertandingan::create([
@@ -327,13 +336,15 @@ class PertandinganController extends Controller
             ]);
         }
 
-        foreach ($kabupaten_list_2 as $index => $a) {
-            KontigenPertandingan::create([
-                'list_kategori_id' => $id,
-                'kabupaten_id'     => $a,
-                'urutan'           => 2,
-                'undian'           => $index,
-            ]);
+        if (!$isRandori) {
+            foreach ($kabupaten_list_2 as $index => $a) {
+                KontigenPertandingan::create([
+                    'list_kategori_id' => $id,
+                    'kabupaten_id'     => $a,
+                    'urutan'           => 2,
+                    'undian'           => $index,
+                ]);
+            }
         }
 
         // Update status peserta agar sistem mencatat nomor tanding ini sudah diacak
@@ -984,12 +995,218 @@ class PertandinganController extends Controller
             $safeFileName .= '_' . preg_replace('/[^A-Za-z0-9_\-]/', '_', $filteredKabupaten->name);
         }
 
+        $dataBabak1 = [];
+        $dataBabak2 = [];
+        $dataNilaiAkhir = [];
+
+        if (!$isRandori) {
+            // Ambil seluruh peserta kategori ini lengkap dengan relasi
+            $allPp = PertandinganPeserta::with('Peserta.kabupaten')
+                ->where('list_kategori_id', $id)
+                ->get();
+
+            $basePeserta = $allPp->where(fn($p) => $p->babak == 1 || is_null($p->babak));
+            if ($basePeserta->isEmpty()) {
+                $basePeserta = $allPp->unique('peserta_id');
+            }
+
+            $b1Records = $allPp->where(fn($p) => $p->babak == 1 || is_null($p->babak))->keyBy('peserta_id');
+            $b2Records = $allPp->where(fn($p) => $p->babak == 2)->keyBy('peserta_id');
+
+            // Data scoresheet JSON per_babak jika ada
+            $jsonB1 = $scoresheet['per_babak'][1]['peserta'] ?? ($scoresheet['peserta'] ?? []);
+            $jsonB2 = $scoresheet['per_babak'][2]['peserta'] ?? [];
+
+            $grouped = $basePeserta->groupBy(function ($item) {
+                if ($item->Peserta?->kabupaten_id) {
+                    return 'kab_' . $item->Peserta->kabupaten_id;
+                }
+                if (!empty($item->Peserta?->kontigen)) {
+                    return 'kontigen_' . trim(strtolower($item->Peserta->kontigen));
+                }
+                return 'peserta_' . $item->id;
+            });
+
+            foreach ($grouped as $kabId => $items) {
+                $first = $items->first();
+                $kontingenName = optional($first->Peserta?->kabupaten)->name ?? ($first->Peserta?->kontigen ?? 'Tanpa Kontingen');
+                $namaKenshi = $items->pluck('Peserta.nama')->filter()->implode(', ') ?: ($first->Peserta?->nama ?? '-');
+
+                // Filter kabupaten jika ada parameter kabupaten_id
+                if ($kabupatenId) {
+                    $matchesKab = ($first->Peserta?->kabupaten_id == $kabupatenId) ||
+                                  ($filterName && !empty($first->Peserta?->kontigen) && strcasecmp(trim($first->Peserta->kontigen), trim($filterName)) === 0);
+                    if (!$matchesKab) {
+                        continue;
+                    }
+                }
+
+                // Babak 1
+                $b1Items = $items->map(fn($it) => $b1Records->get($it->peserta_id) ?? $it)->filter();
+                $b1_n1 = $b1Items->pluck('nilai_1')->filter(fn($v) => !is_null($v) && $v !== '')->first();
+                $b1_n2 = $b1Items->pluck('nilai_2')->filter(fn($v) => !is_null($v) && $v !== '')->first();
+                $b1_n3 = $b1Items->pluck('nilai_3')->filter(fn($v) => !is_null($v) && $v !== '')->first();
+                $b1_n4 = $b1Items->pluck('nilai_4')->filter(fn($v) => !is_null($v) && $v !== '')->first();
+                $b1_n5 = $b1Items->pluck('nilai_5')->filter(fn($v) => !is_null($v) && $v !== '')->first();
+                $b1_minus = $b1Items->pluck('minus')->filter(fn($v) => !is_null($v) && $v !== '')->first();
+                $b1_total = $b1Items->pluck('total_nilai')->filter(fn($v) => !is_null($v) && $v !== '')->first()
+                    ?? $b1Items->pluck('total_babak_1')->filter(fn($v) => !is_null($v) && $v !== '')->first();
+
+                if ($b1_total === null && !empty($jsonB1)) {
+                    $foundJ = collect($jsonB1)->first(fn($p) => strcasecmp(trim($p['kontingen'] ?? ''), trim($kontingenName)) === 0);
+                    if ($foundJ) {
+                        $b1_n1 = $foundJ['juri_1'] ?? $b1_n1;
+                        $b1_n2 = $foundJ['juri_2'] ?? $b1_n2;
+                        $b1_n3 = $foundJ['juri_3'] ?? $b1_n3;
+                        $b1_n4 = $foundJ['juri_4'] ?? $b1_n4;
+                        $b1_n5 = $foundJ['juri_5'] ?? $b1_n5;
+                        $b1_minus = $foundJ['hukuman'] ?? $b1_minus;
+                        $b1_total = $foundJ['total'] ?? $b1_total;
+                    }
+                }
+
+                // Babak 2
+                $b2Items = $items->map(fn($it) => $b2Records->get($it->peserta_id))->filter();
+                $b2_n1 = $b2Items->pluck('nilai_1')->filter(fn($v) => !is_null($v) && $v !== '')->first();
+                $b2_n2 = $b2Items->pluck('nilai_2')->filter(fn($v) => !is_null($v) && $v !== '')->first();
+                $b2_n3 = $b2Items->pluck('nilai_3')->filter(fn($v) => !is_null($v) && $v !== '')->first();
+                $b2_n4 = $b2Items->pluck('nilai_4')->filter(fn($v) => !is_null($v) && $v !== '')->first();
+                $b2_n5 = $b2Items->pluck('nilai_5')->filter(fn($v) => !is_null($v) && $v !== '')->first();
+                $b2_minus = $b2Items->pluck('minus')->filter(fn($v) => !is_null($v) && $v !== '')->first();
+                $b2_total = $b2Items->pluck('total_nilai')->filter(fn($v) => !is_null($v) && $v !== '')->first()
+                    ?? $b2Items->pluck('total_babak_2')->filter(fn($v) => !is_null($v) && $v !== '')->first();
+
+                if ($b2_total === null && !empty($jsonB2)) {
+                    $foundJ2 = collect($jsonB2)->first(fn($p) => strcasecmp(trim($p['kontingen'] ?? ''), trim($kontingenName)) === 0);
+                    if ($foundJ2) {
+                        $b2_n1 = $foundJ2['juri_1'] ?? $b2_n1;
+                        $b2_n2 = $foundJ2['juri_2'] ?? $b2_n2;
+                        $b2_n3 = $foundJ2['juri_3'] ?? $b2_n3;
+                        $b2_n4 = $foundJ2['juri_4'] ?? $b2_n4;
+                        $b2_n5 = $foundJ2['juri_5'] ?? $b2_n5;
+                        $b2_minus = $foundJ2['hukuman'] ?? $b2_minus;
+                        $b2_total = $foundJ2['total'] ?? $b2_total;
+                    }
+                }
+
+                // Nilai Akhir
+                $nilaiAkhir = $b1Items->pluck('nilai_akhir')->filter(fn($v) => !is_null($v) && $v !== '')->first()
+                    ?? $b2Items->pluck('nilai_akhir')->filter(fn($v) => !is_null($v) && $v !== '')->first();
+
+                if ($nilaiAkhir === null) {
+                    if ($b1_total !== null && $b2_total !== null) {
+                        $nilaiAkhir = round(((float)$b1_total + (float)$b2_total) / 2, 2);
+                    } elseif ($b1_total !== null) {
+                        $nilaiAkhir = (float)$b1_total;
+                    } elseif ($b2_total !== null) {
+                        $nilaiAkhir = (float)$b2_total;
+                    }
+                }
+
+                $dataBabak1[] = [
+                    'kontingen' => $kontingenName,
+                    'nama'      => $namaKenshi,
+                    'juri_1'    => $b1_n1,
+                    'juri_2'    => $b1_n2,
+                    'juri_3'    => $b1_n3,
+                    'juri_4'    => $b1_n4,
+                    'juri_5'    => $b1_n5,
+                    'hukuman'   => $b1_minus,
+                    'total'     => $b1_total,
+                    'urutan'    => $first->urutan ?? 0,
+                ];
+
+                $dataBabak2[] = [
+                    'kontingen' => $kontingenName,
+                    'nama'      => $namaKenshi,
+                    'juri_1'    => $b2_n1,
+                    'juri_2'    => $b2_n2,
+                    'juri_3'    => $b2_n3,
+                    'juri_4'    => $b2_n4,
+                    'juri_5'    => $b2_n5,
+                    'hukuman'   => $b2_minus,
+                    'total'     => $b2_total,
+                    'urutan'    => $first->urutan ?? 0,
+                ];
+
+                $dataNilaiAkhir[] = [
+                    'kontingen'     => $kontingenName,
+                    'nama'          => $namaKenshi,
+                    'nilai_babak_1' => $b1_total,
+                    'nilai_babak_2' => $b2_total,
+                    'nilai_akhir'   => $nilaiAkhir,
+                    'medali'        => $b1Items->pluck('medali')->filter()->first() ?? $b2Items->pluck('medali')->filter()->first(),
+                    'urutan'        => $first->urutan ?? 0,
+                ];
+            }
+
+            // Urutkan dataNilaiAkhir berdasarkan nilai_akhir DESC
+            usort($dataNilaiAkhir, function ($a, $b) {
+                $naA = $a['nilai_akhir'] ?? -1;
+                $naB = $b['nilai_akhir'] ?? -1;
+                if ($naA != $naB) {
+                    return $naB <=> $naA;
+                }
+                $b2A = $a['nilai_babak_2'] ?? -1;
+                $b2B = $b['nilai_babak_2'] ?? -1;
+                if ($b2A != $b2B) {
+                    return $b2B <=> $b2A;
+                }
+                $b1A = $a['nilai_babak_1'] ?? -1;
+                $b1B = $b['nilai_babak_1'] ?? -1;
+                if ($b1A != $b1B) {
+                    return $b1B <=> $b1A;
+                }
+                return ($a['urutan'] ?? 0) <=> ($b['urutan'] ?? 0);
+            });
+
+            // Beri label Juara pada dataNilaiAkhir
+            $rank = 1;
+            foreach ($dataNilaiAkhir as &$row) {
+                if (($row['nilai_akhir'] ?? 0) > 0) {
+                    if ($rank === 1) {
+                        $row['juara'] = 'Juara 1';
+                    } elseif ($rank === 2) {
+                        $row['juara'] = 'Juara 2';
+                    } elseif ($rank === 3) {
+                        $row['juara'] = 'Juara 3';
+                    } else {
+                        $row['juara'] = 'Peringkat ' . $rank;
+                    }
+                    $rank++;
+                } else {
+                    $row['juara'] = '-';
+                }
+            }
+            unset($row);
+
+            // Sinkronkan peraih medali $juara dari dataNilaiAkhir jika belum diset manual
+            if (empty($juara['emas']['kabupaten_nama']) && isset($dataNilaiAkhir[0]) && ($dataNilaiAkhir[0]['nilai_akhir'] ?? 0) > 0) {
+                $juara['emas'] = [
+                    'kabupaten_nama' => $dataNilaiAkhir[0]['kontingen'],
+                    'peserta_nama'   => $dataNilaiAkhir[0]['nama'],
+                ];
+            }
+            if (empty($juara['perak']['kabupaten_nama']) && isset($dataNilaiAkhir[1]) && ($dataNilaiAkhir[1]['nilai_akhir'] ?? 0) > 0) {
+                $juara['perak'] = [
+                    'kabupaten_nama' => $dataNilaiAkhir[1]['kontingen'],
+                    'peserta_nama'   => $dataNilaiAkhir[1]['nama'],
+                ];
+            }
+            if (empty($juara['perunggu']['kabupaten_nama']) && isset($dataNilaiAkhir[2]) && ($dataNilaiAkhir[2]['nilai_akhir'] ?? 0) > 0) {
+                $juara['perunggu'] = [
+                    'kabupaten_nama' => $dataNilaiAkhir[2]['kontingen'],
+                    'peserta_nama'   => $dataNilaiAkhir[2]['nama'],
+                ];
+            }
+        }
+
         if ($isRandori && !empty($scoresheet['partai']) && empty($scoresheet['peserta'])) {
             $pdf = Pdf::loadView('pertandingan.pdf_randori', compact('listKategori', 'scoresheet', 'juara', 'peserta_list', 'filteredKabupaten'))
                 ->setPaper('a4', 'landscape');
             return $pdf->stream('Randori_' . $safeFileName . '.pdf');
         } else {
-            $pdf = Pdf::loadView('pertandingan.pdf_embu', compact('listKategori', 'scoresheet', 'juara', 'peserta_list', 'isRandori', 'filteredKabupaten'))
+            $pdf = Pdf::loadView('pertandingan.pdf_embu', compact('listKategori', 'scoresheet', 'juara', 'peserta_list', 'isRandori', 'filteredKabupaten', 'dataBabak1', 'dataBabak2', 'dataNilaiAkhir'))
                 ->setPaper('a4', 'portrait');
             return $pdf->stream(($isRandori ? 'Randori_' : 'Embu_') . $safeFileName . '.pdf');
         }
@@ -1142,22 +1359,38 @@ class PertandinganController extends Controller
                     $kabId = $first->Peserta?->kabupaten_id;
                     $ppIds = $items->pluck('id')->toArray();
 
-                    $waktu = $items->pluck('waktu')->filter()->first() ?? '';
-                    $n1 = $items->pluck('nilai_1')->filter(fn($v) => !is_null($v))->first();
-                    $n2 = $items->pluck('nilai_2')->filter(fn($v) => !is_null($v))->first();
-                    $n3 = $items->pluck('nilai_3')->filter(fn($v) => !is_null($v))->first();
-                    $n4 = $items->pluck('nilai_4')->filter(fn($v) => !is_null($v))->first();
-                    $n5 = $items->pluck('nilai_5')->filter(fn($v) => !is_null($v))->first();
-                    $minus = $items->pluck('minus')->filter(fn($v) => !is_null($v))->first() ?? 0;
-                    $totalNilai = $items->pluck('total_nilai')->filter(fn($v) => !is_null($v))->first();
+                    $b1Items = $items->filter(fn($it) => $it->babak == 1 || is_null($it->babak));
+                    $b2Items = $items->filter(fn($it) => $it->babak == 2);
 
-                    $scores = [
-                        floatval($n1 ?? 0),
-                        floatval($n2 ?? 0),
-                        floatval($n3 ?? 0),
-                        floatval($n4 ?? 0),
-                        floatval($n5 ?? 0)
-                    ];
+                    // Data Babak 1
+                    $b1_waktu = $b1Items->pluck('waktu')->filter(fn($v) => !empty($v) && $v !== '00:00')->first() ?? '';
+                    $b1_n1 = $b1Items->pluck('nilai_1')->filter(fn($v) => !is_null($v) && $v !== '')->first();
+                    $b1_n2 = $b1Items->pluck('nilai_2')->filter(fn($v) => !is_null($v) && $v !== '')->first();
+                    $b1_n3 = $b1Items->pluck('nilai_3')->filter(fn($v) => !is_null($v) && $v !== '')->first();
+                    $b1_n4 = $b1Items->pluck('nilai_4')->filter(fn($v) => !is_null($v) && $v !== '')->first();
+                    $b1_n5 = $b1Items->pluck('nilai_5')->filter(fn($v) => !is_null($v) && $v !== '')->first();
+                    $b1_minus = $b1Items->pluck('minus')->filter(fn($v) => !is_null($v) && $v !== '')->first() ?? 0;
+                    $b1_total = $b1Items->pluck('total_nilai')->filter(fn($v) => !is_null($v) && $v !== '')->first();
+
+                    // Data Babak 2
+                    $b2_waktu = $b2Items->pluck('waktu')->filter(fn($v) => !empty($v) && $v !== '00:00')->first() ?? '';
+                    $b2_n1 = $b2Items->pluck('nilai_1')->filter(fn($v) => !is_null($v) && $v !== '')->first();
+                    $b2_n2 = $b2Items->pluck('nilai_2')->filter(fn($v) => !is_null($v) && $v !== '')->first();
+                    $b2_n3 = $b2Items->pluck('nilai_3')->filter(fn($v) => !is_null($v) && $v !== '')->first();
+                    $b2_n4 = $b2Items->pluck('nilai_4')->filter(fn($v) => !is_null($v) && $v !== '')->first();
+                    $b2_n5 = $b2Items->pluck('nilai_5')->filter(fn($v) => !is_null($v) && $v !== '')->first();
+                    $b2_minus = $b2Items->pluck('minus')->filter(fn($v) => !is_null($v) && $v !== '')->first() ?? 0;
+                    $b2_total = $b2Items->pluck('total_nilai')->filter(fn($v) => !is_null($v) && $v !== '')->first();
+
+                    // Nilai Akumulasi
+                    $totB1 = $items->pluck('total_babak_1')->filter(fn($v) => !is_null($v))->first() ?? $b1_total;
+                    $totB2 = $items->pluck('total_babak_2')->filter(fn($v) => !is_null($v))->first() ?? $b2_total;
+                    $nilaiAkhir = $items->pluck('nilai_akhir')->filter(fn($v) => !is_null($v))->first();
+                    if ($nilaiAkhir === null && $totB1 !== null && $totB2 !== null) {
+                        $nilaiAkhir = round(((float)$totB1 + (float)$totB2) / 2, 2);
+                    } elseif ($nilaiAkhir === null && $totB1 !== null) {
+                        $nilaiAkhir = (float)$totB1;
+                    }
 
                     $pesertaGroups[] = [
                         'row_index'     => $groupIndex,
@@ -1167,16 +1400,43 @@ class PertandinganController extends Controller
                         'nama_gabungan' => $names ?: ('Peserta #' . ($groupIndex + 1)),
                         'kontingen'     => $kName,
                         'kabupaten_id'  => $kabId,
-                        'waktu'         => $waktu,
-                        'scores'        => $scores,
-                        'nilai_1'       => $n1,
-                        'nilai_2'       => $n2,
-                        'nilai_3'       => $n3,
-                        'nilai_4'       => $n4,
-                        'nilai_5'       => $n5,
-                        'genten'        => floatval($minus ?? 0),
-                        'minus'         => floatval($minus ?? 0),
-                        'total_nilai'   => $totalNilai !== null ? floatval($totalNilai) : null,
+                        'babak_1'       => [
+                            'waktu'       => $b1_waktu,
+                            'scores'      => [floatval($b1_n1 ?? 0), floatval($b1_n2 ?? 0), floatval($b1_n3 ?? 0), floatval($b1_n4 ?? 0), floatval($b1_n5 ?? 0)],
+                            'nilai_1'     => $b1_n1,
+                            'nilai_2'     => $b1_n2,
+                            'nilai_3'     => $b1_n3,
+                            'nilai_4'     => $b1_n4,
+                            'nilai_5'     => $b1_n5,
+                            'genten'      => floatval($b1_minus ?? 0),
+                            'minus'       => floatval($b1_minus ?? 0),
+                            'total_nilai' => $b1_total !== null ? floatval($b1_total) : null,
+                        ],
+                        'babak_2'       => [
+                            'waktu'       => $b2_waktu,
+                            'scores'      => [floatval($b2_n1 ?? 0), floatval($b2_n2 ?? 0), floatval($b2_n3 ?? 0), floatval($b2_n4 ?? 0), floatval($b2_n5 ?? 0)],
+                            'nilai_1'     => $b2_n1,
+                            'nilai_2'     => $b2_n2,
+                            'nilai_3'     => $b2_n3,
+                            'nilai_4'     => $b2_n4,
+                            'nilai_5'     => $b2_n5,
+                            'genten'      => floatval($b2_minus ?? 0),
+                            'minus'       => floatval($b2_minus ?? 0),
+                            'total_nilai' => $b2_total !== null ? floatval($b2_total) : null,
+                        ],
+                        'total_babak_1' => $totB1 !== null ? floatval($totB1) : null,
+                        'total_babak_2' => $totB2 !== null ? floatval($totB2) : null,
+                        'nilai_akhir'   => $nilaiAkhir !== null ? floatval($nilaiAkhir) : null,
+                        'waktu'         => $b1_waktu ?: $b2_waktu,
+                        'scores'        => [floatval($b1_n1 ?? 0), floatval($b1_n2 ?? 0), floatval($b1_n3 ?? 0), floatval($b1_n4 ?? 0), floatval($b1_n5 ?? 0)],
+                        'nilai_1'       => $b1_n1,
+                        'nilai_2'       => $b1_n2,
+                        'nilai_3'       => $b1_n3,
+                        'nilai_4'       => $b1_n4,
+                        'nilai_5'       => $b1_n5,
+                        'genten'        => floatval($b1_minus ?? 0),
+                        'minus'         => floatval($b1_minus ?? 0),
+                        'total_nilai'   => $b1_total !== null ? floatval($b1_total) : null,
                     ];
                     $groupIndex++;
                 }
@@ -1254,22 +1514,38 @@ class PertandinganController extends Controller
             $kName = optional($first->Peserta?->kabupaten)->name ?? ($first->Peserta?->kontigen ?? 'Tanpa Kontingen');
             $ppIds = $items->pluck('id')->toArray();
 
-            $waktu = $items->pluck('waktu')->filter()->first() ?? '';
-            $n1 = $items->pluck('nilai_1')->filter(fn($v) => !is_null($v))->first();
-            $n2 = $items->pluck('nilai_2')->filter(fn($v) => !is_null($v))->first();
-            $n3 = $items->pluck('nilai_3')->filter(fn($v) => !is_null($v))->first();
-            $n4 = $items->pluck('nilai_4')->filter(fn($v) => !is_null($v))->first();
-            $n5 = $items->pluck('nilai_5')->filter(fn($v) => !is_null($v))->first();
-            $minus = $items->pluck('minus')->filter(fn($v) => !is_null($v))->first() ?? 0;
-            $totalNilai = $items->pluck('total_nilai')->filter(fn($v) => !is_null($v))->first();
+            $b1Items = $items->filter(fn($it) => $it->babak == 1 || is_null($it->babak));
+            $b2Items = $items->filter(fn($it) => $it->babak == 2);
 
-            $scores = [
-                floatval($n1 ?? 0),
-                floatval($n2 ?? 0),
-                floatval($n3 ?? 0),
-                floatval($n4 ?? 0),
-                floatval($n5 ?? 0)
-            ];
+            // Data Babak 1
+            $b1_waktu = $b1Items->pluck('waktu')->filter(fn($v) => !empty($v) && $v !== '00:00')->first() ?? '';
+            $b1_n1 = $b1Items->pluck('nilai_1')->filter(fn($v) => !is_null($v) && $v !== '')->first();
+            $b1_n2 = $b1Items->pluck('nilai_2')->filter(fn($v) => !is_null($v) && $v !== '')->first();
+            $b1_n3 = $b1Items->pluck('nilai_3')->filter(fn($v) => !is_null($v) && $v !== '')->first();
+            $b1_n4 = $b1Items->pluck('nilai_4')->filter(fn($v) => !is_null($v) && $v !== '')->first();
+            $b1_n5 = $b1Items->pluck('nilai_5')->filter(fn($v) => !is_null($v) && $v !== '')->first();
+            $b1_minus = $b1Items->pluck('minus')->filter(fn($v) => !is_null($v) && $v !== '')->first() ?? 0;
+            $b1_total = $b1Items->pluck('total_nilai')->filter(fn($v) => !is_null($v) && $v !== '')->first();
+
+            // Data Babak 2
+            $b2_waktu = $b2Items->pluck('waktu')->filter(fn($v) => !empty($v) && $v !== '00:00')->first() ?? '';
+            $b2_n1 = $b2Items->pluck('nilai_1')->filter(fn($v) => !is_null($v) && $v !== '')->first();
+            $b2_n2 = $b2Items->pluck('nilai_2')->filter(fn($v) => !is_null($v) && $v !== '')->first();
+            $b2_n3 = $b2Items->pluck('nilai_3')->filter(fn($v) => !is_null($v) && $v !== '')->first();
+            $b2_n4 = $b2Items->pluck('nilai_4')->filter(fn($v) => !is_null($v) && $v !== '')->first();
+            $b2_n5 = $b2Items->pluck('nilai_5')->filter(fn($v) => !is_null($v) && $v !== '')->first();
+            $b2_minus = $b2Items->pluck('minus')->filter(fn($v) => !is_null($v) && $v !== '')->first() ?? 0;
+            $b2_total = $b2Items->pluck('total_nilai')->filter(fn($v) => !is_null($v) && $v !== '')->first();
+
+            // Nilai Akumulasi
+            $totB1 = $items->pluck('total_babak_1')->filter(fn($v) => !is_null($v))->first() ?? $b1_total;
+            $totB2 = $items->pluck('total_babak_2')->filter(fn($v) => !is_null($v))->first() ?? $b2_total;
+            $nilaiAkhir = $items->pluck('nilai_akhir')->filter(fn($v) => !is_null($v))->first();
+            if ($nilaiAkhir === null && $totB1 !== null && $totB2 !== null) {
+                $nilaiAkhir = round(((float)$totB1 + (float)$totB2) / 2, 2);
+            } elseif ($nilaiAkhir === null && $totB1 !== null) {
+                $nilaiAkhir = (float)$totB1;
+            }
 
             $pesertaGroups[] = [
                 'row_index'    => $groupIndex,
@@ -1279,16 +1555,43 @@ class PertandinganController extends Controller
                 'nama'         => $pNames ?: ($first->Peserta?->nama ?? '-'),
                 'kontingen'    => $kName,
                 'kabupaten_id' => $first->Peserta?->kabupaten_id,
-                'waktu'        => $waktu,
-                'scores'       => $scores,
-                'nilai_1'      => $n1,
-                'nilai_2'      => $n2,
-                'nilai_3'      => $n3,
-                'nilai_4'      => $n4,
-                'nilai_5'      => $n5,
-                'minus'        => floatval($minus ?? 0),
-                'genten'       => floatval($minus ?? 0),
-                'total_nilai'  => $totalNilai !== null ? floatval($totalNilai) : null,
+                'babak_1'      => [
+                    'waktu'       => $b1_waktu,
+                    'scores'      => [floatval($b1_n1 ?? 0), floatval($b1_n2 ?? 0), floatval($b1_n3 ?? 0), floatval($b1_n4 ?? 0), floatval($b1_n5 ?? 0)],
+                    'nilai_1'     => $b1_n1,
+                    'nilai_2'     => $b1_n2,
+                    'nilai_3'     => $b1_n3,
+                    'nilai_4'     => $b1_n4,
+                    'nilai_5'     => $b1_n5,
+                    'genten'      => floatval($b1_minus ?? 0),
+                    'minus'       => floatval($b1_minus ?? 0),
+                    'total_nilai' => $b1_total !== null ? floatval($b1_total) : null,
+                ],
+                'babak_2'      => [
+                    'waktu'       => $b2_waktu,
+                    'scores'      => [floatval($b2_n1 ?? 0), floatval($b2_n2 ?? 0), floatval($b2_n3 ?? 0), floatval($b2_n4 ?? 0), floatval($b2_n5 ?? 0)],
+                    'nilai_1'     => $b2_n1,
+                    'nilai_2'     => $b2_n2,
+                    'nilai_3'     => $b2_n3,
+                    'nilai_4'     => $b2_n4,
+                    'nilai_5'     => $b2_n5,
+                    'genten'      => floatval($b2_minus ?? 0),
+                    'minus'       => floatval($b2_minus ?? 0),
+                    'total_nilai' => $b2_total !== null ? floatval($b2_total) : null,
+                ],
+                'total_babak_1' => $totB1 !== null ? floatval($totB1) : null,
+                'total_babak_2' => $totB2 !== null ? floatval($totB2) : null,
+                'nilai_akhir'   => $nilaiAkhir !== null ? floatval($nilaiAkhir) : null,
+                'waktu'         => $b1_waktu ?: $b2_waktu,
+                'scores'        => [floatval($b1_n1 ?? 0), floatval($b1_n2 ?? 0), floatval($b1_n3 ?? 0), floatval($b1_n4 ?? 0), floatval($b1_n5 ?? 0)],
+                'nilai_1'       => $b1_n1,
+                'nilai_2'       => $b1_n2,
+                'nilai_3'       => $b1_n3,
+                'nilai_4'       => $b1_n4,
+                'nilai_5'       => $b1_n5,
+                'minus'         => floatval($b1_minus ?? 0),
+                'genten'        => floatval($b1_minus ?? 0),
+                'total_nilai'   => $b1_total !== null ? floatval($b1_total) : null,
             ];
             $groupIndex++;
         }
@@ -1425,8 +1728,12 @@ class PertandinganController extends Controller
     /**
      * Mengambil data peserta pertandingan dikelompokkan per kontingen untuk modal scoresheet & medali
      */
-    public function getPesertaPertandingan($id)
+    public function getPesertaPertandingan(Request $request, $id)
     {
+        $babakParam = $request->query('babak', '1');
+        $isTampilanAkhir = ($babakParam === 'akhir');
+        $babak = ($babakParam === '2') ? 2 : 1;
+
         $listKategori = ListKategori::with(['pertandingan.kategori', 'kategori'])->find($id);
         $pertandingan = null;
 
@@ -1436,7 +1743,23 @@ class PertandinganController extends Controller
             $pertandingan = Pertandingan::with('kategori')->find($id);
         }
 
-        $allPeserta = PertandinganPeserta::with(['Peserta.kabupaten'])
+        $isRandori = false;
+        if ($listKategori) {
+            $isRandori = stripos($listKategori->pertandingan->nama ?? '', 'randori') !== false ||
+                         stripos($listKategori->kategori->nama ?? '', 'randori') !== false;
+        } elseif ($pertandingan) {
+            $isRandori = stripos($pertandingan->nama ?? '', 'randori') !== false ||
+                         stripos($pertandingan->kategori->nama ?? '', 'randori') !== false;
+        }
+
+        if ($isRandori) {
+            $babak = 1;
+            $isTampilanAkhir = false;
+            $babakParam = '1';
+        }
+
+        // Ambil peserta dasar pada nomor pertandingan ini (babak 1 atau tanpa babak)
+        $basePeserta = PertandinganPeserta::with(['Peserta.kabupaten'])
             ->where(function ($q) use ($id, $listKategori) {
                 $q->where('list_kategori_id', $id)
                   ->orWhere('pertandingan_id', $id);
@@ -1444,11 +1767,59 @@ class PertandinganController extends Controller
                     $q->orWhere('pertandingan_id', $listKategori->pertandingan_id);
                 }
             })
+            ->where(function ($q) {
+                $q->where('babak', 1)->orWhereNull('babak');
+            })
             ->orderBy('urutan')
             ->get();
 
+        // Jika peserta dasar kosong, coba fallback ambil tanpa filter babak
+        if ($basePeserta->isEmpty()) {
+            $basePeserta = PertandinganPeserta::with(['Peserta.kabupaten'])
+                ->where(function ($q) use ($id, $listKategori) {
+                    $q->where('list_kategori_id', $id)
+                      ->orWhere('pertandingan_id', $id);
+                    if ($listKategori && $listKategori->pertandingan_id) {
+                        $q->orWhere('pertandingan_id', $listKategori->pertandingan_id);
+                    }
+                })
+                ->orderBy('urutan')
+                ->get()
+                ->unique('peserta_id');
+        }
+
+        // Ambil data Babak 1 dan Babak 2 lengkap untuk nomor pertandingan ini
+        $b1Records = collect();
+        $b2Records = collect();
+
+        if (!$isRandori) {
+            $b1Records = PertandinganPeserta::where(function ($q) use ($id, $listKategori) {
+                    $q->where('list_kategori_id', $id)
+                      ->orWhere('pertandingan_id', $id);
+                    if ($listKategori && $listKategori->pertandingan_id) {
+                        $q->orWhere('pertandingan_id', $listKategori->pertandingan_id);
+                    }
+                })
+                ->where(function ($q) {
+                    $q->where('babak', 1)->orWhereNull('babak');
+                })
+                ->get()
+                ->keyBy('peserta_id');
+
+            $b2Records = PertandinganPeserta::where(function ($q) use ($id, $listKategori) {
+                    $q->where('list_kategori_id', $id)
+                      ->orWhere('pertandingan_id', $id);
+                    if ($listKategori && $listKategori->pertandingan_id) {
+                        $q->orWhere('pertandingan_id', $listKategori->pertandingan_id);
+                    }
+                })
+                ->where('babak', 2)
+                ->get()
+                ->keyBy('peserta_id');
+        }
+
         // Kelompokkan peserta langsung berdasarkan kontingen (kabupaten_id atau kontigen nama)
-        $grouped = $allPeserta->groupBy(function ($item) {
+        $grouped = $basePeserta->groupBy(function ($item) {
             if ($item->Peserta?->kabupaten_id) {
                 return 'kab_' . $item->Peserta->kabupaten_id;
             }
@@ -1467,38 +1838,162 @@ class PertandinganController extends Controller
             $kName = optional($first->Peserta?->kabupaten)->name ?? ($first->Peserta?->kontigen ?? 'Tanpa Kontingen');
             $ppIds = $items->pluck('id')->toArray();
 
-            // Cari nilai pertama yang tidak kosong dalam kontingen ini
-            $waktu = $items->pluck('waktu')->filter(fn($v) => !empty($v) && $v !== '00:00')->first() ?? '';
-            $n1 = $items->pluck('nilai_1')->filter(fn($v) => !is_null($v) && $v !== '')->first();
-            $n2 = $items->pluck('nilai_2')->filter(fn($v) => !is_null($v) && $v !== '')->first();
-            $n3 = $items->pluck('nilai_3')->filter(fn($v) => !is_null($v) && $v !== '')->first();
-            $n4 = $items->pluck('nilai_4')->filter(fn($v) => !is_null($v) && $v !== '')->first();
-            $n5 = $items->pluck('nilai_5')->filter(fn($v) => !is_null($v) && $v !== '')->first();
-            $totalNilai = $items->pluck('total_nilai')->filter(fn($v) => !is_null($v) && $v !== '')->first();
+            // Kumpulkan record babak 1 dan babak 2 untuk kontingen ini
+            $b1Items = $items->map(function ($it) use ($b1Records) {
+                return $b1Records->get($it->peserta_id) ?? $it;
+            })->filter();
 
-            $hasAnyJudgeScore = $n1 !== null || $n2 !== null || $n3 !== null || $n4 !== null || $n5 !== null || $totalNilai !== null;
-            $rawMinus = $items->pluck('minus')->filter(fn($v) => !is_null($v) && $v !== '')->first();
-            $minus = ($hasAnyJudgeScore || (floatval($rawMinus) > 0)) ? $rawMinus : null;
+            $b2Items = $items->map(function ($it) use ($b2Records) {
+                return $b2Records->get($it->peserta_id);
+            })->filter();
+
+            // Total Nilai Babak 1
+            $b1Total = $b1Items->pluck('total_nilai')->filter(fn($v) => !is_null($v) && $v !== '')->first()
+                ?? $b1Items->pluck('total_babak_1')->filter(fn($v) => !is_null($v) && $v !== '')->first();
+
+            // Total Nilai Babak 2
+            $b2Total = $b2Items->pluck('total_nilai')->filter(fn($v) => !is_null($v) && $v !== '')->first()
+                ?? $b2Items->pluck('total_babak_2')->filter(fn($v) => !is_null($v) && $v !== '')->first();
+
+            // Nilai Akhir: rata-rata Babak 1 dan Babak 2
+            $nilaiAkhir = $b1Items->pluck('nilai_akhir')->filter(fn($v) => !is_null($v) && $v !== '')->first()
+                ?? $b2Items->pluck('nilai_akhir')->filter(fn($v) => !is_null($v) && $v !== '')->first();
+
+            if ($nilaiAkhir === null) {
+                if ($b1Total !== null && $b2Total !== null) {
+                    $nilaiAkhir = round(((float)$b1Total + (float)$b2Total) / 2, 2);
+                } elseif ($b1Total !== null) {
+                    $nilaiAkhir = (float)$b1Total;
+                } elseif ($b2Total !== null) {
+                    $nilaiAkhir = (float)$b2Total;
+                }
+            }
+
+            // Data formulir aktif (sesuai babak yang sedang dipilih)
+            if ($babak == 2 && !$isRandori) {
+                if ($b2Items->isNotEmpty()) {
+                    $waktu = $b2Items->pluck('waktu')->filter(fn($v) => !empty($v) && $v !== '00:00')->first() ?? '';
+                    $n1 = $b2Items->pluck('nilai_1')->filter(fn($v) => !is_null($v) && $v !== '')->first();
+                    $n2 = $b2Items->pluck('nilai_2')->filter(fn($v) => !is_null($v) && $v !== '')->first();
+                    $n3 = $b2Items->pluck('nilai_3')->filter(fn($v) => !is_null($v) && $v !== '')->first();
+                    $n4 = $b2Items->pluck('nilai_4')->filter(fn($v) => !is_null($v) && $v !== '')->first();
+                    $n5 = $b2Items->pluck('nilai_5')->filter(fn($v) => !is_null($v) && $v !== '')->first();
+                    $totalNilai = $b2Items->pluck('total_nilai')->filter(fn($v) => !is_null($v) && $v !== '')->first();
+
+                    $hasAnyJudgeScore = $n1 !== null || $n2 !== null || $n3 !== null || $n4 !== null || $n5 !== null || $totalNilai !== null;
+                    $rawMinus = $b2Items->pluck('minus')->filter(fn($v) => !is_null($v) && $v !== '')->first();
+                    $minus = ($hasAnyJudgeScore || (floatval($rawMinus) > 0)) ? $rawMinus : null;
+                    $medali = $b2Items->pluck('medali')->filter()->first() ?? $items->pluck('medali')->filter()->first();
+                } else {
+                    $waktu = '';
+                    $n1 = null;
+                    $n2 = null;
+                    $n3 = null;
+                    $n4 = null;
+                    $n5 = null;
+                    $minus = null;
+                    $totalNilai = null;
+                    $medali = $items->pluck('medali')->filter()->first();
+                }
+            } else {
+                // Babak 1 (atau Randori)
+                $waktu = $b1Items->pluck('waktu')->filter(fn($v) => !empty($v) && $v !== '00:00')->first() ?? '';
+                $n1 = $b1Items->pluck('nilai_1')->filter(fn($v) => !is_null($v) && $v !== '')->first();
+                $n2 = $b1Items->pluck('nilai_2')->filter(fn($v) => !is_null($v) && $v !== '')->first();
+                $n3 = $b1Items->pluck('nilai_3')->filter(fn($v) => !is_null($v) && $v !== '')->first();
+                $n4 = $b1Items->pluck('nilai_4')->filter(fn($v) => !is_null($v) && $v !== '')->first();
+                $n5 = $b1Items->pluck('nilai_5')->filter(fn($v) => !is_null($v) && $v !== '')->first();
+                $totalNilai = $b1Items->pluck('total_nilai')->filter(fn($v) => !is_null($v) && $v !== '')->first();
+
+                $hasAnyJudgeScore = $n1 !== null || $n2 !== null || $n3 !== null || $n4 !== null || $n5 !== null || $totalNilai !== null;
+                $rawMinus = $b1Items->pluck('minus')->filter(fn($v) => !is_null($v) && $v !== '')->first();
+                $minus = ($hasAnyJudgeScore || (floatval($rawMinus) > 0)) ? $rawMinus : null;
+                $medali = $b1Items->pluck('medali')->filter()->first() ?? $items->pluck('medali')->filter()->first();
+            }
 
             $groups[] = [
-                'row_index'    => $groupIndex,
-                'id'           => $first->id,
-                'pp_ids'       => $ppIds,
-                'urutan'       => $first->urutan ?? ($groupIndex + 1),
-                'nama'         => $pNames ?: ($first->Peserta?->nama ?? '-'),
-                'kontingen'    => $kName,
-                'kabupaten_id' => $first->Peserta?->kabupaten_id,
-                'waktu'        => $waktu,
-                'nilai_1'      => $n1,
-                'nilai_2'      => $n2,
-                'nilai_3'      => $n3,
-                'nilai_4'      => $n4,
-                'nilai_5'      => $n5,
-                'minus'        => $minus,
-                'total_nilai'  => $totalNilai,
-                'medali'       => $items->pluck('medali')->filter()->first(),
+                'row_index'     => $groupIndex,
+                'id'            => $first->id,
+                'pp_ids'        => $ppIds,
+                'urutan'        => $first->urutan ?? ($groupIndex + 1),
+                'nama'          => $pNames ?: ($first->Peserta?->nama ?? '-'),
+                'kontingen'     => $kName,
+                'kabupaten_id'  => $first->Peserta?->kabupaten_id,
+                'waktu'         => $waktu,
+                'nilai_1'       => $n1,
+                'nilai_2'       => $n2,
+                'nilai_3'       => $n3,
+                'nilai_4'       => $n4,
+                'nilai_5'       => $n5,
+                'minus'         => $minus,
+                'total_nilai'   => $totalNilai,
+                'total_babak_1' => $b1Total !== null ? (float)$b1Total : null,
+                'total_babak_2' => $b2Total !== null ? (float)$b2Total : null,
+                'nilai_akhir'   => $nilaiAkhir !== null ? (float)$nilaiAkhir : null,
+                'medali'        => $medali,
             ];
             $groupIndex++;
+        }
+
+        // Khusus tampilan Nilai Akhir (Rekapitulasi), urutkan peserta berdasarkan Nilai Akhir tertinggi (ORDER BY nilai_akhir DESC)
+        if ($isTampilanAkhir) {
+            usort($groups, function ($a, $b) {
+                $naA = $a['nilai_akhir'] ?? -1;
+                $naB = $b['nilai_akhir'] ?? -1;
+                if ($naA != $naB) {
+                    return $naB <=> $naA;
+                }
+                // Tie-breaker 1: Nilai Babak 2 tertinggi
+                $b2A = $a['total_babak_2'] ?? -1;
+                $b2B = $b['total_babak_2'] ?? -1;
+                if ($b2A != $b2B) {
+                    return $b2B <=> $b2A;
+                }
+                // Tie-breaker 2: Nilai Babak 1 tertinggi
+                $b1A = $a['total_babak_1'] ?? -1;
+                $b1B = $b['total_babak_1'] ?? -1;
+                if ($b1A != $b1B) {
+                    return $b1B <=> $b1A;
+                }
+                // Tie-breaker 3: Denda (minus) terendah
+                $mA = $a['minus'] ?? 999;
+                $mB = $b['minus'] ?? 999;
+                if ($mA != $mB) {
+                    return $mA <=> $mB;
+                }
+                return ($a['urutan'] ?? 0) <=> ($b['urutan'] ?? 0);
+            });
+
+            // Tentukan predikat Juara berdasarkan urutan Nilai Akhir
+            $rank = 1;
+            foreach ($groups as $idx => &$grp) {
+                $grp['row_index'] = $idx;
+                if (($grp['nilai_akhir'] ?? 0) > 0) {
+                    if ($rank === 1) {
+                        $grp['juara_label'] = 'Juara 1';
+                        $grp['juara_tingkat'] = 1;
+                        $grp['medali_auto'] = 'emas';
+                    } elseif ($rank === 2) {
+                        $grp['juara_label'] = 'Juara 2';
+                        $grp['juara_tingkat'] = 2;
+                        $grp['medali_auto'] = 'perak';
+                    } elseif ($rank === 3) {
+                        $grp['juara_label'] = 'Juara 3';
+                        $grp['juara_tingkat'] = 3;
+                        $grp['medali_auto'] = 'perunggu';
+                    } else {
+                        $grp['juara_label'] = 'Peringkat ' . $rank;
+                        $grp['juara_tingkat'] = $rank;
+                        $grp['medali_auto'] = null;
+                    }
+                    $rank++;
+                } else {
+                    $grp['juara_label'] = '-';
+                    $grp['juara_tingkat'] = null;
+                    $grp['medali_auto'] = null;
+                }
+            }
+            unset($grp);
         }
 
         if ($listKategori) {
@@ -1508,6 +2003,8 @@ class PertandinganController extends Controller
         return response()->json([
             'status'       => 'success',
             'pertandingan' => $listKategori ?: $pertandingan,
+            'is_randori'   => $isRandori,
+            'babak'        => $babakParam,
             'peserta'      => $groups
         ]);
     }
@@ -1526,16 +2023,36 @@ class PertandinganController extends Controller
                 $pertandingan = Pertandingan::find($id);
             }
 
+            $isRandori = false;
+            if ($listKategori) {
+                $isRandori = stripos($listKategori->pertandingan->nama ?? '', 'randori') !== false ||
+                             stripos($listKategori->kategori->nama ?? '', 'randori') !== false;
+            } elseif ($pertandingan) {
+                $isRandori = stripos($pertandingan->nama ?? '', 'randori') !== false ||
+                             stripos($pertandingan->kategori->nama ?? '', 'randori') !== false;
+            }
+
+            $babak = (int) $request->input('babak', $request->input('babak_penilaian', 1));
+            if ($babak < 1 || $babak > 2 || $isRandori) {
+                $babak = 1;
+            }
+
             $scores = $request->input('scores', []);
 
             $scoresheetData = ($listKategori && $listKategori->data_scoresheet) ? $listKategori->data_scoresheet : ($pertandingan?->data_scoresheet ?? []);
             if (!is_array($scoresheetData)) {
                 $scoresheetData = [];
             }
-            $scoresheetData['peserta'] = [];
-            $scoresheetData['rows'] = [];
+            if (!isset($scoresheetData['per_babak']) || !is_array($scoresheetData['per_babak'])) {
+                $scoresheetData['per_babak'] = [];
+            }
+
+            $babakPeserta = [];
+            $babakRows = [];
 
             $rIdx = 0;
+            $updatedPesertaIds = [];
+
             foreach ($scores as $rowId => $val) {
                 $waktu = !empty($val['waktu']) && $val['waktu'] !== '00:00' ? trim($val['waktu']) : null;
                 $hasN1 = isset($val['nilai_1']) && $val['nilai_1'] !== '';
@@ -1580,28 +2097,66 @@ class PertandinganController extends Controller
                     $targetIds = [$rowId];
                 }
 
-                // Seluruh peserta dari satu kontingen mendapatkan nilai yang sama persis
+                // Update / create record PertandinganPeserta untuk babak ini
                 foreach ($targetIds as $ppId) {
-                    $pp = PertandinganPeserta::find($ppId);
-                    if ($pp) {
-                        $pp->update([
-                            'waktu'       => $waktu,
-                            'nilai_1'     => $n1,
-                            'nilai_2'     => $n2,
-                            'nilai_3'     => $n3,
-                            'nilai_4'     => $n4,
-                            'nilai_5'     => $n5,
-                            'minus'       => $genten,
-                            'total_nilai' => $totalNilaiAkhir
-                        ]);
+                    $basePp = PertandinganPeserta::find($ppId);
+                    if (!$basePp) continue;
+
+                    $pesertaId = $basePp->peserta_id;
+                    $lkId = $basePp->list_kategori_id ?? ($listKategori?->id ?? null);
+                    $pertandinganId = $basePp->pertandingan_id ?? ($pertandingan?->id ?? null);
+                    $kegiatanId = $basePp->kegiatan_id;
+
+                    // Cari atau buat record untuk babak aktif
+                    $targetPp = PertandinganPeserta::where('peserta_id', $pesertaId)
+                        ->where(function ($q) use ($lkId, $pertandinganId) {
+                            if ($lkId) {
+                                $q->where('list_kategori_id', $lkId);
+                            } elseif ($pertandinganId) {
+                                $q->where('pertandingan_id', $pertandinganId);
+                            }
+                        })
+                        ->where('babak', $babak)
+                        ->first();
+
+                    if (!$targetPp) {
+                        $targetPp = new PertandinganPeserta();
+                        $targetPp->peserta_id = $pesertaId;
+                        $targetPp->list_kategori_id = $lkId;
+                        $targetPp->pertandingan_id = $pertandinganId;
+                        $targetPp->kegiatan_id = $kegiatanId;
+                        $targetPp->urutan = $basePp->urutan;
+                        $targetPp->sudah_terpilih = $basePp->sudah_terpilih;
+                        $targetPp->babak = $babak;
                     }
+
+                    $targetPp->waktu = $waktu;
+                    $targetPp->nilai_1 = $n1;
+                    $targetPp->nilai_2 = $n2;
+                    $targetPp->nilai_3 = $n3;
+                    $targetPp->nilai_4 = $n4;
+                    $targetPp->nilai_5 = $n5;
+                    $targetPp->minus = $genten;
+                    $targetPp->total_nilai = $totalNilaiAkhir;
+                    if ($babak == 1) {
+                        $targetPp->total_babak_1 = $totalNilaiAkhir;
+                    } else {
+                        $targetPp->total_babak_2 = $totalNilaiAkhir;
+                    }
+                    $targetPp->save();
+
+                    $updatedPesertaIds[$pesertaId] = [
+                        'peserta_id'       => $pesertaId,
+                        'list_kategori_id' => $lkId,
+                        'pertandingan_id'  => $pertandinganId,
+                    ];
                 }
 
-                // Rekam ke scoresheetData untuk cetak PDF & Papan Skor
+                // Rekam ke scoresheetData per_babak
                 $kontingenText = $val['kontingen'] ?? '';
                 $namaPesertaText = $val['nama'] ?? '';
 
-                $scoresheetData['peserta'][$rIdx] = [
+                $babakPeserta[$rIdx] = [
                     'undian'    => $rIdx + 1,
                     'kontingen' => $kontingenText,
                     'peserta'   => $namaPesertaText,
@@ -1615,7 +2170,7 @@ class PertandinganController extends Controller
                     'total'     => $totalNilaiAkhir ?? '',
                 ];
 
-                $scoresheetData['rows'][$rIdx] = [
+                $babakRows[$rIdx] = [
                     'scores'      => [$n1 ?? 0, $n2 ?? 0, $n3 ?? 0, $n4 ?? 0, $n5 ?? 0],
                     'total'       => $nilai ?? 0,
                     'waktu'       => $waktu ?? '',
@@ -1626,6 +2181,47 @@ class PertandinganController extends Controller
                 $rIdx++;
             }
 
+            // Sinkronkan nilai total_babak_1, total_babak_2, dan nilai_akhir untuk setiap peserta
+            foreach ($updatedPesertaIds as $pInfo) {
+                $pesertaId = $pInfo['peserta_id'];
+                $lkId = $pInfo['list_kategori_id'];
+                $pertandinganId = $pInfo['pertandingan_id'];
+
+                $scopeQuery = fn($q) => $lkId ? $q->where('list_kategori_id', $lkId) : $q->where('pertandingan_id', $pertandinganId);
+
+                $b1Rec = PertandinganPeserta::where('peserta_id', $pesertaId)->where($scopeQuery)->where('babak', 1)->first();
+                $b2Rec = PertandinganPeserta::where('peserta_id', $pesertaId)->where($scopeQuery)->where('babak', 2)->first();
+
+                $tot1 = $b1Rec?->total_nilai;
+                $tot2 = $b2Rec?->total_nilai;
+
+                $akhir = null;
+                if ($tot1 !== null && $tot2 !== null) {
+                    $akhir = round(((float)$tot1 + (float)$tot2) / 2, 2);
+                } elseif ($tot1 !== null) {
+                    $akhir = (float)$tot1;
+                } elseif ($tot2 !== null) {
+                    $akhir = (float)$tot2;
+                }
+
+                PertandinganPeserta::where('peserta_id', $pesertaId)
+                    ->where($scopeQuery)
+                    ->update([
+                        'total_babak_1' => $tot1,
+                        'total_babak_2' => $tot2,
+                        'nilai_akhir'   => $akhir,
+                    ]);
+            }
+
+            // Simpan JSON scoresheetData
+            $scoresheetData['per_babak'][$babak] = [
+                'peserta' => $babakPeserta,
+                'rows'    => $babakRows,
+            ];
+            $scoresheetData['active_babak'] = $babak;
+            $scoresheetData['peserta'] = $babakPeserta;
+            $scoresheetData['rows'] = $babakRows;
+
             if ($listKategori) {
                 $listKategori->data_scoresheet = $scoresheetData;
                 $listKategori->save();
@@ -1635,7 +2231,7 @@ class PertandinganController extends Controller
                 $pertandingan->save();
             }
 
-            // Otomatis tentukan Peraih Medali berdasarkan total_nilai akhir tertinggi per kontingen
+            // Otomatis tentukan Peraih Medali berdasarkan nilai_akhir / total_nilai tertinggi
             $ranked = PertandinganPeserta::with('Peserta.kabupaten')
                 ->where(function ($q) use ($id, $listKategori) {
                     $q->where('list_kategori_id', $id)
@@ -1644,8 +2240,11 @@ class PertandinganController extends Controller
                         $q->orWhere('pertandingan_id', $listKategori->pertandingan_id);
                     }
                 })
-                ->whereNotNull('total_nilai')
-                ->orderByDesc('total_nilai')
+                ->where(function ($q) {
+                    $q->whereNotNull('nilai_akhir')
+                      ->orWhereNotNull('total_nilai');
+                })
+                ->orderByRaw('COALESCE(nilai_akhir, total_nilai) DESC, COALESCE(total_babak_2, 0) DESC, COALESCE(total_babak_1, total_nilai, 0) DESC, COALESCE(minus, 999) ASC, urutan ASC')
                 ->get();
 
             if ($ranked->count() > 0) {
@@ -1708,7 +2307,11 @@ class PertandinganController extends Controller
                 }
             }
 
-            return response()->json(['status' => 'success']);
+            return response()->json([
+                'status'  => 'success',
+                'babak'   => $babak,
+                'message' => "Nilai scoresheet Babak {$babak} kontingen dan peraih medali berhasil disimpan!"
+            ]);
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::error('saveScoresheet error: ' . $e->getMessage());
             return response()->json([

@@ -68,8 +68,8 @@
             </div>
         </div>
 
-        <!-- Filter Dropdown 3 Kolom Kompak -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+        <!-- Filter Dropdown Dinamis (3 Kolom untuk Randori, 4 Kolom untuk Embu) -->
+        <div id="filterDropdownGrid" class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
             <!-- Kategori -->
             <div>
                 <label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-0.5">Kategori</label>
@@ -91,6 +91,17 @@
                 <label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-0.5">Pilih Peserta</label>
                 <select id="selectPeserta" class="w-full px-2 py-1 text-xs font-semibold bg-slate-50 border border-slate-300 rounded-lg text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-colors" disabled>
                     <option value="">-- Pilih Peserta --</option>
+                </select>
+            </div>
+
+            <!-- Tampilan Babak (Khusus Kategori Embu) -->
+            <div id="containerFilterBabak" style="display: none;">
+                <label class="block text-[10px] font-extrabold uppercase tracking-wider text-blue-600 mb-0.5 flex items-center gap-1">
+                    <i class="fas fa-layer-group text-blue-500"></i> Tampilan Babak
+                </label>
+                <select id="filter_babak_scoreboard" class="w-full px-2 py-1 text-xs font-bold bg-blue-50/70 border border-blue-300 rounded-lg text-blue-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-colors cursor-pointer">
+                    <option value="1">Babak 1</option>
+                    <option value="2">Babak 2</option>
                 </select>
             </div>
         </div>
@@ -181,15 +192,16 @@
             <div class="col-span-1 sm:col-span-2 md:col-span-3"></div>
         </div>
 
-        <!-- BARIS 3: TOTAL NILAI AKHIR (JUMLAH NILAI WASIT TELAH DIHAPUS) -->
-        <div class="grid grid-cols-12 gap-2 sm:gap-2.5 flex-1 min-h-0">
-            <div class="col-span-1 sm:col-span-2 md:col-span-3"></div>
+        <!-- BARIS 3: TOTAL NILAI PER BABAK & TOTAL AKHIR (KHUSUS BABAK 2) -->
+        <div id="rowTotalScores" class="grid grid-cols-12 gap-2 sm:gap-2.5 flex-1 min-h-0">
+            <!-- Left Spacer -->
+            <div id="spacerLeftTotal" class="col-span-1 sm:col-span-2 md:col-span-3"></div>
 
-            <!-- TOTAL NILAI AKHIR -->
-            <div class="col-span-10 sm:col-span-8 md:col-span-6 bg-gradient-to-br from-blue-600 to-indigo-700 text-white rounded-xl border-2 border-blue-600 shadow-md flex flex-col overflow-hidden">
+            <!-- CARD TOTAL NILAI (BABAK 1 / BABAK 2 / TOTAL AKHIR RANDORI) -->
+            <div id="cardTotalNilai" class="col-span-10 sm:col-span-8 md:col-span-6 bg-gradient-to-br from-blue-600 to-indigo-700 text-white rounded-xl border-2 border-blue-600 shadow-md flex flex-col overflow-hidden transition-all duration-300">
                 <div class="py-1.5 px-3 text-center bg-white/15 border-b border-white/20 flex-shrink-0 flex items-center justify-center gap-1.5">
                     <i class="fas fa-trophy text-amber-300 text-xs"></i>
-                    <span class="text-[11px] sm:text-xs font-black tracking-wider text-blue-100 uppercase">TOTAL NILAI AKHIR</span>
+                    <span id="labelTotalNilai" class="text-[11px] sm:text-xs font-black tracking-wider text-blue-100 uppercase">TOTAL NILAI BABAK 1</span>
                 </div>
                 <div class="flex-1 flex items-center justify-center p-1 min-h-0">
                     <div id="displayTotalNilai" class="score-font font-black text-white text-3xl sm:text-4xl md:text-5xl lg:text-6xl drop-shadow">
@@ -198,7 +210,21 @@
                 </div>
             </div>
 
-            <div class="col-span-1 sm:col-span-2 md:col-span-3"></div>
+            <!-- CARD TOTAL AKHIR (HANYA MUNCUL DI BABAK 2 EMBU) -->
+            <div id="cardTotalAkhir" style="display: none;" class="col-span-6 sm:col-span-5 md:col-span-4 bg-gradient-to-br from-amber-500 via-orange-600 to-amber-700 text-white rounded-xl border-2 border-amber-400 shadow-lg flex flex-col overflow-hidden transition-all duration-300">
+                <div class="py-1.5 px-3 text-center bg-white/20 border-b border-white/25 flex-shrink-0 flex items-center justify-center gap-1.5">
+                    <i class="fas fa-medal text-amber-200 text-xs"></i>
+                    <span class="text-[11px] sm:text-xs font-black tracking-wider text-amber-50 uppercase">TOTAL AKHIR</span>
+                </div>
+                <div class="flex-1 flex items-center justify-center p-1 min-h-0">
+                    <div id="displayTotalAkhir" class="score-font font-black text-white text-3xl sm:text-4xl md:text-5xl lg:text-6xl drop-shadow">
+                        0
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Spacer -->
+            <div id="spacerRightTotal" class="col-span-1 sm:col-span-2 md:col-span-3"></div>
         </div>
 
     </main>
@@ -228,6 +254,9 @@
         const selectKategori = document.getElementById('selectKategori');
         const selectTanding = document.getElementById('selectTanding');
         const selectPeserta = document.getElementById('selectPeserta');
+        const filterBabakSelect = document.getElementById('filter_babak_scoreboard');
+        const containerFilterBabak = document.getElementById('containerFilterBabak');
+        const filterDropdownGrid = document.getElementById('filterDropdownGrid');
         
         // Banner Elemen Peserta & Kontingen
         const bannerNamaPeserta = document.getElementById('bannerNamaPeserta');
@@ -248,7 +277,13 @@
         ];
         const displayWaktu = document.getElementById('displayWaktu');
         const displayDenda = document.getElementById('displayDenda') || document.getElementById('displayGenten');
+        const cardTotalNilai = document.getElementById('cardTotalNilai');
+        const cardTotalAkhir = document.getElementById('cardTotalAkhir');
+        const labelTotalNilai = document.getElementById('labelTotalNilai');
         const displayTotalNilai = document.getElementById('displayTotalNilai');
+        const displayTotalAkhir = document.getElementById('displayTotalAkhir');
+        const spacerLeftTotal = document.getElementById('spacerLeftTotal');
+        const spacerRightTotal = document.getElementById('spacerRightTotal');
 
         let currentKategori = null;
         let currentTanding = null;
@@ -298,6 +333,18 @@
             if (!currentKategori) return;
             const tandingId = parseInt(selectTanding.value);
             currentTanding = currentKategori.tandings.find(t => t.id === tandingId) || null;
+
+            const isEmbu = currentTanding && currentTanding.jenis === 'embu';
+            if (containerFilterBabak && filterDropdownGrid) {
+                if (isEmbu) {
+                    containerFilterBabak.style.display = 'block';
+                    filterDropdownGrid.className = 'grid grid-cols-1 sm:grid-cols-4 gap-2 text-xs';
+                } else {
+                    containerFilterBabak.style.display = 'none';
+                    filterDropdownGrid.className = 'grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs';
+                    if (filterBabakSelect) filterBabakSelect.value = '1';
+                }
+            }
 
             if (typeof resetSmartPollingHash === 'function') {
                 resetSmartPollingHash();
@@ -372,6 +419,10 @@
                     currentTanding.scoresheet_data = data.scoresheet_data || {};
                     if (data.peserta && Array.isArray(data.peserta)) {
                         currentTanding.peserta_db = data.peserta;
+                        currentTanding.peserta_groups = data.peserta;
+                        if (currentPesertaGroup) {
+                            currentPesertaGroup = currentTanding.peserta_groups.find(pg => pg.row_index === currentPesertaGroup.row_index) || currentPesertaGroup;
+                        }
                     }
                     saveStatus.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Live Sync';
                     saveStatus.className = 'inline-flex items-center gap-1.5 text-[11px] font-bold px-2 py-0.5 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200';
@@ -390,88 +441,45 @@
         function renderScoreFromDatabaseState() {
             if (!currentTanding || !currentPesertaGroup) return;
 
-            const scoresheet = currentTanding.scoresheet_data || {};
-            const rows = scoresheet.rows || [];
-            const pesertaList = scoresheet.peserta || [];
-            const pesertaDbList = currentTanding.peserta_db || [];
+            const isEmbu = currentTanding && currentTanding.jenis === 'embu';
+            const activeBabak = (isEmbu && filterBabakSelect && filterBabakSelect.value === '2') ? 2 : 1;
 
-            // 1. Prioritaskan pencarian langsung dari tabel database (peserta_db)
-            let matchedDb = null;
-            if (pesertaDbList.length > 0) {
-                if (currentPesertaGroup.kabupaten_id) {
-                    matchedDb = pesertaDbList.find(p => String(p.kabupaten_id) === String(currentPesertaGroup.kabupaten_id));
-                }
-                if (!matchedDb && currentPesertaGroup.id) {
-                    matchedDb = pesertaDbList.find(p => p.id === currentPesertaGroup.id || (p.pp_ids && p.pp_ids.includes(currentPesertaGroup.id)));
-                }
-                if (!matchedDb && currentPesertaGroup.kontingen) {
-                    const kName = currentPesertaGroup.kontingen.trim().toLowerCase();
-                    matchedDb = pesertaDbList.find(p => p.kontingen && p.kontingen.trim().toLowerCase() === kName);
-                }
-                if (!matchedDb) {
-                    matchedDb = pesertaDbList[currentPesertaGroup.row_index] || null;
-                }
+            let matchedGroup = currentPesertaGroup;
+            if (currentTanding.peserta_db && Array.isArray(currentTanding.peserta_db)) {
+                const found = currentTanding.peserta_db.find(p => p.row_index === currentPesertaGroup.row_index);
+                if (found) matchedGroup = found;
             }
 
-            // 2. Cari dari data JSON scoresheet.peserta
-            let matchedPesertaData = null;
-            if (pesertaList.length > 0) {
-                if (currentPesertaGroup.kontingen) {
-                    const kName = currentPesertaGroup.kontingen.trim().toLowerCase();
-                    matchedPesertaData = pesertaList.find(p => p.kontingen && p.kontingen.trim().toLowerCase() === kName);
-                }
-                if (!matchedPesertaData) {
-                    matchedPesertaData = pesertaList[currentPesertaGroup.row_index] || null;
-                }
-            }
-
-            // 3. Fallback ke scoresheet.rows
-            const rowData = rows[currentPesertaGroup.row_index] || null;
+            const babakData = activeBabak === 2 ? matchedGroup.babak_2 : matchedGroup.babak_1;
 
             let scores = [0, 0, 0, 0, 0];
             let waktu = '00:00';
             let genten = 0;
-            let explicitTotal = null;
 
-            if (matchedDb) {
-                scores = [
-                    parseFloat(matchedDb.nilai_1) || 0,
-                    parseFloat(matchedDb.nilai_2) || 0,
-                    parseFloat(matchedDb.nilai_3) || 0,
-                    parseFloat(matchedDb.nilai_4) || 0,
-                    parseFloat(matchedDb.nilai_5) || 0,
+            if (babakData) {
+                scores = babakData.scores || [
+                    parseFloat(babakData.nilai_1) || 0,
+                    parseFloat(babakData.nilai_2) || 0,
+                    parseFloat(babakData.nilai_3) || 0,
+                    parseFloat(babakData.nilai_4) || 0,
+                    parseFloat(babakData.nilai_5) || 0,
                 ];
-                waktu = matchedDb.waktu || '00:00';
-                genten = parseFloat(matchedDb.genten ?? matchedDb.minus) || 0;
-                if (matchedDb.total_nilai !== null && matchedDb.total_nilai !== undefined) {
-                    explicitTotal = parseFloat(matchedDb.total_nilai);
-                }
-            } else if (matchedPesertaData) {
-                scores = [
-                    parseFloat(matchedPesertaData.juri_1) || 0,
-                    parseFloat(matchedPesertaData.juri_2) || 0,
-                    parseFloat(matchedPesertaData.juri_3) || 0,
-                    parseFloat(matchedPesertaData.juri_4) || 0,
-                    parseFloat(matchedPesertaData.juri_5) || 0,
-                ];
-                waktu = matchedPesertaData.waktu || '00:00';
-                genten = parseFloat(matchedPesertaData.hukuman ?? matchedPesertaData.genten) || 0;
-                if (matchedPesertaData.total !== null && matchedPesertaData.total !== undefined) {
-                    explicitTotal = parseFloat(matchedPesertaData.total);
-                }
-            } else if (rowData) {
-                scores = (rowData.scores || rowData.wasit || [0, 0, 0, 0, 0]).map(v => parseFloat(v) || 0);
-                waktu = rowData.waktu || '00:00';
-                genten = parseFloat(rowData.genten !== undefined ? rowData.genten : (rowData.pengurangan !== undefined ? rowData.pengurangan : (rowData.denda || 0))) || 0;
-                if (rowData.total_akhir !== null && rowData.total_akhir !== undefined) {
-                    explicitTotal = parseFloat(rowData.total_akhir);
-                }
-            } else if (currentPesertaGroup.scores) {
-                scores = currentPesertaGroup.scores;
-                waktu = currentPesertaGroup.waktu || '00:00';
-                genten = parseFloat(currentPesertaGroup.genten ?? currentPesertaGroup.minus) || 0;
-                if (currentPesertaGroup.total_nilai !== null && currentPesertaGroup.total_nilai !== undefined) {
-                    explicitTotal = parseFloat(currentPesertaGroup.total_nilai);
+                waktu = babakData.waktu || '00:00';
+                genten = parseFloat(babakData.genten ?? babakData.minus) || 0;
+            } else if (activeBabak === 1) {
+                if (matchedGroup.scores) {
+                    scores = matchedGroup.scores;
+                    waktu = matchedGroup.waktu || '00:00';
+                    genten = parseFloat(matchedGroup.genten ?? matchedGroup.minus) || 0;
+                } else {
+                    const scoresheet = currentTanding.scoresheet_data || {};
+                    const rows = scoresheet.rows || [];
+                    const rowData = rows[currentPesertaGroup.row_index] || null;
+                    if (rowData) {
+                        scores = (rowData.scores || rowData.wasit || [0, 0, 0, 0, 0]).map(v => parseFloat(v) || 0);
+                        waktu = rowData.waktu || '00:00';
+                        genten = parseFloat(rowData.genten !== undefined ? rowData.genten : (rowData.pengurangan !== undefined ? rowData.pengurangan : (rowData.denda || 0))) || 0;
+                    }
                 }
             }
 
@@ -495,25 +503,79 @@
 
             // Hitung skor baru: Hilangkan nilai terbesar dan terkecil dari wasit yang aktif (> 0),
             // jumlahkan nilai di tengah, lalu dikurangi denda.
-            // Tetap lakukan perhitungan meskipun ada nilai wasit yang masih 0 / belum diisi.
             const activeScores = parsedScores.filter(s => s > 0).sort((a, b) => a - b);
             let sumMiddle = 0;
 
             if (activeScores.length >= 3) {
-                // Hilangkan 1 nilai terkecil (indeks 0) dan 1 nilai terbesar (indeks terakhir)
                 const middleScores = activeScores.slice(1, activeScores.length - 1);
                 sumMiddle = middleScores.reduce((acc, curr) => acc + curr, 0);
             } else if (activeScores.length > 0) {
-                // Jika wasit yang memberi nilai kurang dari 3, belum memenuhi syarat eliminasi sepasang max & min
                 sumMiddle = 0;
             }
 
             const dendaVal = parseFloat(genten) || 0;
-            const totalNilai = Math.max(0, sumMiddle - dendaVal);
+            const totalNilaiBabak = Math.max(0, sumMiddle - dendaVal);
+
+            function formatScoreDisplay(val) {
+                if (val === null || val === undefined || isNaN(val)) return '0';
+                if (Number.isInteger(val)) return val.toString();
+                const fixed = val.toFixed(2);
+                return parseFloat(fixed).toString();
+            }
 
             const elTotalNilai = document.getElementById('displayTotalNilai');
             if (elTotalNilai) {
-                elTotalNilai.textContent = Number.isInteger(totalNilai) ? totalNilai : totalNilai.toFixed(1);
+                elTotalNilai.textContent = formatScoreDisplay(totalNilaiBabak);
+            }
+
+            // Card styling & Card Total Akhir (Khusus Babak 2 Embu)
+            if (isEmbu && activeBabak === 2) {
+                if (labelTotalNilai) labelTotalNilai.textContent = 'TOTAL NILAI BABAK 2';
+
+                let totalBabak1 = 0;
+                if (matchedGroup.babak_1) {
+                    if (matchedGroup.babak_1.total_nilai !== null && matchedGroup.babak_1.total_nilai !== undefined) {
+                        totalBabak1 = parseFloat(matchedGroup.babak_1.total_nilai) || 0;
+                    } else if (matchedGroup.babak_1.scores) {
+                        const b1Scores = (matchedGroup.babak_1.scores || []).map(s => parseFloat(s) || 0).filter(s => s > 0).sort((a, b) => a - b);
+                        let b1Sum = 0;
+                        if (b1Scores.length >= 3) {
+                            b1Sum = b1Scores.slice(1, b1Scores.length - 1).reduce((acc, curr) => acc + curr, 0);
+                        }
+                        totalBabak1 = Math.max(0, b1Sum - (parseFloat(matchedGroup.babak_1.genten) || 0));
+                    }
+                } else if (matchedGroup.total_babak_1 !== null && matchedGroup.total_babak_1 !== undefined) {
+                    totalBabak1 = parseFloat(matchedGroup.total_babak_1) || 0;
+                }
+
+                const totalBabak2 = totalNilaiBabak;
+                const totalAkhir = (totalBabak1 + totalBabak2) / 2;
+
+                if (displayTotalAkhir) {
+                    displayTotalAkhir.textContent = formatScoreDisplay(totalAkhir);
+                }
+
+                if (cardTotalAkhir) cardTotalAkhir.style.display = 'flex';
+                if (cardTotalNilai) {
+                    cardTotalNilai.className = 'col-span-6 sm:col-span-5 md:col-span-4 bg-gradient-to-br from-blue-600 to-indigo-700 text-white rounded-xl border-2 border-blue-600 shadow-md flex flex-col overflow-hidden transition-all duration-300';
+                }
+                if (cardTotalAkhir) {
+                    cardTotalAkhir.className = 'col-span-6 sm:col-span-5 md:col-span-4 bg-gradient-to-br from-amber-500 via-orange-600 to-amber-700 text-white rounded-xl border-2 border-amber-400 shadow-lg flex flex-col overflow-hidden transition-all duration-300';
+                }
+                if (spacerLeftTotal) spacerLeftTotal.className = 'hidden sm:block sm:col-span-1 md:col-span-2';
+                if (spacerRightTotal) spacerRightTotal.className = 'hidden sm:block sm:col-span-1 md:col-span-2';
+            } else {
+                if (labelTotalNilai) {
+                    labelTotalNilai.textContent = isEmbu ? 'TOTAL NILAI BABAK 1' : 'TOTAL NILAI AKHIR';
+                }
+                if (cardTotalAkhir) {
+                    cardTotalAkhir.style.display = 'none';
+                }
+                if (cardTotalNilai) {
+                    cardTotalNilai.className = 'col-span-10 sm:col-span-8 md:col-span-6 bg-gradient-to-br from-blue-600 to-indigo-700 text-white rounded-xl border-2 border-blue-600 shadow-md flex flex-col overflow-hidden transition-all duration-300';
+                }
+                if (spacerLeftTotal) spacerLeftTotal.className = 'col-span-1 sm:col-span-2 md:col-span-3';
+                if (spacerRightTotal) spacerRightTotal.className = 'col-span-1 sm:col-span-2 md:col-span-3';
             }
         }
 
@@ -532,6 +594,8 @@
             if (dd) dd.textContent = '0';
             const dtn = document.getElementById('displayTotalNilai');
             if (dtn) dtn.textContent = '0';
+            const dta = document.getElementById('displayTotalAkhir');
+            if (dta) dta.textContent = '0';
         }
 
         // Fullscreen Toggle
@@ -547,6 +611,11 @@
         selectKategori.addEventListener('change', onKategoriChange);
         selectTanding.addEventListener('change', onTandingChange);
         selectPeserta.addEventListener('change', () => onPesertaChange(true));
+        if (filterBabakSelect) {
+            filterBabakSelect.addEventListener('change', () => {
+                renderScoreFromDatabaseState();
+            });
+        }
 
         btnRefreshDb.addEventListener('click', () => {
             fetchFreshScoreFromDatabase(() => {

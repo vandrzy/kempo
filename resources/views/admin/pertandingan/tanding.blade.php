@@ -4,6 +4,9 @@
     @php
         $current_kegiatan_id = $pertandingan->kegiatan_id ?? ($pertandingan->kegiatan->id ?? ($kegiatan->id ?? ''));
         $current_kegiatan_nama = $pertandingan->kegiatan->nama ?? ($kegiatan->nama ?? 'Kegiatan');
+        $isRandori = stripos($pertandingan->pertandingan->nama ?? '', 'randori') !== false ||
+                     stripos($pertandingan->kategori->nama ?? '', 'randori') !== false ||
+                     ($pertandingan->pertandingan->bagan == 1);
     @endphp
     <div class="space-y-6">
         <!-- Top Bar Header Card -->
@@ -200,10 +203,7 @@
                 @if($pertandingan->pertandingan->bagan == 1)
                     <div class="flex items-center gap-3">
                         <a href="{{ url('/pertandingan/'.$pertandingan->id.'?kegiatan_id='.$current_kegiatan_id.'&print=1') }}" target="_blank" class="btn-kempo-4 inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold uppercase tracking-wider shadow-xs hover:opacity-90 transition-all">
-                            <i class="fa fa-sitemap"></i> Bagan Babak 1
-                        </a>
-                        <a href="{{ url('/pertandingan/'.$pertandingan->id.'?kegiatan_id='.$current_kegiatan_id.'&print=2') }}" target="_blank" class="btn-kempo-4 inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold uppercase tracking-wider shadow-xs hover:opacity-90 transition-all">
-                            <i class="fa fa-sitemap"></i> Bagan Babak 2
+                            <i class="fa fa-sitemap"></i> Bagan Pertandingan
                         </a>
                     </div>
                 @endif
@@ -221,8 +221,12 @@
                             <thead>
                                 <tr>
                                     <th>Kontingen / Kabupaten</th>
-                                    <th class="text-center w-28 tabular-nums">Babak 1</th>
-                                    <th class="text-center w-28 tabular-nums">Babak 2</th>
+                                    @if($isRandori)
+                                        <th class="text-center w-28 tabular-nums">Nomor Undian</th>
+                                    @else
+                                        <th class="text-center w-28 tabular-nums">Babak 1</th>
+                                        <th class="text-center w-28 tabular-nums">Babak 2</th>
+                                    @endif
                                     <th class="text-center w-36">Jumlah Peserta</th>
                                     <th class="text-center w-96">Aksi</th>
                                 </tr>
@@ -265,15 +269,17 @@
                                                 {{ $item->undian + 1 }}
                                             </span>
                                         </td>
-                                        <td class="col-team-{{ $index_list }} text-center font-bold tabular-nums text-foreground">
-                                            <span class="inline-block px-2.5 py-1 rounded bg-neutral-100 text-neutral-800">
-                                                @if(isset($item->kabupaten->KontigenPertandinganKedua->undian))
-                                                    {{ $item->kabupaten->KontigenPertandinganKedua->undian + 1 }}
-                                                @else
-                                                    {{ isset($databye[$list_byte]) ? ($databye[$list_byte]->undian + 1) : '-' }}
-                                                @endif
-                                            </span>
-                                        </td>
+                                        @if(!$isRandori)
+                                            <td class="col-team-{{ $index_list }} text-center font-bold tabular-nums text-foreground">
+                                                <span class="inline-block px-2.5 py-1 rounded bg-neutral-100 text-neutral-800">
+                                                    @if(isset($item->kabupaten->KontigenPertandinganKedua->undian))
+                                                        {{ $item->kabupaten->KontigenPertandinganKedua->undian + 1 }}
+                                                    @else
+                                                        {{ isset($databye[$list_byte]) ? ($databye[$list_byte]->undian + 1) : '-' }}
+                                                    @endif
+                                                </span>
+                                            </td>
+                                        @endif
                                         <td class="col-team-{{ $index_list }} text-center">
                                             <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-neutral-100 text-neutral-700 tabular-nums">
                                                 <i class="fa fa-users text-neutral-400"></i> {{ $total_peserta }} Peserta
@@ -324,8 +330,12 @@
                             <thead>
                                 <tr>
                                     <th>Kabupaten / Kontingen</th>
-                                    <th class="w-28 text-center tabular-nums">Babak 1</th>
-                                    <th class="w-28 text-center tabular-nums">Babak 2</th>
+                                    @if($isRandori)
+                                        <th class="w-28 text-center tabular-nums">Nomor Undian</th>
+                                    @else
+                                        <th class="w-28 text-center tabular-nums">Babak 1</th>
+                                        <th class="w-28 text-center tabular-nums">Babak 2</th>
+                                    @endif
                                     <th class="text-center w-80">Aksi</th>
                                 </tr>
                             </thead>
@@ -347,7 +357,9 @@
                                                 </div>
                                             </td>
                                             <td class="col-team-{{ $kabId }} text-center text-neutral-400">-</td>
-                                            <td class="col-team-{{ $kabId }} text-center text-neutral-400">-</td>
+                                            @if(!$isRandori)
+                                                <td class="col-team-{{ $kabId }} text-center text-neutral-400">-</td>
+                                            @endif
                                             <td class="text-center">
                                                 <div class="flex items-center justify-center gap-1.5 flex-wrap">
                                                     <a href="{{ url('pertandingan/'.$pertandingan->id.'?kegiatan_id='.$current_kegiatan_id.'&kabupaten_id='.($kabupatenId ?? null) ) }}" class="btn-kempo-4 inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold shadow-2xs hover:opacity-90 transition-all">

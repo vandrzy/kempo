@@ -14,6 +14,7 @@ class PertandinganPeserta extends Model
         'kegiatan_id',
         'sudah_terpilih',
         'urutan',
+        'babak',
         'waktu',
         'nilai_1',
         'nilai_2',
@@ -22,6 +23,9 @@ class PertandinganPeserta extends Model
         'nilai_5',
         'minus',
         'total_nilai',
+        'total_babak_1',
+        'total_babak_2',
+        'nilai_akhir',
         'medali',
     ];
 

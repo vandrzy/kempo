@@ -21,6 +21,12 @@
         .text-right { text-align: right; }
         .font-bold { font-weight: bold; }
         .uppercase { text-transform: uppercase; }
+        .text-red { color: #dc2626; }
+
+        .page-break {
+            page-break-after: always;
+            break-after: page;
+        }
 
         .header-title {
             text-align: center;
@@ -36,9 +42,10 @@
         }
 
         .header-title h3 {
-            margin: 2px 0 0 0;
-            font-size: 12px;
-            font-weight: normal;
+            margin: 3px 0 0 0;
+            font-size: 11px;
+            font-weight: bold;
+            color: #1e3a8a;
         }
 
         .info-table {
@@ -92,14 +99,14 @@
         }
 
         .col-total {
-            width: 48px;
+            width: 65px;
             text-align: center;
             font-weight: bold;
             background-color: #fcfcfc;
         }
 
         .col-rank {
-            width: 40px;
+            width: 80px;
             text-align: center;
             font-weight: bold;
         }
@@ -108,6 +115,7 @@
         .juara-box {
             border: 1px solid #444;
             padding: 8px 12px;
+            margin-top: 15px;
             margin-bottom: 15px;
             background-color: #fafafa;
         }
@@ -124,7 +132,7 @@
         }
 
         .juara-table td {
-            padding: 2px 4px;
+            padding: 3px 4px;
             font-size: 10px;
         }
 
@@ -151,9 +159,17 @@
 </head>
 <body>
 
+@php
+    $dataBabak1 = $dataBabak1 ?? [];
+    $dataBabak2 = $dataBabak2 ?? [];
+    $dataNilaiAkhir = $dataNilaiAkhir ?? [];
+@endphp
+
+@if(!empty($isRandori))
+    {{-- TEMPLATE 1 HALAMAN UNTUK RANDORI --}}
     <div class="header-title">
         <h2 class="uppercase">PERSAUDARAAN BELADIRI SHORINJI KEMPO (PERKEMI)</h2>
-        <h3>LEMBAR PENILAIAN PERTANDINGAN {{ (!empty($isRandori)) ? 'RANDORI' : 'KERAPIAN TEKNIK (EMBUSHO)' }}</h3>
+        <h3>LEMBAR PENILAIAN PERTANDINGAN RANDORI</h3>
     </div>
 
     <table class="info-table">
@@ -197,8 +213,7 @@
         <thead>
             <tr>
                 <th rowspan="2" style="width: 25px;">No.</th>
-                <th rowspan="2" style="width: 35px;">Undian</th>
-                <th rowspan="2" style="width: 110px;">Kontingen</th>
+                <th rowspan="2" style="width: 120px;">Kontingen</th>
                 <th rowspan="2">Nama Kenshi / Peserta</th>
                 <th colspan="5">Nilai Wasit / Juri</th>
                 <th rowspan="2" class="col-score">Denda (Minus)</th>
@@ -222,7 +237,6 @@
                 @foreach($entries as $index => $row)
                     <tr>
                         <td class="text-center">{{ $loop->iteration }}</td>
-                        <td class="text-center font-bold">{{ $row['undian'] ?? '-' }}</td>
                         <td class="font-bold">{{ $row['kontingen'] ?? '-' }}</td>
                         <td>{{ $row['peserta'] ?? '-' }}</td>
                         <td class="text-center">{{ $row['juri_1'] ?? '' }}</td>
@@ -240,7 +254,6 @@
                     </tr>
                 @endforeach
             @else
-                {{-- Fallback jika belum diisi melalui form scoresheet: tampilkan daftar kontingen peserta dari database --}}
                 @php
                     $grouped = $peserta_list->groupBy(function($item) {
                         return $item->Peserta->kabupaten->name ?? 'Tanpa Kontingen';
@@ -249,7 +262,6 @@
                 @forelse($grouped as $kabName => $items)
                     <tr>
                         <td class="text-center">{{ $loop->iteration }}</td>
-                        <td class="text-center font-bold">{{ $loop->iteration }}</td>
                         <td class="font-bold">{{ $kabName }}</td>
                         <td>
                             @foreach($items as $it)
@@ -267,7 +279,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="12" class="text-center">Belum ada data peserta untuk kategori ini.</td>
+                        <td colspan="11" class="text-center">Belum ada data peserta untuk kategori ini.</td>
                     </tr>
                 @endforelse
             @endif
@@ -342,6 +354,341 @@
             </td>
         </tr>
     </table>
+
+@else
+    {{-- TEMPLATE 3 HALAMAN UNTUK EMBU --}}
+
+    {{-- ======================================================== --}}
+    {{-- HALAMAN 1: SCORE SHEET BABAK 1                          --}}
+    {{-- ======================================================== --}}
+    <div class="page-break">
+        <div class="header-title">
+            <h2 class="uppercase">PERSAUDARAAN BELADIRI SHORINJI KEMPO (PERKEMI)</h2>
+            <h3>LEMBAR PENILAIAN PERTANDINGAN KERAPIAN TEKNIK (EMBUSHO) - BABAK 1</h3>
+        </div>
+
+        <table class="info-table">
+            <tr>
+                <td class="info-label">Kegiatan</td>
+                <td class="info-colon">:</td>
+                <td class="info-val font-bold">{{ $listKategori->kegiatan->nama ?? '-' }}</td>
+
+                <td class="info-label">Tatami</td>
+                <td class="info-colon">:</td>
+                <td class="info-val font-bold">{{ $scoresheet['tatami'] ?? '-' }}</td>
+            </tr>
+            <tr>
+                <td class="info-label">Kategori</td>
+                <td class="info-colon">:</td>
+                <td class="info-val">{{ $listKategori->kategori->nama ?? '-' }}</td>
+
+                <td class="info-label">Tanggal</td>
+                <td class="info-colon">:</td>
+                <td class="info-val">{{ $scoresheet['tanggal'] ?? date('d-m-Y') }}</td>
+            </tr>
+            <tr>
+                <td class="info-label">Nomor / Kelas</td>
+                <td class="info-colon">:</td>
+                <td class="info-val font-bold">{{ $listKategori->pertandingan->nama ?? '-' }} ({{ $listKategori->pertandingan->kelas ?? '-' }})</td>
+
+                <td class="info-label">Jenis Kelamin</td>
+                <td class="info-colon">:</td>
+                <td class="info-val">{{ $listKategori->pertandingan->jenis_kelamin ?? 'Campuran / Bebas' }}</td>
+            </tr>
+            @if(!empty($filteredKabupaten))
+            <tr>
+                <td class="info-label">Kontingen Khusus</td>
+                <td class="info-colon">:</td>
+                <td class="info-val font-bold" colspan="4" style="color: #1e40af;">{{ $filteredKabupaten->name }}</td>
+            </tr>
+            @endif
+        </table>
+
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th rowspan="2" style="width: 25px;">No.</th>
+                    <th rowspan="2" style="width: 130px;">Kontingen</th>
+                    <th rowspan="2">Nama Kenshi / Peserta</th>
+                    <th colspan="5">Nilai Wasit / Juri</th>
+                    <th rowspan="2" class="col-score">Denda (Minus)</th>
+                    <th rowspan="2" class="col-total">Total Nilai Babak 1</th>
+                </tr>
+                <tr>
+                    <th class="col-score">J-1</th>
+                    <th class="col-score">J-2</th>
+                    <th class="col-score">J-3</th>
+                    <th class="col-score">J-4</th>
+                    <th class="col-score">J-5</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($dataBabak1 as $index => $row)
+                    <tr>
+                        <td class="text-center">{{ $loop->iteration }}</td>
+                        <td class="font-bold">{{ $row['kontingen'] ?? '-' }}</td>
+                        <td>{{ $row['nama'] ?? '-' }}</td>
+                        <td class="text-center">{{ $row['juri_1'] ?? '' }}</td>
+                        <td class="text-center">{{ $row['juri_2'] ?? '' }}</td>
+                        <td class="text-center">{{ $row['juri_3'] ?? '' }}</td>
+                        <td class="text-center">{{ $row['juri_4'] ?? '' }}</td>
+                        <td class="text-center">{{ $row['juri_5'] ?? '' }}</td>
+                        <td class="text-center text-red">{{ $row['hukuman'] ?? '0' }}</td>
+                        <td class="col-total">{{ $row['total'] ?? '' }}</td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="10" class="text-center">Belum ada data peserta untuk Babak 1.</td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+
+    {{-- ======================================================== --}}
+    {{-- HALAMAN 2: SCORE SHEET BABAK 2                          --}}
+    {{-- ======================================================== --}}
+    <div class="page-break">
+        <div class="header-title">
+            <h2 class="uppercase">PERSAUDARAAN BELADIRI SHORINJI KEMPO (PERKEMI)</h2>
+            <h3>LEMBAR PENILAIAN PERTANDINGAN KERAPIAN TEKNIK (EMBUSHO) - BABAK 2</h3>
+        </div>
+
+        <table class="info-table">
+            <tr>
+                <td class="info-label">Kegiatan</td>
+                <td class="info-colon">:</td>
+                <td class="info-val font-bold">{{ $listKategori->kegiatan->nama ?? '-' }}</td>
+
+                <td class="info-label">Tatami</td>
+                <td class="info-colon">:</td>
+                <td class="info-val font-bold">{{ $scoresheet['tatami'] ?? '-' }}</td>
+            </tr>
+            <tr>
+                <td class="info-label">Kategori</td>
+                <td class="info-colon">:</td>
+                <td class="info-val">{{ $listKategori->kategori->nama ?? '-' }}</td>
+
+                <td class="info-label">Tanggal</td>
+                <td class="info-colon">:</td>
+                <td class="info-val">{{ $scoresheet['tanggal'] ?? date('d-m-Y') }}</td>
+            </tr>
+            <tr>
+                <td class="info-label">Nomor / Kelas</td>
+                <td class="info-colon">:</td>
+                <td class="info-val font-bold">{{ $listKategori->pertandingan->nama ?? '-' }} ({{ $listKategori->pertandingan->kelas ?? '-' }})</td>
+
+                <td class="info-label">Jenis Kelamin</td>
+                <td class="info-colon">:</td>
+                <td class="info-val">{{ $listKategori->pertandingan->jenis_kelamin ?? 'Campuran / Bebas' }}</td>
+            </tr>
+            @if(!empty($filteredKabupaten))
+            <tr>
+                <td class="info-label">Kontingen Khusus</td>
+                <td class="info-colon">:</td>
+                <td class="info-val font-bold" colspan="4" style="color: #1e40af;">{{ $filteredKabupaten->name }}</td>
+            </tr>
+            @endif
+        </table>
+
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th rowspan="2" style="width: 25px;">No.</th>
+                    <th rowspan="2" style="width: 130px;">Kontingen</th>
+                    <th rowspan="2">Nama Kenshi / Peserta</th>
+                    <th colspan="5">Nilai Wasit / Juri</th>
+                    <th rowspan="2" class="col-score">Denda (Minus)</th>
+                    <th rowspan="2" class="col-total">Total Nilai Babak 2</th>
+                </tr>
+                <tr>
+                    <th class="col-score">J-1</th>
+                    <th class="col-score">J-2</th>
+                    <th class="col-score">J-3</th>
+                    <th class="col-score">J-4</th>
+                    <th class="col-score">J-5</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($dataBabak2 as $index => $row)
+                    <tr>
+                        <td class="text-center">{{ $loop->iteration }}</td>
+                        <td class="font-bold">{{ $row['kontingen'] ?? '-' }}</td>
+                        <td>{{ $row['nama'] ?? '-' }}</td>
+                        <td class="text-center">{{ $row['juri_1'] ?? '' }}</td>
+                        <td class="text-center">{{ $row['juri_2'] ?? '' }}</td>
+                        <td class="text-center">{{ $row['juri_3'] ?? '' }}</td>
+                        <td class="text-center">{{ $row['juri_4'] ?? '' }}</td>
+                        <td class="text-center">{{ $row['juri_5'] ?? '' }}</td>
+                        <td class="text-center text-red">{{ $row['hukuman'] ?? '0' }}</td>
+                        <td class="col-total">{{ $row['total'] ?? '' }}</td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="10" class="text-center">Belum ada data peserta untuk Babak 2.</td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+
+    {{-- ======================================================== --}}
+    {{-- HALAMAN 3: REKAPITULASI NILAI AKHIR, JUARA & TANDA TANGAN--}}
+    {{-- ======================================================== --}}
+    <div>
+        <div class="header-title">
+            <h2 class="uppercase">PERSAUDARAAN BELADIRI SHORINJI KEMPO (PERKEMI)</h2>
+            <h3>LEMBAR PENILAIAN PERTANDINGAN KERAPIAN TEKNIK (EMBUSHO) - REKAPITULASI NILAI AKHIR</h3>
+        </div>
+
+        <table class="info-table">
+            <tr>
+                <td class="info-label">Kegiatan</td>
+                <td class="info-colon">:</td>
+                <td class="info-val font-bold">{{ $listKategori->kegiatan->nama ?? '-' }}</td>
+
+                <td class="info-label">Tatami</td>
+                <td class="info-colon">:</td>
+                <td class="info-val font-bold">{{ $scoresheet['tatami'] ?? '-' }}</td>
+            </tr>
+            <tr>
+                <td class="info-label">Kategori</td>
+                <td class="info-colon">:</td>
+                <td class="info-val">{{ $listKategori->kategori->nama ?? '-' }}</td>
+
+                <td class="info-label">Tanggal</td>
+                <td class="info-colon">:</td>
+                <td class="info-val">{{ $scoresheet['tanggal'] ?? date('d-m-Y') }}</td>
+            </tr>
+            <tr>
+                <td class="info-label">Nomor / Kelas</td>
+                <td class="info-colon">:</td>
+                <td class="info-val font-bold">{{ $listKategori->pertandingan->nama ?? '-' }} ({{ $listKategori->pertandingan->kelas ?? '-' }})</td>
+
+                <td class="info-label">Jenis Kelamin</td>
+                <td class="info-colon">:</td>
+                <td class="info-val">{{ $listKategori->pertandingan->jenis_kelamin ?? 'Campuran / Bebas' }}</td>
+            </tr>
+            @if(!empty($filteredKabupaten))
+            <tr>
+                <td class="info-label">Kontingen Khusus</td>
+                <td class="info-colon">:</td>
+                <td class="info-val font-bold" colspan="4" style="color: #1e40af;">{{ $filteredKabupaten->name }}</td>
+            </tr>
+            @endif
+        </table>
+
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th style="width: 25px;">No.</th>
+                    <th style="width: 140px;">Kontingen</th>
+                    <th>Nama Atlet / Anggota</th>
+                    <th style="width: 75px;" class="text-center">Nilai Babak 1</th>
+                    <th style="width: 75px;" class="text-center">Nilai Babak 2</th>
+                    <th style="width: 75px;" class="col-total">Nilai Akhir</th>
+                    <th style="width: 85px;" class="col-rank">Juara</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($dataNilaiAkhir as $index => $row)
+                    <tr>
+                        <td class="text-center">{{ $loop->iteration }}</td>
+                        <td class="font-bold">{{ $row['kontingen'] ?? '-' }}</td>
+                        <td>{{ $row['nama'] ?? '-' }}</td>
+                        <td class="text-center font-bold">{{ $row['nilai_babak_1'] ?? '-' }}</td>
+                        <td class="text-center font-bold">{{ $row['nilai_babak_2'] ?? '-' }}</td>
+                        <td class="col-total">{{ $row['nilai_akhir'] ?? '-' }}</td>
+                        <td class="col-rank">
+                            @if(!empty($row['juara']) && $row['juara'] !== '-')
+                                <span style="{{ str_contains($row['juara'], 'Juara 1') ? 'color: #b45309; font-weight: bold;' : (str_contains($row['juara'], 'Juara 2') ? 'color: #4b5563; font-weight: bold;' : (str_contains($row['juara'], 'Juara 3') ? 'color: #78350f; font-weight: bold;' : '')) }}">
+                                    {{ $row['juara'] }}
+                                </span>
+                            @else
+                                -
+                            @endif
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="7" class="text-center">Belum ada rekapitulasi nilai akhir untuk kategori ini.</td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+
+        {{-- Bagian Rekap Peraih Medali HANYA DI HALAMAN 3 --}}
+        <div class="juara-box">
+            <h4>Rekapitulasi Peraih Medali / Juara</h4>
+            <table class="juara-table">
+                <tr>
+                    <td style="width: 15%;" class="font-bold">Medali Emas (Juara I)</td>
+                    <td style="width: 2%;">:</td>
+                    <td style="width: 33%;">
+                        <strong>{{ $juara['emas']['kabupaten_nama'] ?? '-' }}</strong>
+                        @if(!empty($juara['emas']['peserta_nama'])) ({{ $juara['emas']['peserta_nama'] }}) @endif
+                    </td>
+
+                    <td style="width: 15%;" class="font-bold">Medali Perak (Juara II)</td>
+                    <td style="width: 2%;">:</td>
+                    <td style="width: 33%;">
+                        <strong>{{ $juara['perak']['kabupaten_nama'] ?? '-' }}</strong>
+                        @if(!empty($juara['perak']['peserta_nama'])) ({{ $juara['perak']['peserta_nama'] }}) @endif
+                    </td>
+                </tr>
+                <tr>
+                    <td class="font-bold">Medali Perunggu (Juara III)</td>
+                    <td>:</td>
+                    <td colspan="4">
+                        <strong>{{ $juara['perunggu']['kabupaten_nama'] ?? '-' }}</strong>
+                        @if(!empty($juara['perunggu']['peserta_nama'])) ({{ $juara['perunggu']['peserta_nama'] }}) @endif
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        {{-- Blok Tanda Tangan Wasit HANYA DI HALAMAN 3 --}}
+        <table class="signature-table">
+            <tr>
+                <td style="width: 18%;">
+                    Juri I<br>
+                    <div class="sign-line"></div>
+                    <span>{{ $scoresheet['wasit_1'] ?? '( ......................... )' }}</span>
+                </td>
+                <td style="width: 18%;">
+                    Juri II<br>
+                    <div class="sign-line"></div>
+                    <span>{{ $scoresheet['wasit_2'] ?? '( ......................... )' }}</span>
+                </td>
+                <td style="width: 18%;">
+                    Juri III<br>
+                    <div class="sign-line"></div>
+                    <span>{{ $scoresheet['wasit_3'] ?? '( ......................... )' }}</span>
+                </td>
+                <td style="width: 18%;">
+                    Juri IV<br>
+                    <div class="sign-line"></div>
+                    <span>{{ $scoresheet['wasit_4'] ?? '( ......................... )' }}</span>
+                </td>
+                <td style="width: 18%;">
+                    Juri V<br>
+                    <div class="sign-line"></div>
+                    <span>{{ $scoresheet['wasit_5'] ?? '( ......................... )' }}</span>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="5" style="padding-top: 15px;">
+                    Mengetahui,<br>
+                    <strong>Wasit Kepala / Pengawas Pertandingan</strong>
+                    <br>
+                    <div class="sign-line" style="width: 200px;"></div>
+                    <br>
+                    <span>{{ $scoresheet['wasit_kepala'] ?? '( ............................................... )' }}</span>
+                </td>
+            </tr>
+        </table>
+    </div>
+@endif
 
 </body>
 </html>

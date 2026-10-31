@@ -16,7 +16,7 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<title>{{ 'Bagan_Pertandingan_Babak_'.$_GET['print'].'_'.date('Y-m-d').'.pdf' }}</title>
+		<title>{{ 'Bagan_Pertandingan_'.(isset($_GET['print']) && $_GET['print'] == '2' ? 'Babak_2_' : '').date('Y-m-d').'.pdf' }}</title>
 		<script src="https://code.jquery.com/jquery-1.8.3.min.js"></script>
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.13.6/underscore-min.js"></script>
 		<script>
@@ -370,7 +370,7 @@
         <div class="container">
             <center>
                 <h3>{{ $pertandingan->pertandingan->nama }}</h3>
-                <h4>Babak {{ $_GET['print'] }}</h4>
+                <h4>{{ (isset($_GET['print']) && $_GET['print'] == '2') ? 'Babak 2' : 'Bagan Pertandingan' }}</h4>
             </center>
             {{-- <a onclick="window.print()">Print page</a> --}}
             <div class="brackets" id="brackets_1">
