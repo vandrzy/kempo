@@ -535,7 +535,11 @@ class PertandinganController extends Controller
             return redirect('/kegiatan');
         }
         $semua_kegiatan = Kegiatan::orderBy('created_at', 'DESC')->get();
-        $active_kegiatan_id = $kegiatan_id ?: ($request->kegiatan_id ?: optional($semua_kegiatan->first())->id);
+        $default_kegiatan = $semua_kegiatan->first(function ($kg) {
+            return PertandinganPeserta::where('kegiatan_id', $kg->id)->exists();
+        }) ?? $semua_kegiatan->first();
+
+        $active_kegiatan_id = $kegiatan_id ?: ($request->kegiatan_id ?: optional($default_kegiatan)->id);
         $kegiatan_aktif = Kegiatan::find($active_kegiatan_id);
 
         $rekap = $this->getRekapitulasiData($active_kegiatan_id);
@@ -556,7 +560,11 @@ class PertandinganController extends Controller
         }
 
         $semua_kegiatan = Kegiatan::orderBy('created_at', 'DESC')->get();
-        $active_kegiatan_id = $kegiatan_id ?: ($request->kegiatan_id ?: optional($semua_kegiatan->first())->id);
+        $default_kegiatan = $semua_kegiatan->first(function ($kg) {
+            return PertandinganPeserta::where('kegiatan_id', $kg->id)->exists();
+        }) ?? $semua_kegiatan->first();
+
+        $active_kegiatan_id = $kegiatan_id ?: ($request->kegiatan_id ?: optional($default_kegiatan)->id);
         $kegiatan_aktif = Kegiatan::findOrFail($active_kegiatan_id);
 
         $rekap = $this->getRekapitulasiData($active_kegiatan_id);
@@ -584,6 +592,89 @@ class PertandinganController extends Controller
 
         $safeTitle = preg_replace('/[^A-Za-z0-9_\-]/', '_', $kegiatan_aktif->nama ?? 'Laporan_Hasil_Pertandingan');
         return $pdf->stream('Buku_Laporan_Hasil_Pertandingan_' . $safeTitle . '.pdf');
+    }
+
+    /**
+     * Helper untuk menyelesaikan data juara kategori:
+     * Mengambil dari data_juara, atau fallback langsung dari peserta di tabel pertandingan_pesertas
+     */
+    public static function resolveJuaraKategori($lk)
+    {
+        $juara = $lk->data_juara ?? [];
+        $hasJuaraSet = !empty($juara['emas']['kabupaten_id']) || !empty($juara['perak']['kabupaten_id']) || !empty($juara['perunggu']['kabupaten_id']);
+
+        if ($hasJuaraSet) {
+            return $juara;
+        }
+
+        // Ambil data peserta dari relasi atau query
+        $pesertaList = $lk->relationLoaded('list_kategori') ? $lk->list_kategori : $lk->list_kategori()->with('Peserta.kabupaten')->get();
+        $pesertaMedali = $pesertaList->filter(function ($p) {
+            return !empty($p->medali) && trim($p->medali) !== '';
+        });
+
+        if ($pesertaMedali->isEmpty()) {
+            return $juara;
+        }
+
+        $fallbackJuara = [];
+
+        // Emas
+        $emasGroup = $pesertaMedali->filter(fn($p) => strtolower(trim($p->medali)) === 'emas');
+        if ($emasGroup->isNotEmpty()) {
+            $firstEmas = $emasGroup->first();
+            $fallbackJuara['emas'] = [
+                'kabupaten_id'   => optional($firstEmas->Peserta)->kabupaten_id,
+                'kabupaten_nama' => optional(optional($firstEmas->Peserta)->kabupaten)->name,
+                'peserta_nama'   => $emasGroup->map(fn($p) => optional($p->Peserta)->nama)->filter()->unique()->implode(', '),
+            ];
+        }
+
+        // Perak
+        $perakGroup = $pesertaMedali->filter(fn($p) => strtolower(trim($p->medali)) === 'perak');
+        if ($perakGroup->isNotEmpty()) {
+            $firstPerak = $perakGroup->first();
+            $fallbackJuara['perak'] = [
+                'kabupaten_id'   => optional($firstPerak->Peserta)->kabupaten_id,
+                'kabupaten_nama' => optional(optional($firstPerak->Peserta)->kabupaten)->name,
+                'peserta_nama'   => $perakGroup->map(fn($p) => optional($p->Peserta)->nama)->filter()->unique()->implode(', '),
+            ];
+        }
+
+        // Perunggu & Perunggu 2 (untuk Juara 3 Bersama)
+        $perungguGroup = $pesertaMedali->filter(fn($p) => strtolower(trim($p->medali)) === 'perunggu');
+        if ($perungguGroup->isNotEmpty()) {
+            $perKab = $perungguGroup->groupBy(fn($p) => optional($p->Peserta)->kabupaten_id);
+            $kabKeys = $perKab->keys()->all();
+
+            if (isset($kabKeys[0])) {
+                $g1 = $perKab[$kabKeys[0]];
+                $fallbackJuara['perunggu'] = [
+                    'kabupaten_id'   => $kabKeys[0],
+                    'kabupaten_nama' => optional(optional($g1->first()->Peserta)->kabupaten)->name,
+                    'peserta_nama'   => $g1->map(fn($p) => optional($p->Peserta)->nama)->filter()->unique()->implode(', '),
+                ];
+            }
+
+            if (isset($kabKeys[1])) {
+                $g2 = $perKab[$kabKeys[1]];
+                $fallbackJuara['perunggu_2'] = [
+                    'kabupaten_id'   => $kabKeys[1],
+                    'kabupaten_nama' => optional(optional($g2->first()->Peserta)->kabupaten)->name,
+                    'peserta_nama'   => $g2->map(fn($p) => optional($p->Peserta)->nama)->filter()->unique()->implode(', '),
+                ];
+            }
+        }
+
+        if (!empty($fallbackJuara)) {
+            $juara = array_merge($juara, $fallbackJuara);
+            try {
+                $lk->data_juara = $juara;
+                $lk->save();
+            } catch (\Throwable $e) {}
+        }
+
+        return $juara;
     }
 
     /**
@@ -646,7 +737,7 @@ class PertandinganController extends Controller
             $isRandori = stripos($lk->pertandingan->nama ?? '', 'randori') !== false || stripos($lk->kategori->nama ?? '', 'randori') !== false;
             $jenis = $isRandori ? 'Randori' : 'Embu';
 
-            $juara = $lk->data_juara ?? [];
+            $juara = self::resolveJuaraKategori($lk);
 
             $emas_kab_id = $juara['emas']['kabupaten_id'] ?? null;
             $emas_kab_nama = $juara['emas']['kabupaten_nama'] ?? null;
@@ -736,7 +827,7 @@ class PertandinganController extends Controller
                     'kabupaten' => $perunggu2_kab_nama,
                     'peserta' => $perunggu2_peserta,
                 ],
-                'is_set' => !empty($emas_kab_id),
+                'is_set' => !empty($emas_kab_id) || !empty($perak_kab_id) || !empty($perunggu_kab_id),
             ];
         }
 
@@ -824,7 +915,7 @@ class PertandinganController extends Controller
                      stripos($listKategori->kategori->nama ?? '', 'randori') !== false;
 
         $scoresheet = $listKategori->data_scoresheet ?? ($listKategori->pertandingan->data_scoresheet ?? []);
-        $juara = $listKategori->data_juara ?? [];
+        $juara = self::resolveJuaraKategori($listKategori);
 
         // Ambil data peserta yang bertanding di kategori ini
         $peserta_list = PertandinganPeserta::with('Peserta.kabupaten')
@@ -1370,13 +1461,18 @@ class PertandinganController extends Controller
                 'nilai_5'      => $n5,
                 'minus'        => $minus,
                 'total_nilai'  => $totalNilai,
+                'medali'       => $items->pluck('medali')->filter()->first(),
             ];
             $groupIndex++;
         }
 
+        if ($listKategori) {
+            $listKategori->data_juara = self::resolveJuaraKategori($listKategori);
+        }
+
         return response()->json([
             'status'       => 'success',
-            'pertandingan' => $pertandingan ?: $listKategori,
+            'pertandingan' => $listKategori ?: $pertandingan,
             'peserta'      => $groups
         ]);
     }

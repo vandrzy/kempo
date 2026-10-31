@@ -547,10 +547,19 @@
                     }
                 });
 
-                // Isi otomatis berdasarkan nilai akhir tertinggi
-                document.getElementById('medali_emas').value = autoCandidates[0] || pert.emas || '';
-                document.getElementById('medali_perak').value = autoCandidates[1] || pert.perak || '';
-                document.getElementById('medali_perunggu1').value = autoCandidates[2] || pert.perunggu1 || pert.perunggu || '';
+                // Isi otomatis berdasarkan data_juara, medali peserta, atau nilai akhir tertinggi
+                const dj = pert.data_juara || {};
+                const djEmas = (dj.emas && dj.emas.kabupaten_nama) || '';
+                const djPerak = (dj.perak && dj.perak.kabupaten_nama) || '';
+                const djPerunggu1 = (dj.perunggu && dj.perunggu.kabupaten_nama) || '';
+
+                const medaliEmasKontingen = (data.find(it => it.medali && it.medali.toLowerCase() === 'emas') || {}).kontingen;
+                const medaliPerakKontingen = (data.find(it => it.medali && it.medali.toLowerCase() === 'perak') || {}).kontingen;
+                const medaliPerunggu1Kontingen = (data.find(it => it.medali && it.medali.toLowerCase() === 'perunggu') || {}).kontingen;
+
+                document.getElementById('medali_emas').value = djEmas || medaliEmasKontingen || autoCandidates[0] || pert.emas || '';
+                document.getElementById('medali_perak').value = djPerak || medaliPerakKontingen || autoCandidates[1] || pert.perak || '';
+                document.getElementById('medali_perunggu1').value = djPerunggu1 || medaliPerunggu1Kontingen || autoCandidates[2] || pert.perunggu1 || pert.perunggu || '';
             })
             .catch(err => {
                 console.error(err);

@@ -418,8 +418,11 @@ class HomePageController extends Controller
         // Ambil semua kegiatan (urutkan paling awal dulu: default data paling awal)
         $kegiatans = Kegiatan::orderBy('id', 'asc')->get();
 
-        // Default: data paling awal
-        $defaultKegiatan = $kegiatans->first();
+        // Default: prioritaskan kegiatan yang memiliki data pertandingan/peserta
+        $defaultKegiatan = $kegiatans->first(function ($kg) {
+            return PertandinganPeserta::where('kegiatan_id', $kg->id)->exists();
+        }) ?? $kegiatans->first();
+
         $selectedKegiatanId = $request->get('kegiatan_id');
 
         if (!$selectedKegiatanId && $defaultKegiatan) {
