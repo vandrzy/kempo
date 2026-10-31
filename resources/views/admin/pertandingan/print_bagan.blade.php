@@ -114,26 +114,75 @@
             .no-print {
                 display: none !important;
             }
-            body {
+            @page {
+                size: landscape A4;
+                margin: 5mm;
+            }
+            html, body {
                 background: white !important;
+                color: #0f172a !important;
+                width: 100% !important;
+                height: auto !important;
+                overflow: visible !important;
+                margin: 0 !important;
                 padding: 0 !important;
             }
             .bg-dot-pattern {
                 background-image: none !important;
             }
+            #bracketMain {
+                overflow: visible !important;
+                display: block !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                min-height: 0 !important;
+                background: none !important;
+            }
+            #bracketScrollArea {
+                display: block !important;
+                width: 100% !important;
+                overflow: visible !important;
+            }
             #bracketWrapper {
+                display: flex !important;
+                flex-direction: row !important;
+                align-items: stretch !important;
+                justify-content: space-between !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                gap: 8px !important;
                 transform: none !important;
                 overflow: visible !important;
-                width: 100% !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            .round-column, .champion-column {
+                width: auto !important;
+                flex: 1 1 0% !important;
+                min-width: 0 !important;
+                padding: 0 !important;
             }
             .match-card {
                 box-shadow: none !important;
-                border: 1px solid #cbd5e1 !important;
+                border: 1px solid #94a3b8 !important;
                 break-inside: avoid;
+                page-break-inside: avoid;
+                border-radius: 6px !important;
+                margin-bottom: 4px !important;
             }
-            @page {
-                size: landscape A4;
-                margin: 8mm;
+            .match-card .px-3\.5 {
+                padding-left: 5px !important;
+                padding-right: 5px !important;
+            }
+            .match-card .py-2, .match-card .py-2\.5 {
+                padding-top: 2px !important;
+                padding-bottom: 2px !important;
+            }
+            .match-card p {
+                font-size: 9.5px !important;
+            }
+            #bracketSvgCanvas {
+                display: none !important;
             }
             * {
                 -webkit-print-color-adjust: exact !important;
@@ -198,8 +247,11 @@
                     <button type="button" onclick="zoomBracket(0.1)" class="w-8 h-8 rounded-lg hover:bg-white text-slate-700 flex items-center justify-center transition-colors text-xs font-bold cursor-pointer" title="Zoom In (+)">
                         <i class="fas fa-plus"></i>
                     </button>
-                    <button type="button" onclick="resetZoom()" class="px-2.5 h-8 rounded-lg hover:bg-white text-slate-600 hover:text-slate-900 text-xs font-bold transition-colors cursor-pointer" title="Reset Zoom">
-                        Reset
+                    <button type="button" onclick="fitBracketToScreen()" class="px-2.5 h-8 rounded-lg bg-white hover:bg-slate-200 text-slate-800 text-xs font-bold transition-colors cursor-pointer border border-slate-200 inline-flex items-center gap-1.5 shadow-2xs" title="Sesuaikan Tampilan dengan Lebar Layar">
+                        <i class="fas fa-compress-arrows-alt text-slate-600"></i> Fit Layar
+                    </button>
+                    <button type="button" onclick="resetZoom()" class="px-2.5 h-8 rounded-lg hover:bg-white text-slate-600 hover:text-slate-900 text-xs font-bold transition-colors cursor-pointer" title="Reset Zoom ke 100%">
+                        100%
                     </button>
                 </div>
 
@@ -235,54 +287,55 @@
     <!-- ======================================================== -->
     <!-- MAIN INTERACTIVE BRACKET TREE CANVAS                     -->
     <!-- ======================================================== -->
-    <main class="flex-1 overflow-x-auto overflow-y-auto bg-dot-pattern p-4 sm:p-8 flex justify-center items-start min-h-[calc(100vh-68px)]">
+    <main id="bracketMain" class="flex-1 overflow-x-auto overflow-y-auto bg-dot-pattern p-4 sm:p-6 lg:p-8 min-h-[calc(100vh-68px)]">
         
-        <div id="bracketWrapper" class="relative inline-flex items-stretch gap-12 sm:gap-16 lg:gap-20 py-4 transition-transform duration-150 origin-top-left" style="transform: scale(1);">
-            
-            <!-- SVG Canvas untuk garis penghubung antar partai -->
-            <svg id="bracketSvgCanvas" class="absolute inset-0 pointer-events-none z-0 w-full h-full"></svg>
-
-            @if($isRandori && $matches && $matches->isNotEmpty())
+        <div id="bracketScrollArea" class="w-max min-w-full flex items-start justify-start py-2">
+            <div id="bracketWrapper" class="relative inline-flex items-stretch gap-6 sm:gap-8 lg:gap-10 py-4 mx-auto transition-transform duration-150 origin-top-left" style="transform: scale(1);">
                 
-                @for ($b = 1; $b <= $totalBabak; $b++)
-                    @php
-                        $roundMatches = $matchesByBabak->get($b, collect());
-                        $namaBabak = 'Babak ' . $b;
-                        $badgeColor = 'bg-slate-100 text-slate-800 border-slate-300';
+                <!-- SVG Canvas untuk garis penghubung antar partai -->
+                <svg id="bracketSvgCanvas" class="absolute inset-0 pointer-events-none z-0 w-full h-full"></svg>
 
-                        if ($b == $totalBabak) {
-                            $namaBabak = 'FINAL';
-                            $badgeColor = 'bg-amber-100 text-amber-800 border-amber-300 shadow-xs';
-                        } elseif ($totalBabak >= 2 && $b == $totalBabak - 1) {
-                            $namaBabak = 'SEMIFINAL';
-                            $badgeColor = 'bg-purple-100 text-purple-800 border-purple-300';
-                        } elseif ($totalBabak >= 3 && $b == $totalBabak - 2) {
-                            $namaBabak = 'PEREMPATFINAL';
-                            $badgeColor = 'bg-blue-100 text-blue-800 border-blue-300';
-                        } elseif ($totalBabak >= 4 && $b == $totalBabak - 3) {
-                            $namaBabak = '16 BESAR';
-                            $badgeColor = 'bg-slate-100 text-slate-700 border-slate-200';
-                        }
+                @if($isRandori && $matches && $matches->isNotEmpty())
+                    
+                    @for ($b = 1; $b <= $totalBabak; $b++)
+                        @php
+                            $roundMatches = $matchesByBabak->get($b, collect());
+                            $namaBabak = 'Babak ' . $b;
+                            $badgeColor = 'bg-slate-100 text-slate-800 border-slate-300';
 
-                        $expectedCount = (int) ($slotCount / pow(2, $b));
-                    @endphp
+                            if ($b == $totalBabak) {
+                                $namaBabak = 'FINAL';
+                                $badgeColor = 'bg-amber-100 text-amber-800 border-amber-300 shadow-xs';
+                            } elseif ($totalBabak >= 2 && $b == $totalBabak - 1) {
+                                $namaBabak = 'SEMIFINAL';
+                                $badgeColor = 'bg-purple-100 text-purple-800 border-purple-300';
+                            } elseif ($totalBabak >= 3 && $b == $totalBabak - 2) {
+                                $namaBabak = 'PEREMPATFINAL';
+                                $badgeColor = 'bg-blue-100 text-blue-800 border-blue-300';
+                            } elseif ($totalBabak >= 4 && $b == $totalBabak - 3) {
+                                $namaBabak = '16 BESAR';
+                                $badgeColor = 'bg-slate-100 text-slate-700 border-slate-200';
+                            }
 
-                    <!-- KOLOM BABAK {{ $b }} -->
-                    <div class="round-column flex flex-col justify-around z-10 w-[290px] sm:w-[320px] shrink-0" data-babak="{{ $b }}">
-                        
-                        <!-- Header Babak -->
-                        <div class="mb-6 text-center">
-                            <span class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider border {{ $badgeColor }}">
-                                {{ $namaBabak }}
-                            </span>
-                            <p class="text-[11px] font-semibold text-slate-500 mt-1 mb-0">
-                                {{ $roundMatches->count() }} Partai Duel
-                            </p>
-                        </div>
+                            $expectedCount = (int) ($slotCount / pow(2, $b));
+                        @endphp
 
-                        <!-- Daftar Partai Duel di Babak Ini -->
-                        <div class="flex-1 flex flex-col justify-around gap-8 sm:gap-10">
-                            @foreach ($roundMatches as $m)
+                        <!-- KOLOM BABAK {{ $b }} -->
+                        <div class="round-column flex flex-col justify-around z-10 w-[260px] sm:w-[280px] shrink-0" data-babak="{{ $b }}">
+                            
+                            <!-- Header Babak -->
+                            <div class="mb-5 text-center">
+                                <span class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider border {{ $badgeColor }}">
+                                    {{ $namaBabak }}
+                                </span>
+                                <p class="text-[11px] font-semibold text-slate-500 mt-1 mb-0">
+                                    {{ $roundMatches->count() }} Partai Duel
+                                </p>
+                            </div>
+
+                            <!-- Daftar Partai Duel di Babak Ini -->
+                            <div class="flex-1 flex flex-col {{ ($b == 1 && $roundMatches->count() == 1) ? 'justify-start gap-4 pt-2' : 'justify-around gap-6 sm:gap-8' }}">
+                                @foreach ($roundMatches as $m)
                                 @php
                                     $kiri = $m->PertandinganPesertaPertama;
                                     $kanan = $m->PertandinganPesertaKedua;
@@ -333,7 +386,7 @@
                                         @endif
                                     </div>
 
-                                    <!-- Competitor Red (Sudut Merah / Aka) -->
+                                     <!-- Competitor Red (Sudut Merah / Aka) -->
                                     <div class="competitor-row px-3.5 py-2.5 flex items-center justify-between border-b border-slate-100 transition-all cursor-pointer {{ $kiriMenang ? 'bg-emerald-50/70 font-bold' : ($isComplete && !$kiriMenang ? 'opacity-40' : '') }}"
                                          data-athlete-id="{{ $kiriId }}"
                                          onmouseenter="highlightAthlete('{{ $kiriId }}')"
@@ -341,12 +394,17 @@
                                         <div class="flex items-center gap-2.5 min-w-0 pr-2">
                                             <span class="w-2.5 h-2.5 rounded-full bg-rose-600 shrink-0 shadow-2xs"></span>
                                             <div class="min-w-0">
-                                                <p class="text-xs font-semibold text-slate-900 truncate mb-0 {{ $kiriMenang ? 'text-emerald-950 font-bold' : '' }}">
-                                                    {{ $kiri->Peserta->nama ?? ($kiriId ? 'Atlet' : 'Menunggu Pemenang B'.($b-1)) }}
-                                                </p>
-                                                <p class="text-[10px] text-slate-500 truncate mb-0 font-medium">
-                                                    {{ $kiri->Peserta->kabupaten->name ?? ($kiri->Peserta->kontigen ?? ($kiriId ? '-' : 'Babak Sebelumnya')) }}
-                                                </p>
+                                                @if($kiri)
+                                                    <p class="text-xs font-semibold text-slate-900 truncate mb-0 {{ $kiriMenang ? 'text-emerald-950 font-bold' : '' }}">
+                                                        {{ $kiri->Peserta->nama ?? 'Atlet' }}
+                                                    </p>
+                                                    <p class="text-[10px] text-slate-500 truncate mb-0 font-medium">
+                                                        {{ $kiri->Peserta->kabupaten->name ?? ($kiri->Peserta->kontigen ?? ($kiriId ? 'Tanpa Kontingen' : 'Belum Ada')) }}
+                                                    </p>
+                                                @else
+                                                    <p class="text-xs font-medium text-slate-400 italic mb-0">Menunggu Pemenang Babak {{ $b - 1 }} Partai #{{ (2 * $m->nomor_partai) - 1 }}</p>
+                                                    <p class="text-[10px] text-slate-400 mb-0">Belum Ada</p>
+                                                @endif
                                             </div>
                                         </div>
                                         <div class="flex items-center gap-1.5 shrink-0 pl-2">
@@ -361,7 +419,7 @@
                                         </div>
                                     </div>
 
-                                    <!-- Competitor White/Blue (Sudut Putih/Biru / Shiro) -->
+                                    <!-- Competitor White (Sudut Putih) -->
                                     <div class="competitor-row px-3.5 py-2.5 flex items-center justify-between transition-all cursor-pointer {{ $kananMenang ? 'bg-emerald-50/70 font-bold' : ($isComplete && !$kananMenang ? 'opacity-40' : '') }}"
                                          data-athlete-id="{{ $kananId }}"
                                          onmouseenter="highlightAthlete('{{ $kananId }}')"
@@ -374,14 +432,14 @@
                                                         {{ $kanan->Peserta->nama ?? 'Atlet' }}
                                                     </p>
                                                     <p class="text-[10px] text-slate-500 truncate mb-0 font-medium">
-                                                        {{ $kanan->Peserta->kabupaten->name ?? ($kanan->Peserta->kontigen ?? '-') }}
+                                                        {{ $kanan->Peserta->kabupaten->name ?? ($kanan->Peserta->kontigen ?? 'Tanpa Kontingen') }}
                                                     </p>
                                                 @elseif($isBye)
-                                                    <p class="text-xs font-medium text-slate-400 italic mb-0">BYE (Slot Kosong)</p>
-                                                    <p class="text-[10px] text-slate-400 mb-0">-</p>
+                                                    <p class="text-xs font-medium text-slate-400 italic mb-0">Belum Ada Lawan (BYE)</p>
+                                                    <p class="text-[10px] text-slate-400 mb-0">Belum Ada</p>
                                                 @else
-                                                    <p class="text-xs font-medium text-slate-400 italic mb-0">Menunggu Pemenang B{{ $b - 1 }}</p>
-                                                    <p class="text-[10px] text-slate-400 mb-0">Babak Sebelumnya</p>
+                                                    <p class="text-xs font-medium text-slate-400 italic mb-0">Menunggu Pemenang Babak {{ $b - 1 }} Partai #{{ 2 * $m->nomor_partai }}</p>
+                                                    <p class="text-[10px] text-slate-400 mb-0">Belum Ada</p>
                                                 @endif
                                             </div>
                                         </div>
@@ -407,9 +465,9 @@
                 <!-- ==================================================== -->
                 <!-- KOLOM PODIUM JUARA (CHAMPIONS SHOWCASE)               -->
                 <!-- ==================================================== -->
-                <div class="champion-column flex flex-col justify-center z-10 w-[280px] sm:w-[310px] shrink-0">
+                <div class="champion-column flex flex-col justify-center z-10 w-[250px] sm:w-[270px] shrink-0">
                     
-                    <div class="mb-6 text-center">
+                    <div class="mb-5 text-center">
                         <span class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-amber-500 text-white shadow-md">
                             <i class="fas fa-trophy"></i> PODIUM JUARA
                         </span>
@@ -421,7 +479,7 @@
                     <div class="space-y-4">
                         
                         <!-- JUARA 1 (EMAS) -->
-                        <div class="p-4 rounded-2xl bg-gradient-to-br from-amber-50 via-yellow-100/60 to-amber-100 border-2 border-amber-400 shadow-md relative overflow-hidden">
+                        <div id="podiumJuara1Card" class="p-4 rounded-2xl bg-gradient-to-br from-amber-50 via-yellow-100/60 to-amber-100 border-2 border-amber-400 shadow-md relative overflow-hidden">
                             <div class="absolute -right-4 -bottom-4 text-amber-200/50 text-7xl font-black pointer-events-none">
                                 1
                             </div>
@@ -522,14 +580,36 @@
     <!-- ======================================================== -->
     <script>
         let currentZoom = 1.0;
+        const totalBabakGlobal = {{ $totalBabak ?? 1 }};
 
         function zoomBracket(delta) {
-            currentZoom = Math.min(1.8, Math.max(0.4, currentZoom + delta));
+            currentZoom = Math.min(1.8, Math.max(0.35, Math.round((currentZoom + delta) * 100) / 100));
             applyZoom();
         }
 
         function resetZoom() {
             currentZoom = 1.0;
+            applyZoom();
+        }
+
+        function fitBracketToScreen() {
+            const main = document.getElementById('bracketMain');
+            const wrapper = document.getElementById('bracketWrapper');
+            if (!main || !wrapper) return;
+
+            // Reset scale sejenak untuk mengukur lebar asli (unscaled)
+            wrapper.style.transform = 'scale(1)';
+            const naturalWidth = wrapper.scrollWidth || wrapper.offsetWidth;
+            const availableWidth = main.clientWidth - 48; // padding aman
+
+            if (naturalWidth > 0 && availableWidth > 0) {
+                let scale = availableWidth / naturalWidth;
+                // Batasi scale antara 0.40 dan 1.0 (agar tidak terlalu besar di layar 4K, pas di laptop)
+                scale = Math.min(1.0, Math.max(0.40, Math.floor(scale * 100) / 100));
+                currentZoom = scale;
+            } else {
+                currentZoom = 1.0;
+            }
             applyZoom();
         }
 
@@ -542,7 +622,7 @@
             if (text) {
                 text.innerText = Math.round(currentZoom * 100) + '%';
             }
-            setTimeout(drawBracketConnectors, 150);
+            setTimeout(drawBracketConnectors, 100);
         }
 
         function toggleFullscreen() {
@@ -635,11 +715,17 @@
         }
 
         window.addEventListener('DOMContentLoaded', () => {
-            setTimeout(drawBracketConnectors, 200);
+            fitBracketToScreen();
+            setTimeout(drawBracketConnectors, 250);
         });
 
+        let resizeTimer;
         window.addEventListener('resize', () => {
-            setTimeout(drawBracketConnectors, 150);
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(() => {
+                fitBracketToScreen();
+                drawBracketConnectors();
+            }, 150);
         });
     </script>
 </body>

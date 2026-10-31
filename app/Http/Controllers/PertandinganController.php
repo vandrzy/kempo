@@ -117,13 +117,26 @@ class PertandinganController extends Controller
             return redirect()->back()->with('error', 'Akses ditolak');
         }
 
-        $data['pertandingan'] = ListKategori::where('id', $id)->first();
+        $data['pertandingan'] = ListKategori::with(['pertandingan', 'kategori', 'kegiatan'])->where('id', $id)->first();
         $kegiatan_id = request('kegiatan_id') ?? ($_GET['kegiatan_id'] ?? optional($data['pertandingan'])->kegiatan_id);
         $data['kegiatan'] = Kegiatan::find($kegiatan_id);
 
-        $is_diacak = KontigenPertandingan::where('list_kategori_id', $id)->exists() || PesertaTerpilih::where('list_kategori_id', $id)->exists();
-        $data['is_diacak'] = $is_diacak;
-        $data['peserta_ready'] = $is_diacak ? 0 : PertandinganPeserta::where('sudah_terpilih', 'false')->where('list_kategori_id', $id)->count();
+        $check = optional($data['pertandingan'])->pertandingan;
+        $isRandori = ($check && $check->bagan == 1) ||
+                     stripos($check->nama ?? '', 'randori') !== false ||
+                     stripos(optional($data['pertandingan']->kategori)->nama ?? '', 'randori') !== false;
+        $data['isRandori'] = $isRandori;
+
+        if ($isRandori) {
+            $is_diacak = PesertaTerpilih::where('list_kategori_id', $id)->exists();
+            $data['is_diacak'] = $is_diacak;
+            $data['peserta_ready'] = $is_diacak ? 0 : PertandinganPeserta::where('list_kategori_id', $id)->count();
+        } else {
+            $is_diacak = KontigenPertandingan::where('list_kategori_id', $id)->exists();
+            $data['is_diacak'] = $is_diacak;
+            $data['peserta_ready'] = $is_diacak ? 0 : PertandinganPeserta::where('sudah_terpilih', 'false')->where('list_kategori_id', $id)->count();
+        }
+
         $filterBabak = request('filter_babak') ?? request('babak');
         $queryPesertaLawan = PesertaTerpilih::with([
                 'PertandinganPesertaPertama.Peserta.kabupaten',
@@ -151,11 +164,6 @@ class PertandinganController extends Controller
             $data['pertandingan'] = ListKategori::with(['pertandingan', 'kategori', 'kegiatan'])->where('id', $id)->first();
             $data['kolom1'] = KontigenPertandingan::where('urutan', $_GET['print'])->where('list_kategori_id', $id)->orderByRaw('kabupaten_id IS NULL ASC')->orderBy('kabupaten_id','ASC')->get();
 
-            $check = optional($data['pertandingan'])->pertandingan;
-            $data['isRandori'] = ($check && $check->bagan == 1) ||
-                                 stripos($check->nama ?? '', 'randori') !== false ||
-                                 stripos(optional($data['pertandingan']->kategori)->nama ?? '', 'randori') !== false;
-
             // FASE 4: Ambil seluruh data bagan peserta_terpilihs beserta relasi atlet dan kontingen
             $data['matches'] = PesertaTerpilih::with([
                 'PertandinganPesertaPertama.Peserta.kabupaten',
@@ -173,20 +181,25 @@ class PertandinganController extends Controller
 
             $data['totalPeserta'] = $data['pesertaList']->count();
             $data['slotCount'] = pow(2, ceil(log(max(2, $data['totalPeserta']), 2)));
-            $data['totalBabak'] = (int) log($data['slotCount'], 2);
+            $data['totalBabak'] = max((int) log($data['slotCount'], 2), (int) ($data['matches']->max('babak') ?? 1));
 
             return view('admin.pertandingan.print_bagan', $data);
         }
-        $data['kolom1'] = KontigenPertandingan::with([
-            'kabupaten.KontigenPertandinganKedua' => function ($q) use ($data) {
-                $q->where('list_kategori_id', $data['pertandingan']->id);
-            }
-        ])
-        ->where('urutan', 1)
-        ->where('list_kategori_id', $id)
-        ->orderByRaw('kabupaten_id IS NULL ASC')
-        ->orderBy('kabupaten_id', 'ASC')
-        ->get();
+
+        if ($isRandori && !$is_diacak) {
+            $data['kolom1'] = collect();
+        } else {
+            $data['kolom1'] = KontigenPertandingan::with([
+                'kabupaten.KontigenPertandinganKedua' => function ($q) use ($data) {
+                    $q->where('list_kategori_id', $data['pertandingan']->id);
+                }
+            ])
+            ->where('urutan', 1)
+            ->where('list_kategori_id', $id)
+            ->orderByRaw('kabupaten_id IS NULL ASC')
+            ->orderBy('kabupaten_id', 'ASC')
+            ->get();
+        }
 
         if(isset($_GET['kabupaten_id'])) {
             $data['kabupaten_first'] = Kabupaten::find($_GET['kabupaten_id']) ?? null;
@@ -250,28 +263,40 @@ class PertandinganController extends Controller
         }
         // dd($data['kabupaten']);
 
-        $data['kontigen_pertandingan'] = KontigenPertandingan::where('list_kategori_id', $id)
-            ->get()
-            ->groupBy('urutan');
-        $data['kolom2'] = KontigenPertandingan::where('urutan', 2)->where('list_kategori_id', $id)->whereNull('kabupaten_id')->get();
-        // dd($data['kolom1']);
+        if ($isRandori && !$is_diacak) {
+            $data['kontigen_pertandingan'] = collect();
+            $data['kolom2'] = collect();
+        } else {
+            $data['kontigen_pertandingan'] = KontigenPertandingan::where('list_kategori_id', $id)
+                ->get()
+                ->groupBy('urutan');
+            $data['kolom2'] = KontigenPertandingan::where('urutan', 2)->where('list_kategori_id', $id)->whereNull('kabupaten_id')->get();
+        }
 
         return view('admin.pertandingan.tanding', $data);
     }
 
     public function print(string $id) {
-        $data['peserta_ready'] = PertandinganPeserta::where('sudah_terpilih', 'false')->where('kegiatan_id', $_GET['kegiatan_id'])->where('list_kategori_id', $id)->count();
-        $data['peserta_lawan'] = PesertaTerpilih::where('list_kategori_id', $id)->where('kegiatan_id', $_GET['kegiatan_id'])->paginate(10);
-        // $data['pertandingan'] = Pertandingan::find($id);
-        // $data['kegiatan'] = Kegiatan::find($_GET['kegiatan_id']);
-
-        $data['pertandingan'] = ListKategori::where('id', $id)->first();
-        // return view('admin.pertandingan.peserta_tanding', $data);
-
+        $kegiatan_id = request('kegiatan_id') ?? ($_GET['kegiatan_id'] ?? null);
+        $data['pertandingan'] = ListKategori::with(['pertandingan.kategori', 'kegiatan'])->where('id', $id)->first();
+        if (!$kegiatan_id && $data['pertandingan']) {
+            $kegiatan_id = $data['pertandingan']->kegiatan_id;
+        }
+        $data['peserta_ready'] = PertandinganPeserta::where('sudah_terpilih', 'false')->where('list_kategori_id', $id)->count();
+        $data['peserta_lawan'] = PesertaTerpilih::with([
+                'PertandinganPesertaPertama.Peserta.kabupaten',
+                'PertandinganPesertaPertama.Peserta.PertandinganPesertaUtama.list_kategori.pertandingan',
+                'PertandinganPesertaKedua.Peserta.kabupaten',
+                'PertandinganPesertaKedua.Peserta.PertandinganPesertaUtama.list_kategori.pertandingan'
+            ])
+            ->where('list_kategori_id', $id)
+            ->orderBy('babak', 'asc')
+            ->orderBy('nomor_partai', 'asc')
+            ->get();
 
         $pdf = Pdf::loadView('admin.pertandingan.peserta_tanding', $data)->setPaper('a4', 'landscape');
 
-        return $pdf->stream("nomor_tanding.pdf"); // atau ->download()
+        return $pdf->stream("nomor_tanding.pdf");
     }
 
     public function tanding(Request $request, $id)

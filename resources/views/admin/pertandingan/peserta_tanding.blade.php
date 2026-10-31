@@ -63,20 +63,20 @@
         <tbody>
             @foreach ($peserta_lawan as $a)
                 <tr>
-                    <td>{{ $a->PertandinganPesertaPertama->urutan }}</td>
-                    <td style="text-align: center">{{ $a->PertandinganPesertaPertama->Peserta->nama }}</td>
-                    <td style="text-align: center">{{ strtoupper(substr($a->PertandinganPesertaPertama->Peserta->tingkatan_sabuk , 0, 1)) == "K" ? "V" : ''}}</td>
-                    <td style="text-align: center">{{ strtoupper(substr($a->PertandinganPesertaPertama->Peserta->tingkatan_sabuk , 0, 1)) == "D" ? 'V' : ''}}</td>
-                    <td style="text-align: center">{{ $a->PertandinganPesertaPertama->Peserta->PertandinganPesertaUtama->list_kategori->pertandingan->kelas }}</td>
-                    <td style="text-align: center">{{ $a->PertandinganPesertaPertama->Peserta->berat_badan }} Kg</td>
+                    <td>{{ optional($a->PertandinganPesertaPertama)->urutan ?? '-' }}</td>
+                    <td style="text-align: center">{{ optional(optional($a->PertandinganPesertaPertama)->Peserta)->nama ?? ($a->babak > 1 ? 'Menunggu Pemenang Babak ' . ($a->babak - 1) . ' Partai #' . (2 * $a->nomor_partai - 1) : '-') }}</td>
+                    <td style="text-align: center">{{ strtoupper(substr(optional(optional($a->PertandinganPesertaPertama)->Peserta)->tingkatan_sabuk ?? '', 0, 1)) == "K" ? "V" : ''}}</td>
+                    <td style="text-align: center">{{ strtoupper(substr(optional(optional($a->PertandinganPesertaPertama)->Peserta)->tingkatan_sabuk ?? '', 0, 1)) == "D" ? 'V' : ''}}</td>
+                    <td style="text-align: center">{{ optional(optional(optional(optional($a->PertandinganPesertaPertama)->Peserta)->PertandinganPesertaUtama)->list_kategori)->pertandingan->kelas ?? '-' }}</td>
+                    <td style="text-align: center">{{ optional(optional($a->PertandinganPesertaPertama)->Peserta)->berat_badan ? $a->PertandinganPesertaPertama->Peserta->berat_badan . ' Kg' : '-' }}</td>
                 </tr>
                 <tr>
-                    <td>{{ @$a->PertandinganPesertaKedua->urutan ?? 0 }}</td>
-                    <td style="text-align: center">{{ @$a->PertandinganPesertaKedua->Peserta->nama ?? "WO" }}</td>
-                    <td style="text-align: center">{{ strtoupper(substr(@$a->PertandinganPesertaKedua->Peserta->tingkatan_sabuk , 0, 1)) == "K" ? "V" : ''}}</td>
-                    <td style="text-align: center">{{ strtoupper(substr(@$a->PertandinganPesertaKedua->Peserta->tingkatan_sabuk , 0, 1)) == "D" ? 'V' : ''}}</td>
-                    <td style="text-align: center">{{ @$a->PertandinganPesertaKedua->Peserta->PertandinganPesertaUtama->list_kategori->pertandingan->kelas ?? ""}}</td>
-                    <td style="text-align: center">{{ @$a->PertandinganPesertaKedua->Peserta->berat_badan ?? ""}} Kg</td>
+                    <td>{{ optional($a->PertandinganPesertaKedua)->urutan ?? '-' }}</td>
+                    <td style="text-align: center">{{ optional(optional($a->PertandinganPesertaKedua)->Peserta)->nama ?? ($a->pertandingan_peserta_kanan_id === null && $a->keterangan_menang === 'BYE' ? 'Belum Ada Lawan (BYE)' : ($a->babak > 1 ? 'Menunggu Pemenang Babak ' . ($a->babak - 1) . ' Partai #' . (2 * $a->nomor_partai) : 'Belum Ada')) }}</td>
+                    <td style="text-align: center">{{ strtoupper(substr(optional(optional($a->PertandinganPesertaKedua)->Peserta)->tingkatan_sabuk ?? '', 0, 1)) == "K" ? "V" : ''}}</td>
+                    <td style="text-align: center">{{ strtoupper(substr(optional(optional($a->PertandinganPesertaKedua)->Peserta)->tingkatan_sabuk ?? '', 0, 1)) == "D" ? 'V' : ''}}</td>
+                    <td style="text-align: center">{{ optional(optional(optional(optional($a->PertandinganPesertaKedua)->Peserta)->PertandinganPesertaUtama)->list_kategori)->pertandingan->kelas ?? '-' }}</td>
+                    <td style="text-align: center">{{ optional(optional($a->PertandinganPesertaKedua)->Peserta)->berat_badan ? $a->PertandinganPesertaKedua->Peserta->berat_badan . ' Kg' : '-' }}</td>
                 </tr>
                 {{-- <div style="background-color: rgb(237, 162, 162); color: black;" class="bg-red-100 p-2 rounded shadow w-40 text-center">{{ $a->PertandinganPesertaPertama->urutan }} | {{ $a->PertandinganPesertaPertama->Peserta->nama }}</div>
                 <div style="background-color: rgb(116, 202, 234); color: black;" class="bg-blue-100 p-2 rounded shadow w-40 text-center">{{ $a->PertandinganPesertaKedua->urutan ?? '0' }} | {{ $a->PertandinganPesertaKedua->Peserta->nama ?? 'WO' }}</div> --}}

@@ -244,16 +244,13 @@
                     <span id="randoriBadgeBabak" class="px-2.5 py-0.5 bg-slate-800 text-white font-extrabold text-xs rounded-md uppercase tracking-wider">
                         BABAK 1 - PARTAI #1
                     </span>
-                    <span id="randoriBadgeStatus" class="px-2 py-0.5 bg-slate-100 text-slate-700 border border-slate-300 font-bold text-xs rounded-md">
-                        Pertandingan Berlangsung
-                    </span>
                 </div>
                 <div id="randoriAlertHasil" class="text-xs sm:text-sm font-bold text-slate-700 truncate">
                     <!-- Dinamis: Pemenang / BYE secara simpel -->
                 </div>
             </div>
 
-            <!-- ARENA DUEL: SUDUT MERAH (AKA) VS SUDUT BIRU / PUTIH (SHIRO) -->
+            <!-- ARENA DUEL: SUDUT MERAH (AKA) VS SUDUT PUTIH (SHIRO) -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-3 flex-1 min-h-0 relative">
                 
                 <!-- 1. SUDUT MERAH (AKA) -->
@@ -262,9 +259,6 @@
                     <div class="bg-red-600 text-white px-3.5 py-1.5 flex items-center justify-between shadow-sm flex-shrink-0">
                         <span class="font-extrabold text-xs sm:text-sm uppercase tracking-wider">
                             SUDUT MERAH (AKA)
-                        </span>
-                        <span id="randoriKetKiri" class="text-[11px] sm:text-xs font-semibold text-red-100">
-                            -
                         </span>
                     </div>
 
@@ -294,19 +288,16 @@
                     VS
                 </div>
 
-                <!-- 2. SUDUT BIRU / PUTIH (SHIRO) -->
+                <!-- 2. SUDUT PUTIH (SHIRO) -->
                 <div id="cardSudutBiru" class="bg-white rounded-xl border-2 border-blue-500 shadow-sm flex flex-col overflow-hidden relative">
-                    <!-- Header Sudut Biru -->
+                    <!-- Header Sudut Putih -->
                     <div class="bg-blue-600 text-white px-3.5 py-1.5 flex items-center justify-between shadow-sm flex-shrink-0">
                         <span class="font-extrabold text-xs sm:text-sm uppercase tracking-wider">
-                            SUDUT BIRU / SHIRO
-                        </span>
-                        <span id="randoriKetKanan" class="text-[11px] sm:text-xs font-semibold text-blue-100">
-                            -
+                            SUDUT PUTIH (SHIRO)
                         </span>
                     </div>
 
-                    <!-- Profil Atlet Biru -->
+                    <!-- Profil Atlet Putih -->
                     <div class="py-2 px-3 text-center flex-shrink-0 border-b border-slate-100 bg-blue-50/25">
                         <h2 id="randoriNamaKanan" class="text-base sm:text-xl md:text-2xl font-black text-slate-800 truncate tracking-tight">
                             -
@@ -665,27 +656,13 @@
             const isMenangKiri = (p.pemenang_id && p.kiri_id && p.pemenang_id == p.kiri_id);
             const isMenangKanan = (p.pemenang_id && p.kanan_id && p.pemenang_id == p.kanan_id);
 
-            if (randoriBadgeStatus) {
-                if (p.is_bye) {
-                    randoriBadgeStatus.className = 'px-2 py-0.5 bg-slate-100 text-slate-700 border border-slate-300 font-bold text-xs rounded-md';
-                    randoriBadgeStatus.textContent = 'BYE';
-                } else if (p.pemenang_id) {
-                    randoriBadgeStatus.className = 'px-2 py-0.5 bg-slate-100 text-slate-800 border border-slate-300 font-bold text-xs rounded-md';
-                    randoriBadgeStatus.textContent = 'Selesai';
-                } else {
-                    randoriBadgeStatus.className = 'px-2 py-0.5 bg-blue-50 text-blue-700 border border-blue-200 font-bold text-xs rounded-md';
-                    randoriBadgeStatus.textContent = 'Berlangsung';
-                }
-            }
-
             if (randoriAlertHasil) {
                 if (p.is_bye) {
                     randoriAlertHasil.innerHTML = `<span class="text-slate-500 font-normal">Lolos otomatis (BYE):</span> <span class="text-slate-800 font-bold">${p.kiri_nama}</span>`;
                 } else if (p.pemenang_id) {
                     const pemenangNama = isMenangKiri ? p.kiri_nama : (isMenangKanan ? p.kanan_nama : 'Pemenang');
-                    const pemenangSudut = isMenangKiri ? 'Sudut Merah' : (isMenangKanan ? 'Sudut Biru' : '');
-                    const ket = p.keterangan_menang ? ` (${p.keterangan_menang})` : '';
-                    randoriAlertHasil.innerHTML = `<span class="text-slate-500 font-normal">Pemenang:</span> <span class="text-slate-900 font-black">${pemenangNama}</span> <span class="text-slate-400 font-normal">|</span> <span class="text-slate-700 font-semibold">${pemenangSudut}${ket}</span>`;
+                    const pemenangSudut = isMenangKiri ? 'Sudut Merah' : (isMenangKanan ? 'Sudut Putih' : '');
+                    randoriAlertHasil.innerHTML = `<span class="text-slate-500 font-normal">Pemenang:</span> <span class="text-slate-900 font-black">${pemenangNama}</span> <span class="text-slate-400 font-normal">|</span> <span class="text-slate-700 font-semibold">${pemenangSudut}</span>`;
                 } else {
                     randoriAlertHasil.innerHTML = '';
                 }
@@ -699,20 +676,14 @@
             if (randoriSkorKiri) {
                 randoriSkorKiri.textContent = p.skor_kiri !== null && p.skor_kiri !== undefined ? p.skor_kiri : 0;
             }
-            if (randoriKetKiri) {
-                randoriKetKiri.textContent = isMenangKiri ? (p.keterangan_menang ? `Menang (${p.keterangan_menang})` : 'Menang') : '-';
-            }
 
-            // 5. Update Sudut Kanan (Biru)
-            if (randoriNamaKanan) randoriNamaKanan.textContent = p.kanan_nama || 'Atlet Biru';
+            // 5. Update Sudut Kanan (Putih)
+            if (randoriNamaKanan) randoriNamaKanan.textContent = p.kanan_nama || 'Atlet Putih';
             if (randoriKontingenKanan) {
                 randoriKontingenKanan.innerHTML = `<i class="fas fa-map-marker-alt text-blue-500 text-xs"></i> <span>${p.kanan_kontingen || '-'}</span>`;
             }
             if (randoriSkorKanan) {
                 randoriSkorKanan.textContent = p.skor_kanan !== null && p.skor_kanan !== undefined ? p.skor_kanan : 0;
-            }
-            if (randoriKetKanan) {
-                randoriKetKanan.textContent = isMenangKanan ? (p.keterangan_menang ? `Menang (${p.keterangan_menang})` : 'Menang') : '-';
             }
         }
 

@@ -37,7 +37,7 @@
             @csrf
             <input type="hidden" name="peserta_terpilih_id" id="modalDuelPesertaTerpilihId">
 
-            <!-- Grid Pertandingan Duel: Sudut Merah vs Sudut Putih/Biru -->
+            <!-- Grid Pertandingan Duel: Sudut Merah vs Sudut Putih -->
             <div class="grid grid-cols-1 md:grid-cols-11 gap-4 items-center">
                 
                 <!-- SUDUT MERAH (AKA) -->
@@ -81,12 +81,12 @@
                     </div>
                 </div>
 
-                <!-- SUDUT PUTIH / BIRU (SHIRO) -->
+                <!-- SUDUT PUTIH (SHIRO) -->
                 <div class="md:col-span-5 rounded-2xl border-2 border-blue-200 bg-blue-50/30 p-5 flex flex-col justify-between shadow-xs">
                     <div class="flex items-center justify-between border-b border-blue-100 pb-3 mb-3">
                         <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-blue-600 text-white shadow-xs">
                             <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span>
-                            Sudut Putih / Biru
+                            Sudut Putih
                         </span>
                         <span class="text-xs font-bold text-blue-600 uppercase">SHIRO</span>
                     </div>
@@ -101,7 +101,7 @@
 
                     <div class="bg-white rounded-xl p-3.5 border border-blue-100 shadow-2xs">
                         <label class="block text-xs font-bold text-neutral-600 uppercase tracking-wider mb-2">
-                            Total Skor Sudut Putih/Biru
+                            Total Skor Sudut Putih
                         </label>
                         <div class="flex items-center gap-2">
                             <button type="button" onclick="adjustDuelScore('skor_kanan', -1)" class="w-10 h-10 rounded-lg bg-neutral-100 hover:bg-blue-100 text-neutral-700 hover:text-blue-700 font-black text-lg transition-colors flex items-center justify-center cursor-pointer">
@@ -132,7 +132,7 @@
                         <select name="pemenang_id" id="modalDuelPemenangSelect" class="w-full h-10 rounded-lg border border-input bg-white px-3 text-xs font-medium text-foreground focus:ring-2 focus:ring-primary/20 focus:border-primary outline-hidden">
                             <option value="">-- Otomatis (Skor Tertinggi) --</option>
                             <option id="optPemenangKiri" value="">Sudut Merah</option>
-                            <option id="optPemenangKanan" value="">Sudut Putih/Biru</option>
+                            <option id="optPemenangKanan" value="">Sudut Putih</option>
                         </select>
                         <p class="text-[11px] text-paragraph mt-1 mb-0">
                             *Jika skor seri, wasit wajib memilih pemenang (Hantei).
@@ -198,14 +198,11 @@
         optKiri.value = data.kiri_id || '';
         optKiri.innerText = 'Sudut Merah (' + (data.kiri_nama || 'Merah') + ')';
         optKanan.value = data.kanan_id || '';
-        optKanan.innerText = 'Sudut Putih/Biru (' + (data.kanan_nama || 'Putih') + ')';
+        optKanan.innerText = 'Sudut Putih (' + (data.kanan_nama || 'Putih') + ')';
 
         const pemenangSelect = document.getElementById('modalDuelPemenangSelect');
-        if (data.pemenang_id) {
-            pemenangSelect.value = data.pemenang_id;
-        } else {
-            pemenangSelect.value = '';
-        }
+        // Selalu otomatis (jangan gunakan pemenang sebelumnya saat edit skor)
+        pemenangSelect.value = '';
 
         const ketSelect = document.getElementById('modalDuelKeteranganSelect');
         if (data.keterangan_menang && data.keterangan_menang !== 'BYE') {
@@ -234,10 +231,34 @@
             let val = parseFloat(input.value) || 0;
             val = Math.max(0, val + delta);
             input.value = val;
+
+            // Selalu kembalikan pilihan pemenang ke Otomatis ketika ada perubahan skor
+            const pemenangSelect = document.getElementById('modalDuelPemenangSelect');
+            if (pemenangSelect) {
+                pemenangSelect.value = '';
+            }
         }
     }
 
     document.addEventListener('DOMContentLoaded', function() {
+        // Listener input skor agar dropdown pemenang selalu otomatis saat angka diketik
+        const skorKiriInput = document.getElementById('modalDuelSkorKiri');
+        const skorKananInput = document.getElementById('modalDuelSkorKanan');
+        const pemenangSelect = document.getElementById('modalDuelPemenangSelect');
+
+        function resetPemenangToOtomatis() {
+            if (pemenangSelect) pemenangSelect.value = '';
+        }
+
+        if (skorKiriInput) {
+            skorKiriInput.addEventListener('input', resetPemenangToOtomatis);
+            skorKiriInput.addEventListener('change', resetPemenangToOtomatis);
+        }
+        if (skorKananInput) {
+            skorKananInput.addEventListener('input', resetPemenangToOtomatis);
+            skorKananInput.addEventListener('change', resetPemenangToOtomatis);
+        }
+
         const form = document.getElementById('formDuelScoresheet');
         if (!form) return;
 

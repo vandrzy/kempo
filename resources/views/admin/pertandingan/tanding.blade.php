@@ -199,14 +199,7 @@
             <!-- ============================================== -->
             <!-- VIEW LIST KONTINGEN & UNDIAN                   -->
             <!-- ============================================== -->
-            @if(!$kolom1->isEmpty())
-                @if($pertandingan->pertandingan->bagan == 1)
-                    <div class="flex items-center gap-3">
-                        <a href="{{ url('/pertandingan/'.$pertandingan->id.'?kegiatan_id='.$current_kegiatan_id.'&print=1') }}" target="_blank" class="btn-kempo-4 inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold uppercase tracking-wider shadow-xs hover:opacity-90 transition-all">
-                            <i class="fa fa-sitemap"></i> Bagan Pertandingan
-                        </a>
-                    </div>
-                @endif
+            @if(!$kolom1->isEmpty() || ($isRandori && ($is_diacak || !$peserta_lawan->isEmpty())))
 
                 @php
                     $totalPesertaKategori = \App\Models\PertandinganPeserta::where('list_kategori_id', $pertandingan->id)->count();
@@ -333,7 +326,7 @@
                                                         </span>
                                                     @endif
                                                 @else
-                                                    <span class="text-neutral-400 italic text-xs">Menunggu Pemenang Babak {{ $a->babak - 1 }}</span>
+                                                    <span class="text-neutral-400 italic text-xs">Menunggu Pemenang Babak {{ $a->babak - 1 }} Partai #{{ (2 * $a->nomor_partai) - 1 }}</span>
                                                 @endif
                                             </td>
 
@@ -361,7 +354,7 @@
                                                 @elseif($a->pemenang_id)
                                                     <div class="flex flex-col items-center gap-0.5">
                                                         <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300">
-                                                            <i class="fas fa-trophy text-amber-500"></i> {{ $kiriMenang ? 'Merah Menang' : 'Biru Menang' }}
+                                                            <i class="fas fa-trophy text-amber-500"></i> {{ $kiriMenang ? 'Merah Menang' : 'Putih Menang' }}
                                                         </span>
                                                         <span class="text-[10px] font-bold text-neutral-600 uppercase tracking-wider">
                                                             {{ $a->keterangan_menang ?? 'POIN' }} ({{ $a->skor_kiri }} - {{ $a->skor_kanan }})
@@ -394,7 +387,7 @@
                                                             kiri_kontingen: '{{ addslashes($a->PertandinganPesertaPertama->Peserta->kabupaten->name ?? ($a->PertandinganPesertaPertama->Peserta->kontigen ?? '-')) }}',
                                                             skor_kiri: {{ $a->skor_kiri !== null ? $a->skor_kiri : 'null' }},
                                                             kanan_id: {{ $a->pertandingan_peserta_kanan_id ?? 'null' }},
-                                                            kanan_nama: '{{ addslashes($a->PertandinganPesertaKedua->Peserta->nama ?? 'Atlet Putih/Biru') }}',
+                                                            kanan_nama: '{{ addslashes($a->PertandinganPesertaKedua->Peserta->nama ?? 'Atlet Sudut Putih') }}',
                                                             kanan_kontingen: '{{ addslashes($a->PertandinganPesertaKedua->Peserta->kabupaten->name ?? ($a->PertandinganPesertaKedua->Peserta->kontigen ?? '-')) }}',
                                                             skor_kanan: {{ $a->skor_kanan !== null ? $a->skor_kanan : 'null' }},
                                                             pemenang_id: {{ $a->pemenang_id ?? 'null' }},
@@ -412,18 +405,18 @@
                                             </td>
                                         </tr>
 
-                                        <!-- Tim Biru/Putih (Sudut Biru) -->
+                                        <!-- Tim Sudut Putih -->
                                         <tr class="bg-blue-50/30 hover:bg-blue-50/60 border-b-2 border-input duel-match-row" data-duel-babak="{{ $a->babak }}">
                                             <!-- Sudut -->
-                                            <td class="font-bold text-xs uppercase tracking-wide text-btn-4">
+                                            <td class="font-bold text-xs uppercase tracking-wide text-neutral-700">
                                                 <span class="inline-flex items-center gap-1">
-                                                    <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span> [Putih/Biru]
+                                                    <span class="w-2.5 h-2.5 rounded-full bg-white border border-neutral-400"></span> [Putih]
                                                 </span>
                                             </td>
 
                                             <!-- Kontingen -->
                                             <td class="font-semibold text-xs text-foreground">
-                                                {{ $a->PertandinganPesertaKedua->Peserta->kabupaten->name ?? ($a->PertandinganPesertaKedua->Peserta->kontigen ?? ($a->pertandingan_peserta_kanan_id ? 'Tanpa Kontingen' : 'BYE')) }}
+                                                {{ $a->PertandinganPesertaKedua->Peserta->kabupaten->name ?? ($a->PertandinganPesertaKedua->Peserta->kontigen ?? ($a->pertandingan_peserta_kanan_id ? 'Tanpa Kontingen' : 'Belum Ada')) }}
                                             </td>
 
                                             <!-- Nama Atlet -->
@@ -438,9 +431,9 @@
                                                         </span>
                                                     @endif
                                                 @elseif($isBye)
-                                                    <span class="text-neutral-400 italic text-xs">BYE (Slot Kosong)</span>
+                                                    <span class="text-neutral-400 italic text-xs">Belum Ada Lawan (BYE)</span>
                                                 @else
-                                                    <span class="text-neutral-400 italic text-xs">Menunggu Pemenang Babak {{ $a->babak - 1 }}</span>
+                                                    <span class="text-neutral-400 italic text-xs">Menunggu Pemenang Babak {{ $a->babak - 1 }} Partai #{{ 2 * $a->nomor_partai }}</span>
                                                 @endif
                                             </td>
 
@@ -454,7 +447,7 @@
                                                 {{ strtoupper(substr($a->PertandinganPesertaKedua->Peserta->tingkatan_sabuk ?? '', 0, 1)) == "D" ? '✓' : '-' }}
                                             </td>
 
-                                            <!-- Skor Putih/Biru -->
+                                            <!-- Skor Sudut Putih -->
                                             <td class="text-center font-black text-base text-blue-600 tabular-nums">
                                                 {{ $a->skor_kanan !== null ? $a->skor_kanan : '-' }}
                                             </td>
@@ -470,6 +463,7 @@
                     </div>
                 @endif
 
+                @if(!$kolom1->isEmpty())
                 <div class="kempo-card">
                     <div class="p-6 border-b border-input flex items-center justify-between">
                         <div>
@@ -577,6 +571,7 @@
                         </table>
                     </div>
                 </div>
+                @endif
 
             @elseif($peserta_ready > 0)
                 <div class="kempo-card">
@@ -697,7 +692,7 @@
                                         </td>
                                     </tr>
 
-                                    <!-- Tim Biru (Sudut Biru) -->
+                                    <!-- Tim Putih (Sudut Putih) -->
                                     <tr class="bg-blue-50/40 hover:bg-blue-50/70 border-b-2 border-input">
                                         <td class="text-center font-bold text-btn-4 tabular-nums">
                                             <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 text-btn-4 text-xs">
@@ -705,7 +700,7 @@
                                             </span>
                                         </td>
                                         <td class="font-bold text-foreground">
-                                            <span class="text-btn-4 font-bold text-xs uppercase mr-1">[Biru]</span>
+                                            <span class="text-neutral-700 font-bold text-xs uppercase mr-1">[Putih]</span>
                                             {{ $a->PertandinganPesertaKedua->Peserta->kabupaten->name ?? "" }}
                                         </td>
                                         <td class="font-medium text-foreground">{{ @$a->PertandinganPesertaKedua->Peserta->nama ?? "WO" }}</td>
