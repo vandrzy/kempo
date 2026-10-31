@@ -50,7 +50,7 @@
                                 @method('DELETE')
                                 <input type="hidden" name="list_kategori_id" value="{{ $pertandingan->id }}">
                                 <button type="submit" class="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold uppercase tracking-wider text-white bg-destructive hover:bg-red-700 rounded-2xl shadow-xs transition-all cursor-pointer">
-                                    <i class="fa fa-trash"></i> Hapus Nomor Tanding
+                                    <i class="fa fa-trash"></i> {{ $isRandori ? 'Reset Bagan Undian' : 'Hapus Nomor Tanding' }}
                                 </button>
                             </form>
                         @else
@@ -58,7 +58,7 @@
                                 @csrf
                                 <input type="hidden" name="pertandingan_id" value="{{ $pertandingan->pertandingan->id }}">
                                 <button type="submit" class="btn-kempo-1 inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold uppercase tracking-wider shadow-xs hover:opacity-95 transition-all cursor-pointer">
-                                    <i class="fa fa-random"></i> Acak Nomor Tanding
+                                    <i class="fa fa-sitemap"></i> {{ $isRandori ? 'Undi Bagan Otomatis' : 'Acak Nomor Tanding' }}
                                 </button>
                             </form>
                         @endif
@@ -208,6 +208,268 @@
                     </div>
                 @endif
 
+                @php
+                    $totalPesertaKategori = \App\Models\PertandinganPeserta::where('list_kategori_id', $pertandingan->id)->count();
+                    $slotCountKategori = pow(2, ceil(log(max(2, $totalPesertaKategori), 2)));
+                    $totalBabakKategori = (int) log($slotCountKategori, 2);
+                    $currentSelectedBabak = request('babak') ?? request('filter_babak') ?? 'all';
+                @endphp
+
+                @if($isRandori && ($is_diacak || !$peserta_lawan->isEmpty()))
+                    <!-- Tabel Pasangan Duel Randori -->
+                    <div class="kempo-card">
+                        <div class="p-6 border-b border-input flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div>
+                                <h3 class="text-lg font-heading font-bold text-foreground mb-0">Bagan Pertandingan &amp; Pasangan Lawan Randori</h3>
+                                <p class="text-xs text-paragraph mt-0.5 mb-0">Kelola skor partai duel, penentuan pemenang (Waza-ari/Ippon/Hantei), dan auto-advance babak</p>
+                            </div>
+                            <div class="flex items-center flex-wrap gap-2.5">
+                                <!-- DROPDOWN FILTER PILIHAN BABAK -->
+                                <div class="flex items-center gap-2 bg-neutral-50/80 border border-input rounded-xl px-3 py-1 shadow-2xs">
+                                    <label for="selectFilterBabak" class="text-xs font-bold text-neutral-600 whitespace-nowrap flex items-center gap-1.5 mb-0">
+                                        <i class="fas fa-layer-group text-primary"></i> Pilih Babak:
+                                    </label>
+                                    <select id="selectFilterBabak" onchange="handleBabakFilterChange(this.value)" class="text-xs font-bold bg-transparent border-0 text-foreground focus:ring-0 cursor-pointer pr-6 py-1">
+                                        <option value="all" {{ $currentSelectedBabak === 'all' ? 'selected' : '' }}>Semua Babak</option>
+                                        @for($b = 1; $b <= max(1, $totalBabakKategori); $b++)
+                                            @php
+                                                $labelB = 'Babak ' . $b;
+                                                if ($b == $totalBabakKategori) {
+                                                    $labelB .= ' (Final)';
+                                                } elseif ($totalBabakKategori >= 2 && $b == $totalBabakKategori - 1) {
+                                                    $labelB .= ' (Semifinal)';
+                                                } elseif ($totalBabakKategori >= 3 && $b == $totalBabakKategori - 2) {
+                                                    $labelB .= ' (Perempatfinal)';
+                                                }
+                                            @endphp
+                                            <option value="{{ $b }}" {{ (string)$currentSelectedBabak === (string)$b ? 'selected' : '' }}>
+                                                {{ $labelB }}
+                                            </option>
+                                        @endfor
+                                    </select>
+                                </div>
+
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-primary/10 text-primary border border-primary/20">
+                                    <i class="fas fa-sitemap"></i> Total {{ $peserta_lawan->total() ?? $peserta_lawan->count() }} Partai
+                                </span>
+                                <a href="{{ url('/pertandingan/'.$pertandingan->id.'?kegiatan_id='.$current_kegiatan_id.'&print=1') }}" target="_blank" class="btn-kempo-1 inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-xl shadow-xs hover:shadow-sm transition-all">
+                                    <i class="fas fa-network-wired"></i> Buka Bagan Interaktif (Tree)
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="kempo-table-wrapper">
+                            <table class="kempo-table">
+                                <thead>
+                                    <tr>
+                                        <th rowspan="2" class="w-32 text-center">Babak &amp; Partai</th>
+                                        <th rowspan="2" class="w-36">Sudut</th>
+                                        <th rowspan="2">Kontingen</th>
+                                        <th rowspan="2">Nama Atlet</th>
+                                        <th colspan="2" class="text-center w-20">Sabuk</th>
+                                        <th rowspan="2" class="text-center w-24">Skor</th>
+                                        <th rowspan="2" class="text-center w-40">Status &amp; Pemenang</th>
+                                        <th rowspan="2" class="text-center w-32">Aksi</th>
+                                    </tr>
+                                    <tr>
+                                        <th class="text-center w-10">KYU</th>
+                                        <th class="text-center w-10">DAN</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @forelse ($peserta_lawan as $a)
+                                        @php
+                                            $isReady = $a->pertandingan_peserta_kiri_id && $a->pertandingan_peserta_kanan_id;
+                                            $isBye = ($a->pertandingan_peserta_kanan_id === null && $a->keterangan_menang === 'BYE');
+                                            
+                                            $namaBabak = 'Babak ' . $a->babak;
+                                            if ($a->babak == $totalBabakKategori) {
+                                                $namaBabak = 'Final';
+                                            } elseif ($totalBabakKategori >= 2 && $a->babak == $totalBabakKategori - 1) {
+                                                $namaBabak = 'Semifinal';
+                                            } elseif ($totalBabakKategori >= 3 && $a->babak == $totalBabakKategori - 2) {
+                                                $namaBabak = 'Perempatfinal';
+                                            }
+
+                                            $kiriMenang = ($a->pemenang_id && $a->pemenang_id == $a->pertandingan_peserta_kiri_id);
+                                            $kananMenang = ($a->pemenang_id && $a->pemenang_id == $a->pertandingan_peserta_kanan_id);
+                                        @endphp
+
+                                        <!-- Tim Merah (Sudut Merah) -->
+                                        <tr class="bg-red-50/30 hover:bg-red-50/60 border-b border-input/60 duel-match-row" data-duel-babak="{{ $a->babak }}">
+                                            <!-- Babak & Partai (Rowspan 2) -->
+                                            <td rowspan="2" class="text-center align-middle font-bold border-r border-input/60">
+                                                <div class="flex flex-col items-center gap-1">
+                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-black uppercase tracking-wider {{ $namaBabak == 'Final' ? 'bg-amber-100 text-amber-800 border border-amber-300' : ($namaBabak == 'Semifinal' ? 'bg-purple-100 text-purple-800 border border-purple-300' : 'bg-neutral-100 text-neutral-800 border border-neutral-200') }}">
+                                                        {{ $namaBabak }}
+                                                    </span>
+                                                    <span class="text-xs font-heading font-black text-foreground tabular-nums">
+                                                        Partai #{{ $a->nomor_partai }}
+                                                    </span>
+                                                </div>
+                                            </td>
+
+                                            <!-- Sudut -->
+                                            <td class="font-bold text-xs uppercase tracking-wide text-destructive">
+                                                <span class="inline-flex items-center gap-1">
+                                                    <span class="w-2.5 h-2.5 rounded-full bg-red-600"></span> [Merah]
+                                                </span>
+                                            </td>
+
+                                            <!-- Kontingen -->
+                                            <td class="font-semibold text-xs text-foreground">
+                                                {{ $a->PertandinganPesertaPertama->Peserta->kabupaten->name ?? ($a->PertandinganPesertaPertama->Peserta->kontigen ?? ($a->pertandingan_peserta_kiri_id ? 'Tanpa Kontingen' : 'Belum Ada')) }}
+                                            </td>
+
+                                            <!-- Nama Atlet -->
+                                            <td class="font-medium text-foreground">
+                                                @if($a->PertandinganPesertaPertama)
+                                                    <span class="font-bold text-sm {{ $kiriMenang ? 'text-emerald-700' : '' }}">
+                                                        {{ $a->PertandinganPesertaPertama->Peserta->nama ?? 'Atlet' }}
+                                                    </span>
+                                                    @if($kiriMenang)
+                                                        <span class="ml-1.5 inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300">
+                                                            ✓ MENANG
+                                                        </span>
+                                                    @endif
+                                                @else
+                                                    <span class="text-neutral-400 italic text-xs">Menunggu Pemenang Babak {{ $a->babak - 1 }}</span>
+                                                @endif
+                                            </td>
+
+                                            <!-- Sabuk KYU -->
+                                            <td class="text-center font-bold text-primary text-xs">
+                                                {{ strtoupper(substr($a->PertandinganPesertaPertama->Peserta->tingkatan_sabuk ?? '', 0, 1)) == "K" ? "✓" : '-' }}
+                                            </td>
+
+                                            <!-- Sabuk DAN -->
+                                            <td class="text-center font-bold text-btn-4 text-xs">
+                                                {{ strtoupper(substr($a->PertandinganPesertaPertama->Peserta->tingkatan_sabuk ?? '', 0, 1)) == "D" ? '✓' : '-' }}
+                                            </td>
+
+                                            <!-- Skor Merah -->
+                                            <td class="text-center font-black text-base text-red-600 tabular-nums">
+                                                {{ $a->skor_kiri !== null ? $a->skor_kiri : '-' }}
+                                            </td>
+
+                                            <!-- Status & Pemenang (Rowspan 2) -->
+                                            <td rowspan="2" class="text-center align-middle border-x border-input/60">
+                                                @if($isBye)
+                                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                                        <i class="fas fa-check-circle"></i> Lolos (BYE)
+                                                    </span>
+                                                @elseif($a->pemenang_id)
+                                                    <div class="flex flex-col items-center gap-0.5">
+                                                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300">
+                                                            <i class="fas fa-trophy text-amber-500"></i> {{ $kiriMenang ? 'Merah Menang' : 'Biru Menang' }}
+                                                        </span>
+                                                        <span class="text-[10px] font-bold text-neutral-600 uppercase tracking-wider">
+                                                            {{ $a->keterangan_menang ?? 'POIN' }} ({{ $a->skor_kiri }} - {{ $a->skor_kanan }})
+                                                        </span>
+                                                    </div>
+                                                @elseif($isReady)
+                                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                                                        <i class="fas fa-hourglass-half"></i> Siap Bertanding
+                                                    </span>
+                                                @else
+                                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium bg-neutral-100 text-neutral-500 border border-neutral-200">
+                                                        <i class="fas fa-clock"></i> Menunggu Lawan
+                                                    </span>
+                                                @endif
+                                            </td>
+
+                                            <!-- Aksi (Rowspan 2) -->
+                                            <td rowspan="2" class="text-center align-middle">
+                                                @if($isBye)
+                                                    <span class="text-xs text-neutral-400 italic">Selesai (BYE)</span>
+                                                @elseif($isReady)
+                                                    <button type="button" 
+                                                        onclick="openDuelScoresheetModal({
+                                                            id: {{ $a->id }},
+                                                            babak: {{ $a->babak }},
+                                                            nama_babak: '{{ $namaBabak }}',
+                                                            nomor_partai: {{ $a->nomor_partai }},
+                                                            kiri_id: {{ $a->pertandingan_peserta_kiri_id ?? 'null' }},
+                                                            kiri_nama: '{{ addslashes($a->PertandinganPesertaPertama->Peserta->nama ?? 'Atlet Merah') }}',
+                                                            kiri_kontingen: '{{ addslashes($a->PertandinganPesertaPertama->Peserta->kabupaten->name ?? ($a->PertandinganPesertaPertama->Peserta->kontigen ?? '-')) }}',
+                                                            skor_kiri: {{ $a->skor_kiri !== null ? $a->skor_kiri : 'null' }},
+                                                            kanan_id: {{ $a->pertandingan_peserta_kanan_id ?? 'null' }},
+                                                            kanan_nama: '{{ addslashes($a->PertandinganPesertaKedua->Peserta->nama ?? 'Atlet Putih/Biru') }}',
+                                                            kanan_kontingen: '{{ addslashes($a->PertandinganPesertaKedua->Peserta->kabupaten->name ?? ($a->PertandinganPesertaKedua->Peserta->kontigen ?? '-')) }}',
+                                                            skor_kanan: {{ $a->skor_kanan !== null ? $a->skor_kanan : 'null' }},
+                                                            pemenang_id: {{ $a->pemenang_id ?? 'null' }},
+                                                            keterangan_menang: '{{ $a->keterangan_menang ?? 'POIN' }}'
+                                                        })"
+                                                        class="{{ $a->pemenang_id ? 'btn-kempo-outline' : 'btn-kempo-1' }} inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold shadow-xs hover:shadow-sm transition-all cursor-pointer">
+                                                        <i class="fas {{ $a->pemenang_id ? 'fa-edit' : 'fa-play' }}"></i>
+                                                        {{ $a->pemenang_id ? 'Edit Skor' : 'Input Skor' }}
+                                                    </button>
+                                                @else
+                                                    <button type="button" disabled class="px-2.5 py-1 text-[11px] font-bold text-neutral-400 bg-neutral-100 rounded-lg cursor-not-allowed">
+                                                        Belum Siap
+                                                    </button>
+                                                @endif
+                                            </td>
+                                        </tr>
+
+                                        <!-- Tim Biru/Putih (Sudut Biru) -->
+                                        <tr class="bg-blue-50/30 hover:bg-blue-50/60 border-b-2 border-input duel-match-row" data-duel-babak="{{ $a->babak }}">
+                                            <!-- Sudut -->
+                                            <td class="font-bold text-xs uppercase tracking-wide text-btn-4">
+                                                <span class="inline-flex items-center gap-1">
+                                                    <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span> [Putih/Biru]
+                                                </span>
+                                            </td>
+
+                                            <!-- Kontingen -->
+                                            <td class="font-semibold text-xs text-foreground">
+                                                {{ $a->PertandinganPesertaKedua->Peserta->kabupaten->name ?? ($a->PertandinganPesertaKedua->Peserta->kontigen ?? ($a->pertandingan_peserta_kanan_id ? 'Tanpa Kontingen' : 'BYE')) }}
+                                            </td>
+
+                                            <!-- Nama Atlet -->
+                                            <td class="font-medium text-foreground">
+                                                @if($a->PertandinganPesertaKedua)
+                                                    <span class="font-bold text-sm {{ $kananMenang ? 'text-emerald-700' : '' }}">
+                                                        {{ $a->PertandinganPesertaKedua->Peserta->nama ?? 'Atlet' }}
+                                                    </span>
+                                                    @if($kananMenang)
+                                                        <span class="ml-1.5 inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300">
+                                                            ✓ MENANG
+                                                        </span>
+                                                    @endif
+                                                @elseif($isBye)
+                                                    <span class="text-neutral-400 italic text-xs">BYE (Slot Kosong)</span>
+                                                @else
+                                                    <span class="text-neutral-400 italic text-xs">Menunggu Pemenang Babak {{ $a->babak - 1 }}</span>
+                                                @endif
+                                            </td>
+
+                                            <!-- Sabuk KYU -->
+                                            <td class="text-center font-bold text-primary text-xs">
+                                                {{ strtoupper(substr($a->PertandinganPesertaKedua->Peserta->tingkatan_sabuk ?? '', 0, 1)) == "K" ? "✓" : '-' }}
+                                            </td>
+
+                                            <!-- Sabuk DAN -->
+                                            <td class="text-center font-bold text-btn-4 text-xs">
+                                                {{ strtoupper(substr($a->PertandinganPesertaKedua->Peserta->tingkatan_sabuk ?? '', 0, 1)) == "D" ? '✓' : '-' }}
+                                            </td>
+
+                                            <!-- Skor Putih/Biru -->
+                                            <td class="text-center font-black text-base text-blue-600 tabular-nums">
+                                                {{ $a->skor_kanan !== null ? $a->skor_kanan : '-' }}
+                                            </td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="9" class="py-8 text-center text-paragraph">Tidak ada partai duel pada babak ini atau belum ada bagan tanding yang diacak.</td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                @endif
+
                 <div class="kempo-card">
                     <div class="p-6 border-b border-input flex items-center justify-between">
                         <div>
@@ -241,7 +503,7 @@
                                 @endphp
                                 @foreach ($kolom1 as $index_list => $item)
                                     @php
-                                        $kegiatan_id_get = $_GET['kegiatan_id'];
+                                        $kegiatan_id_get = request('kegiatan_id') ?? ($_GET['kegiatan_id'] ?? ($current_kegiatan_id ?? optional($pertandingan)->kegiatan_id));
                                         $list_kategori = $item->list_kategori_id;
                                         if($item->kabupaten_id != null) {
                                             $total_peserta = \App\Models\Peserta::where('kabupaten_id', $item->kabupaten_id)
@@ -478,6 +740,7 @@
     </div>
 
     @include('admin.pertandingan.modals_scoresheet_medali')
+    @include('admin.pertandingan.modal_duel_scoresheet_randori')
 @endsection
 
 @section('script')
@@ -590,4 +853,17 @@
             });
         }
     });
+
+    window.handleBabakFilterChange = function(val) {
+        const url = new URL(window.location.href);
+        if (val === 'all' || !val) {
+            url.searchParams.delete('babak');
+            url.searchParams.delete('filter_babak');
+        } else {
+            url.searchParams.set('babak', val);
+            url.searchParams.delete('filter_babak');
+        }
+        url.searchParams.delete('page');
+        window.location.href = url.toString();
+    };
 @endsection

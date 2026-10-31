@@ -86,9 +86,11 @@
                 </select>
             </div>
 
-            <!-- Peserta -->
+            <!-- Peserta / Babak & Partai (Randori) -->
             <div>
-                <label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-0.5">Pilih Peserta</label>
+                <label id="labelDropdown3" class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-0.5 flex items-center">
+                    <i class="fas fa-user-ninja mr-1 text-blue-500"></i> Pilih Peserta
+                </label>
                 <select id="selectPeserta" class="w-full px-2 py-1 text-xs font-semibold bg-slate-50 border border-slate-300 rounded-lg text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-colors" disabled>
                     <option value="">-- Pilih Peserta --</option>
                 </select>
@@ -113,11 +115,11 @@
     <section class="bg-white rounded-xl px-4 py-2 border border-slate-200/90 shadow-sm flex-shrink-0 mb-1.5 flex flex-wrap items-center justify-between gap-3">
         <!-- Informasi Peserta Tampil -->
         <div class="flex items-center gap-3 min-w-0">
-            <div class="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center font-black shadow-sm flex-shrink-0">
+            <div id="bannerIconPeserta" class="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center font-black shadow-sm flex-shrink-0">
                 <i class="fas fa-user-ninja text-base"></i>
             </div>
             <div class="min-w-0">
-                <div class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Peserta Yang Tampil</div>
+                <div id="bannerLabelPeserta" class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Peserta Yang Tampil</div>
                 <div id="bannerNamaPeserta" class="text-sm sm:text-base md:text-lg font-black text-slate-800 truncate tracking-tight">
                     -
                 </div>
@@ -127,7 +129,7 @@
         <!-- Informasi Kontingen -->
         <div class="flex items-center gap-2 flex-shrink-0">
             <div class="text-right">
-                <div class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Kontingen / Daerah</div>
+                <div id="bannerLabelKontingen" class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Kontingen / Daerah</div>
                 <div id="bannerNamaKontingen" class="inline-flex items-center gap-1.5 px-3 py-0.5 bg-blue-50 border border-blue-200 text-blue-700 font-extrabold text-xs sm:text-sm rounded-lg truncate">
                     <i class="fas fa-map-marker-alt text-blue-500 text-xs"></i>
                     <span id="textKontingen">-</span>
@@ -141,90 +143,191 @@
     <!-- ============================================== -->
     <main id="scoreboard-content" class="flex-1 flex flex-col justify-between gap-2 min-h-0 overflow-hidden">
 
-        <!-- BARIS 1: 5 WASIT (WASIT 1 - WASIT 5) -->
-        <div class="grid grid-cols-5 gap-2 sm:gap-2.5 flex-1 min-h-0">
-            @for ($i = 1; $i <= 5; $i++)
-            <div class="bg-white rounded-xl border border-slate-200/90 shadow-sm flex flex-col overflow-hidden">
-                <div class="py-1 px-2 text-center bg-slate-50 border-b border-slate-200 flex-shrink-0">
-                    <span class="text-[11px] sm:text-xs font-black tracking-wider text-slate-600 uppercase">WASIT {{ $i }}</span>
-                </div>
-                <div class="flex-1 flex items-center justify-center p-1 min-h-0">
-                    <div id="wasit_{{ $i }}" class="score-font font-black text-slate-800 text-3xl sm:text-4xl md:text-5xl lg:text-6xl drop-shadow-sm">
-                        0
+        <!-- ========================================== -->
+        <!-- VIEW 1: KHUSUS KATEGORI EMBU               -->
+        <!-- ========================================== -->
+        <div id="embuScoreboardView" class="flex-1 flex flex-col justify-between gap-2 min-h-0 overflow-hidden">
+            <!-- BARIS 1: 5 WASIT (WASIT 1 - WASIT 5) -->
+            <div class="grid grid-cols-5 gap-2 sm:gap-2.5 flex-1 min-h-0">
+                @for ($i = 1; $i <= 5; $i++)
+                <div class="bg-white rounded-xl border border-slate-200/90 shadow-sm flex flex-col overflow-hidden">
+                    <div class="py-1 px-2 text-center bg-slate-50 border-b border-slate-200 flex-shrink-0">
+                        <span class="text-[11px] sm:text-xs font-black tracking-wider text-slate-600 uppercase">WASIT {{ $i }}</span>
+                    </div>
+                    <div class="flex-1 flex items-center justify-center p-1 min-h-0">
+                        <div id="wasit_{{ $i }}" class="score-font font-black text-slate-800 text-3xl sm:text-4xl md:text-5xl lg:text-6xl drop-shadow-sm">
+                            0
+                        </div>
                     </div>
                 </div>
+                @endfor
             </div>
-            @endfor
+
+            <!-- BARIS 2: WAKTU & DENDA -->
+            <div class="grid grid-cols-12 gap-2 sm:gap-2.5 flex-1 min-h-0">
+                <div class="col-span-1 sm:col-span-2 md:col-span-3"></div>
+
+                <!-- WAKTU -->
+                <div class="col-span-5 sm:col-span-4 md:col-span-3 bg-white rounded-xl border border-cyan-200 shadow-sm flex flex-col overflow-hidden">
+                    <div class="py-1 px-2 text-center bg-cyan-50 border-b border-cyan-200 flex-shrink-0">
+                        <span class="text-[11px] sm:text-xs font-black tracking-wider text-cyan-800 uppercase">
+                            <i class="fas fa-stopwatch mr-1 text-cyan-600"></i> WAKTU
+                        </span>
+                    </div>
+                    <div class="flex-1 flex items-center justify-center p-1 min-h-0">
+                        <div id="displayWaktu" class="score-font font-black text-cyan-600 text-3xl sm:text-4xl md:text-5xl lg:text-6xl tracking-wider">
+                            00:00
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DENDA -->
+                <div class="col-span-5 sm:col-span-4 md:col-span-3 bg-white rounded-xl border border-rose-200 shadow-sm flex flex-col overflow-hidden">
+                    <div class="py-1 px-2 text-center bg-rose-50 border-b border-rose-200 flex-shrink-0">
+                        <span class="text-[11px] sm:text-xs font-black tracking-wider text-rose-800 uppercase">
+                            <i class="fas fa-exclamation-triangle mr-1 text-rose-600"></i> DENDA
+                        </span>
+                    </div>
+                    <div class="flex-1 flex items-center justify-center p-1 min-h-0">
+                        <div id="displayGenten" class="score-font font-black text-rose-600 text-3xl sm:text-4xl md:text-5xl lg:text-6xl">
+                            0
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-span-1 sm:col-span-2 md:col-span-3"></div>
+            </div>
+
+            <!-- BARIS 3: TOTAL NILAI PER BABAK & TOTAL AKHIR (KHUSUS BABAK 2) -->
+            <div id="rowTotalScores" class="grid grid-cols-12 gap-2 sm:gap-2.5 flex-1 min-h-0">
+                <!-- Left Spacer -->
+                <div id="spacerLeftTotal" class="col-span-1 sm:col-span-2 md:col-span-3"></div>
+
+                <!-- CARD TOTAL NILAI (BABAK 1 / BABAK 2 / TOTAL AKHIR RANDORI) -->
+                <div id="cardTotalNilai" class="col-span-10 sm:col-span-8 md:col-span-6 bg-gradient-to-br from-blue-600 to-indigo-700 text-white rounded-xl border-2 border-blue-600 shadow-md flex flex-col overflow-hidden transition-all duration-300">
+                    <div class="py-1.5 px-3 text-center bg-white/15 border-b border-white/20 flex-shrink-0 flex items-center justify-center gap-1.5">
+                        <i class="fas fa-trophy text-amber-300 text-xs"></i>
+                        <span id="labelTotalNilai" class="text-[11px] sm:text-xs font-black tracking-wider text-blue-100 uppercase">TOTAL NILAI BABAK 1</span>
+                    </div>
+                    <div class="flex-1 flex items-center justify-center p-1 min-h-0">
+                        <div id="displayTotalNilai" class="score-font font-black text-white text-3xl sm:text-4xl md:text-5xl lg:text-6xl drop-shadow">
+                            0
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CARD TOTAL AKHIR (HANYA MUNCUL DI BABAK 2 EMBU) -->
+                <div id="cardTotalAkhir" style="display: none;" class="col-span-6 sm:col-span-5 md:col-span-4 bg-gradient-to-br from-amber-500 via-orange-600 to-amber-700 text-white rounded-xl border-2 border-amber-400 shadow-lg flex flex-col overflow-hidden transition-all duration-300">
+                    <div class="py-1.5 px-3 text-center bg-white/20 border-b border-white/25 flex-shrink-0 flex items-center justify-center gap-1.5">
+                        <i class="fas fa-medal text-amber-200 text-xs"></i>
+                        <span class="text-[11px] sm:text-xs font-black tracking-wider text-amber-50 uppercase">TOTAL AKHIR</span>
+                    </div>
+                    <div class="flex-1 flex items-center justify-center p-1 min-h-0">
+                        <div id="displayTotalAkhir" class="score-font font-black text-white text-3xl sm:text-4xl md:text-5xl lg:text-6xl drop-shadow">
+                            0
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Spacer -->
+                <div id="spacerRightTotal" class="col-span-1 sm:col-span-2 md:col-span-3"></div>
+            </div>
         </div>
 
-        <!-- BARIS 2: WAKTU & DENDA -->
-        <div class="grid grid-cols-12 gap-2 sm:gap-2.5 flex-1 min-h-0">
-            <div class="col-span-1 sm:col-span-2 md:col-span-3"></div>
-
-            <!-- WAKTU -->
-            <div class="col-span-5 sm:col-span-4 md:col-span-3 bg-white rounded-xl border border-cyan-200 shadow-sm flex flex-col overflow-hidden">
-                <div class="py-1 px-2 text-center bg-cyan-50 border-b border-cyan-200 flex-shrink-0">
-                    <span class="text-[11px] sm:text-xs font-black tracking-wider text-cyan-800 uppercase">
-                        <i class="fas fa-stopwatch mr-1 text-cyan-600"></i> WAKTU
+        <!-- ========================================== -->
+        <!-- VIEW 2: KHUSUS KATEGORI RANDORI (DUEL)    -->
+        <!-- ========================================== -->
+        <div id="randoriScoreboardView" style="display: none;" class="flex-1 flex flex-col justify-between gap-2 min-h-0 overflow-hidden">
+            <!-- STATUS BAR ATAS PARTAI DUEL (SIMPLE & CLEAN) -->
+            <div class="bg-white rounded-xl px-4 py-1.5 border border-slate-200/90 shadow-sm flex items-center justify-between flex-shrink-0 gap-2">
+                <div class="flex items-center gap-2">
+                    <span id="randoriBadgeBabak" class="px-2.5 py-0.5 bg-slate-800 text-white font-extrabold text-xs rounded-md uppercase tracking-wider">
+                        BABAK 1 - PARTAI #1
+                    </span>
+                    <span id="randoriBadgeStatus" class="px-2 py-0.5 bg-slate-100 text-slate-700 border border-slate-300 font-bold text-xs rounded-md">
+                        Pertandingan Berlangsung
                     </span>
                 </div>
-                <div class="flex-1 flex items-center justify-center p-1 min-h-0">
-                    <div id="displayWaktu" class="score-font font-black text-cyan-600 text-3xl sm:text-4xl md:text-5xl lg:text-6xl tracking-wider">
-                        00:00
-                    </div>
+                <div id="randoriAlertHasil" class="text-xs sm:text-sm font-bold text-slate-700 truncate">
+                    <!-- Dinamis: Pemenang / BYE secara simpel -->
                 </div>
             </div>
 
-            <!-- DENDA -->
-            <div class="col-span-5 sm:col-span-4 md:col-span-3 bg-white rounded-xl border border-rose-200 shadow-sm flex flex-col overflow-hidden">
-                <div class="py-1 px-2 text-center bg-rose-50 border-b border-rose-200 flex-shrink-0">
-                    <span class="text-[11px] sm:text-xs font-black tracking-wider text-rose-800 uppercase">
-                        <i class="fas fa-exclamation-triangle mr-1 text-rose-600"></i> DENDA
-                    </span>
-                </div>
-                <div class="flex-1 flex items-center justify-center p-1 min-h-0">
-                    <div id="displayGenten" class="score-font font-black text-rose-600 text-3xl sm:text-4xl md:text-5xl lg:text-6xl">
-                        0
+            <!-- ARENA DUEL: SUDUT MERAH (AKA) VS SUDUT BIRU / PUTIH (SHIRO) -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-3 flex-1 min-h-0 relative">
+                
+                <!-- 1. SUDUT MERAH (AKA) -->
+                <div id="cardSudutMerah" class="bg-white rounded-xl border-2 border-red-500 shadow-sm flex flex-col overflow-hidden relative">
+                    <!-- Header Sudut Merah -->
+                    <div class="bg-red-600 text-white px-3.5 py-1.5 flex items-center justify-between shadow-sm flex-shrink-0">
+                        <span class="font-extrabold text-xs sm:text-sm uppercase tracking-wider">
+                            SUDUT MERAH (AKA)
+                        </span>
+                        <span id="randoriKetKiri" class="text-[11px] sm:text-xs font-semibold text-red-100">
+                            -
+                        </span>
+                    </div>
+
+                    <!-- Profil Atlet Merah -->
+                    <div class="py-2 px-3 text-center flex-shrink-0 border-b border-slate-100 bg-red-50/25">
+                        <h2 id="randoriNamaKiri" class="text-base sm:text-xl md:text-2xl font-black text-slate-800 truncate tracking-tight">
+                            -
+                        </h2>
+                        <div class="mt-0.5 flex items-center justify-center">
+                            <span id="randoriKontingenKiri" class="inline-flex items-center gap-1.5 text-slate-600 font-semibold text-xs sm:text-sm truncate">
+                                <i class="fas fa-map-marker-alt text-red-500 text-xs"></i>
+                                <span>-</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Display Skor Raksasa Merah -->
+                    <div class="flex-1 flex items-center justify-center p-2 min-h-0 bg-white">
+                        <div id="randoriSkorKiri" class="score-font font-black text-red-600 text-6xl sm:text-7xl md:text-8xl lg:text-9xl select-none">
+                            0
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="col-span-1 sm:col-span-2 md:col-span-3"></div>
-        </div>
-
-        <!-- BARIS 3: TOTAL NILAI PER BABAK & TOTAL AKHIR (KHUSUS BABAK 2) -->
-        <div id="rowTotalScores" class="grid grid-cols-12 gap-2 sm:gap-2.5 flex-1 min-h-0">
-            <!-- Left Spacer -->
-            <div id="spacerLeftTotal" class="col-span-1 sm:col-span-2 md:col-span-3"></div>
-
-            <!-- CARD TOTAL NILAI (BABAK 1 / BABAK 2 / TOTAL AKHIR RANDORI) -->
-            <div id="cardTotalNilai" class="col-span-10 sm:col-span-8 md:col-span-6 bg-gradient-to-br from-blue-600 to-indigo-700 text-white rounded-xl border-2 border-blue-600 shadow-md flex flex-col overflow-hidden transition-all duration-300">
-                <div class="py-1.5 px-3 text-center bg-white/15 border-b border-white/20 flex-shrink-0 flex items-center justify-center gap-1.5">
-                    <i class="fas fa-trophy text-amber-300 text-xs"></i>
-                    <span id="labelTotalNilai" class="text-[11px] sm:text-xs font-black tracking-wider text-blue-100 uppercase">TOTAL NILAI BABAK 1</span>
+                <!-- BADGE VS TENGAH -->
+                <div class="hidden md:flex absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-slate-800 text-white border-2 border-white shadow-md items-center justify-center font-bold text-xs pointer-events-none tracking-wider">
+                    VS
                 </div>
-                <div class="flex-1 flex items-center justify-center p-1 min-h-0">
-                    <div id="displayTotalNilai" class="score-font font-black text-white text-3xl sm:text-4xl md:text-5xl lg:text-6xl drop-shadow">
-                        0
+
+                <!-- 2. SUDUT BIRU / PUTIH (SHIRO) -->
+                <div id="cardSudutBiru" class="bg-white rounded-xl border-2 border-blue-500 shadow-sm flex flex-col overflow-hidden relative">
+                    <!-- Header Sudut Biru -->
+                    <div class="bg-blue-600 text-white px-3.5 py-1.5 flex items-center justify-between shadow-sm flex-shrink-0">
+                        <span class="font-extrabold text-xs sm:text-sm uppercase tracking-wider">
+                            SUDUT BIRU / SHIRO
+                        </span>
+                        <span id="randoriKetKanan" class="text-[11px] sm:text-xs font-semibold text-blue-100">
+                            -
+                        </span>
+                    </div>
+
+                    <!-- Profil Atlet Biru -->
+                    <div class="py-2 px-3 text-center flex-shrink-0 border-b border-slate-100 bg-blue-50/25">
+                        <h2 id="randoriNamaKanan" class="text-base sm:text-xl md:text-2xl font-black text-slate-800 truncate tracking-tight">
+                            -
+                        </h2>
+                        <div class="mt-0.5 flex items-center justify-center">
+                            <span id="randoriKontingenKanan" class="inline-flex items-center gap-1.5 text-slate-600 font-semibold text-xs sm:text-sm truncate">
+                                <i class="fas fa-map-marker-alt text-blue-500 text-xs"></i>
+                                <span>-</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Display Skor Raksasa Biru -->
+                    <div class="flex-1 flex items-center justify-center p-2 min-h-0 bg-white">
+                        <div id="randoriSkorKanan" class="score-font font-black text-blue-600 text-6xl sm:text-7xl md:text-8xl lg:text-9xl select-none">
+                            0
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- CARD TOTAL AKHIR (HANYA MUNCUL DI BABAK 2 EMBU) -->
-            <div id="cardTotalAkhir" style="display: none;" class="col-span-6 sm:col-span-5 md:col-span-4 bg-gradient-to-br from-amber-500 via-orange-600 to-amber-700 text-white rounded-xl border-2 border-amber-400 shadow-lg flex flex-col overflow-hidden transition-all duration-300">
-                <div class="py-1.5 px-3 text-center bg-white/20 border-b border-white/25 flex-shrink-0 flex items-center justify-center gap-1.5">
-                    <i class="fas fa-medal text-amber-200 text-xs"></i>
-                    <span class="text-[11px] sm:text-xs font-black tracking-wider text-amber-50 uppercase">TOTAL AKHIR</span>
-                </div>
-                <div class="flex-1 flex items-center justify-center p-1 min-h-0">
-                    <div id="displayTotalAkhir" class="score-font font-black text-white text-3xl sm:text-4xl md:text-5xl lg:text-6xl drop-shadow">
-                        0
-                    </div>
-                </div>
             </div>
-
-            <!-- Right Spacer -->
-            <div id="spacerRightTotal" class="col-span-1 sm:col-span-2 md:col-span-3"></div>
         </div>
 
     </main>
@@ -254,12 +357,20 @@
         const selectKategori = document.getElementById('selectKategori');
         const selectTanding = document.getElementById('selectTanding');
         const selectPeserta = document.getElementById('selectPeserta');
+        const labelDropdown3 = document.getElementById('labelDropdown3');
         const filterBabakSelect = document.getElementById('filter_babak_scoreboard');
         const containerFilterBabak = document.getElementById('containerFilterBabak');
         const filterDropdownGrid = document.getElementById('filterDropdownGrid');
         
+        // Container Views
+        const embuScoreboardView = document.getElementById('embuScoreboardView');
+        const randoriScoreboardView = document.getElementById('randoriScoreboardView');
+
         // Banner Elemen Peserta & Kontingen
+        const bannerIconPeserta = document.getElementById('bannerIconPeserta');
+        const bannerLabelPeserta = document.getElementById('bannerLabelPeserta');
         const bannerNamaPeserta = document.getElementById('bannerNamaPeserta');
+        const bannerLabelKontingen = document.getElementById('bannerLabelKontingen');
         const textKontingen = document.getElementById('textKontingen');
         const labelPesertaAktif = document.getElementById('labelPesertaAktif');
         const labelKontingenAktif = document.getElementById('labelKontingenAktif');
@@ -268,6 +379,7 @@
         const btnRefreshDb = document.getElementById('btnRefreshDb');
         const refreshIcon = document.getElementById('refreshIcon');
 
+        // Elemen Embu
         const wasitDisplays = [
             document.getElementById('wasit_1'),
             document.getElementById('wasit_2'),
@@ -285,9 +397,27 @@
         const spacerLeftTotal = document.getElementById('spacerLeftTotal');
         const spacerRightTotal = document.getElementById('spacerRightTotal');
 
+        // Elemen Randori
+        const randoriBadgeBabak = document.getElementById('randoriBadgeBabak');
+        const randoriBadgeStatus = document.getElementById('randoriBadgeStatus');
+        const randoriAlertHasil = document.getElementById('randoriAlertHasil');
+
+        const cardSudutMerah = document.getElementById('cardSudutMerah');
+        const randoriNamaKiri = document.getElementById('randoriNamaKiri');
+        const randoriKontingenKiri = document.getElementById('randoriKontingenKiri');
+        const randoriSkorKiri = document.getElementById('randoriSkorKiri');
+        const randoriKetKiri = document.getElementById('randoriKetKiri');
+
+        const cardSudutBiru = document.getElementById('cardSudutBiru');
+        const randoriNamaKanan = document.getElementById('randoriNamaKanan');
+        const randoriKontingenKanan = document.getElementById('randoriKontingenKanan');
+        const randoriSkorKanan = document.getElementById('randoriSkorKanan');
+        const randoriKetKanan = document.getElementById('randoriKetKanan');
+
         let currentKategori = null;
         let currentTanding = null;
         let currentPesertaGroup = null;
+        let currentPartaiDuel = null;
 
         // 1. Inisialisasi Dropdown Kategori
         function initKategoriDropdown() {
@@ -328,56 +458,95 @@
             }
         }
 
-        // 3. Tanding Berubah
+        // 3. Tanding Berubah (Toggle Randori vs Embu)
         function onTandingChange() {
             if (!currentKategori) return;
             const tandingId = parseInt(selectTanding.value);
             currentTanding = currentKategori.tandings.find(t => t.id === tandingId) || null;
 
+            const isRandori = currentTanding && currentTanding.jenis === 'randori';
             const isEmbu = currentTanding && currentTanding.jenis === 'embu';
-            if (containerFilterBabak && filterDropdownGrid) {
-                if (isEmbu) {
-                    containerFilterBabak.style.display = 'block';
-                    filterDropdownGrid.className = 'grid grid-cols-1 sm:grid-cols-4 gap-2 text-xs';
-                } else {
-                    containerFilterBabak.style.display = 'none';
-                    filterDropdownGrid.className = 'grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs';
-                    if (filterBabakSelect) filterBabakSelect.value = '1';
+
+            if (isRandori) {
+                if (containerFilterBabak) containerFilterBabak.style.display = 'none';
+                if (filterDropdownGrid) filterDropdownGrid.className = 'grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs';
+                if (labelDropdown3) labelDropdown3.innerHTML = '<i class="fas fa-sitemap mr-1 text-red-500"></i> Pilih Babak & Partai Duel';
+                if (bannerIconPeserta) {
+                    bannerIconPeserta.className = 'w-9 h-9 rounded-xl bg-red-600 text-white flex items-center justify-center font-black shadow-sm flex-shrink-0';
+                    bannerIconPeserta.innerHTML = '<i class="fas fa-fist-raised text-base"></i>';
                 }
+                if (bannerLabelPeserta) bannerLabelPeserta.textContent = 'Partai Duel Randori';
+                if (bannerLabelKontingen) bannerLabelKontingen.textContent = 'Babak / Partai';
+
+                if (embuScoreboardView) embuScoreboardView.style.display = 'none';
+                if (randoriScoreboardView) randoriScoreboardView.style.display = 'flex';
+            } else {
+                if (containerFilterBabak) containerFilterBabak.style.display = 'block';
+                if (filterDropdownGrid) filterDropdownGrid.className = 'grid grid-cols-1 sm:grid-cols-4 gap-2 text-xs';
+                if (labelDropdown3) labelDropdown3.innerHTML = '<i class="fas fa-user-ninja mr-1 text-blue-500"></i> Pilih Peserta';
+                if (bannerIconPeserta) {
+                    bannerIconPeserta.className = 'w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center font-black shadow-sm flex-shrink-0';
+                    bannerIconPeserta.innerHTML = '<i class="fas fa-user-ninja text-base"></i>';
+                }
+                if (bannerLabelPeserta) bannerLabelPeserta.textContent = 'Peserta Yang Tampil';
+                if (bannerLabelKontingen) bannerLabelKontingen.textContent = 'Kontingen / Daerah';
+
+                if (embuScoreboardView) embuScoreboardView.style.display = 'flex';
+                if (randoriScoreboardView) randoriScoreboardView.style.display = 'none';
+                if (filterBabakSelect) filterBabakSelect.value = '1';
             }
 
             if (typeof resetSmartPollingHash === 'function') {
                 resetSmartPollingHash();
             }
 
-            selectPeserta.innerHTML = '<option value="">-- Pilih Peserta --</option>';
+            selectPeserta.innerHTML = isRandori ? '<option value="">-- Pilih Partai Duel --</option>' : '<option value="">-- Pilih Peserta --</option>';
             selectPeserta.disabled = !currentTanding;
 
-            if (currentTanding && currentTanding.peserta_groups.length > 0) {
-                currentTanding.peserta_groups.forEach(pg => {
-                    const opt = document.createElement('option');
-                    opt.value = pg.row_index;
-                    const labelKontingen = (pg.kontingen && pg.kontingen !== '-') ? pg.kontingen : 'Kontingen';
-                    opt.textContent = `${labelKontingen} - ${pg.nama_gabungan}`;
-                    selectPeserta.appendChild(opt);
-                });
-                selectPeserta.value = currentTanding.peserta_groups[0].row_index;
-                fetchFreshScoreFromDatabase(() => {
-                    onPesertaChange(false);
-                });
+            if (isRandori) {
+                const partaiList = currentTanding.partai_duel || [];
+                if (partaiList.length > 0) {
+                    partaiList.forEach(p => {
+                        const opt = document.createElement('option');
+                        opt.value = p.id;
+                        opt.textContent = p.label;
+                        selectPeserta.appendChild(opt);
+                    });
+                    selectPeserta.value = partaiList[0].id;
+                    fetchFreshScoreFromDatabase(() => {
+                        onPartaiDuelChange(false);
+                    });
+                } else {
+                    resetScoreboard();
+                }
             } else {
-                resetScoreboard();
+                const pGroups = currentTanding.peserta_groups || [];
+                if (pGroups.length > 0) {
+                    pGroups.forEach(pg => {
+                        const opt = document.createElement('option');
+                        opt.value = pg.row_index;
+                        const labelKontingen = (pg.kontingen && pg.kontingen !== '-') ? pg.kontingen : 'Kontingen';
+                        opt.textContent = `${labelKontingen} - ${pg.nama_gabungan || pg.nama}`;
+                        selectPeserta.appendChild(opt);
+                    });
+                    selectPeserta.value = pGroups[0].row_index;
+                    fetchFreshScoreFromDatabase(() => {
+                        onPesertaChange(false);
+                    });
+                } else {
+                    resetScoreboard();
+                }
             }
         }
 
-        // 4. Peserta Berubah
+        // 4. Peserta Berubah (Khusus Embu)
         function onPesertaChange(shouldFetchDb = true) {
             if (!currentTanding) return;
             const rowIndex = parseInt(selectPeserta.value);
-            currentPesertaGroup = currentTanding.peserta_groups.find(pg => pg.row_index === rowIndex) || null;
+            currentPesertaGroup = (currentTanding.peserta_groups || []).find(pg => pg.row_index === rowIndex) || null;
 
             if (currentPesertaGroup) {
-                const namaPeserta = currentPesertaGroup.nama_gabungan || '-';
+                const namaPeserta = currentPesertaGroup.nama_gabungan || currentPesertaGroup.nama || '-';
                 const kontingen = currentPesertaGroup.kontingen || '-';
 
                 // Tampilkan nama peserta & kontingen secara menonjol di banner
@@ -400,7 +569,27 @@
             }
         }
 
-        // 5. MENGAMBIL DATA TERBARU DARI DATABASE (PULL/FETCH)
+        // 5. Partai Duel Berubah (Khusus Randori)
+        function onPartaiDuelChange(shouldFetchDb = true) {
+            if (!currentTanding) return;
+            const partaiId = parseInt(selectPeserta.value);
+            const partaiList = currentTanding.partai_duel || [];
+            currentPartaiDuel = partaiList.find(p => p.id === partaiId) || null;
+
+            if (currentPartaiDuel) {
+                if (shouldFetchDb) {
+                    fetchFreshScoreFromDatabase(() => {
+                        renderRandoriScore();
+                    });
+                } else {
+                    renderRandoriScore();
+                }
+            } else {
+                resetScoreboard();
+            }
+        }
+
+        // 6. MENGAMBIL DATA TERBARU DARI DATABASE (PULL/FETCH)
         function fetchFreshScoreFromDatabase(callback) {
             if (!currentTanding) return;
 
@@ -424,6 +613,12 @@
                             currentPesertaGroup = currentTanding.peserta_groups.find(pg => pg.row_index === currentPesertaGroup.row_index) || currentPesertaGroup;
                         }
                     }
+                    if (data.partai_duel && Array.isArray(data.partai_duel)) {
+                        currentTanding.partai_duel = data.partai_duel;
+                        if (currentPartaiDuel) {
+                            currentPartaiDuel = currentTanding.partai_duel.find(p => p.id === currentPartaiDuel.id) || currentPartaiDuel;
+                        }
+                    }
                     saveStatus.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Live Sync';
                     saveStatus.className = 'inline-flex items-center gap-1.5 text-[11px] font-bold px-2 py-0.5 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200';
                     if (typeof callback === 'function') callback();
@@ -437,7 +632,91 @@
             });
         }
 
-        // 6. RENDER SCORE DARI DATABASE (READ-ONLY DISPLAY)
+        // 7. RENDER SKOR RANDORI (DUEL MERAH VS BIRU)
+        function renderRandoriScore() {
+            if (!currentTanding || !currentPartaiDuel) {
+                resetScoreboard();
+                return;
+            }
+
+            const p = currentPartaiDuel;
+
+            // 1. Update Banner Atas
+            if (bannerNamaPeserta) {
+                bannerNamaPeserta.innerHTML = `<span class="text-rose-600 font-black">${p.kiri_nama}</span> <span class="text-slate-400 font-bold px-1.5">VS</span> <span class="text-blue-600 font-black">${p.kanan_nama}</span>`;
+            }
+            if (textKontingen) {
+                textKontingen.textContent = `${p.nama_babak} - Partai #${p.nomor_partai}`;
+            }
+
+            // 2. Update Footer
+            if (labelPesertaAktif) {
+                labelPesertaAktif.textContent = `${p.kiri_nama} vs ${p.kanan_nama}`;
+            }
+            if (labelKontingenAktif) {
+                labelKontingenAktif.textContent = `${p.kiri_kontingen} vs ${p.kanan_kontingen}`;
+            }
+
+            // 3. Header Partai & Status
+            if (randoriBadgeBabak) {
+                randoriBadgeBabak.textContent = `${p.nama_babak.toUpperCase()} - PARTAI #${p.nomor_partai}`;
+            }
+
+            const isMenangKiri = (p.pemenang_id && p.kiri_id && p.pemenang_id == p.kiri_id);
+            const isMenangKanan = (p.pemenang_id && p.kanan_id && p.pemenang_id == p.kanan_id);
+
+            if (randoriBadgeStatus) {
+                if (p.is_bye) {
+                    randoriBadgeStatus.className = 'px-2 py-0.5 bg-slate-100 text-slate-700 border border-slate-300 font-bold text-xs rounded-md';
+                    randoriBadgeStatus.textContent = 'BYE';
+                } else if (p.pemenang_id) {
+                    randoriBadgeStatus.className = 'px-2 py-0.5 bg-slate-100 text-slate-800 border border-slate-300 font-bold text-xs rounded-md';
+                    randoriBadgeStatus.textContent = 'Selesai';
+                } else {
+                    randoriBadgeStatus.className = 'px-2 py-0.5 bg-blue-50 text-blue-700 border border-blue-200 font-bold text-xs rounded-md';
+                    randoriBadgeStatus.textContent = 'Berlangsung';
+                }
+            }
+
+            if (randoriAlertHasil) {
+                if (p.is_bye) {
+                    randoriAlertHasil.innerHTML = `<span class="text-slate-500 font-normal">Lolos otomatis (BYE):</span> <span class="text-slate-800 font-bold">${p.kiri_nama}</span>`;
+                } else if (p.pemenang_id) {
+                    const pemenangNama = isMenangKiri ? p.kiri_nama : (isMenangKanan ? p.kanan_nama : 'Pemenang');
+                    const pemenangSudut = isMenangKiri ? 'Sudut Merah' : (isMenangKanan ? 'Sudut Biru' : '');
+                    const ket = p.keterangan_menang ? ` (${p.keterangan_menang})` : '';
+                    randoriAlertHasil.innerHTML = `<span class="text-slate-500 font-normal">Pemenang:</span> <span class="text-slate-900 font-black">${pemenangNama}</span> <span class="text-slate-400 font-normal">|</span> <span class="text-slate-700 font-semibold">${pemenangSudut}${ket}</span>`;
+                } else {
+                    randoriAlertHasil.innerHTML = '';
+                }
+            }
+
+            // 4. Update Sudut Kiri (Merah)
+            if (randoriNamaKiri) randoriNamaKiri.textContent = p.kiri_nama || 'Atlet Merah';
+            if (randoriKontingenKiri) {
+                randoriKontingenKiri.innerHTML = `<i class="fas fa-map-marker-alt text-red-500 text-xs"></i> <span>${p.kiri_kontingen || '-'}</span>`;
+            }
+            if (randoriSkorKiri) {
+                randoriSkorKiri.textContent = p.skor_kiri !== null && p.skor_kiri !== undefined ? p.skor_kiri : 0;
+            }
+            if (randoriKetKiri) {
+                randoriKetKiri.textContent = isMenangKiri ? (p.keterangan_menang ? `Menang (${p.keterangan_menang})` : 'Menang') : '-';
+            }
+
+            // 5. Update Sudut Kanan (Biru)
+            if (randoriNamaKanan) randoriNamaKanan.textContent = p.kanan_nama || 'Atlet Biru';
+            if (randoriKontingenKanan) {
+                randoriKontingenKanan.innerHTML = `<i class="fas fa-map-marker-alt text-blue-500 text-xs"></i> <span>${p.kanan_kontingen || '-'}</span>`;
+            }
+            if (randoriSkorKanan) {
+                randoriSkorKanan.textContent = p.skor_kanan !== null && p.skor_kanan !== undefined ? p.skor_kanan : 0;
+            }
+            if (randoriKetKanan) {
+                randoriKetKanan.textContent = isMenangKanan ? (p.keterangan_menang ? `Menang (${p.keterangan_menang})` : 'Menang') : '-';
+            }
+        }
+
+        // 8. RENDER SKOR EMBU DARI DATABASE (READ-ONLY DISPLAY)
         function renderScoreFromDatabaseState() {
             if (!currentTanding || !currentPesertaGroup) return;
 
@@ -487,7 +766,7 @@
 
             const parsedScores = scores.slice(0, 5).map(s => parseFloat(s) || 0);
 
-            // Update UI Wasit 1 - 5 (style lama, tanpa badge, tanpa coret)
+            // Update UI Wasit 1 - 5
             for (let i = 1; i <= 5; i++) {
                 const el = document.getElementById('wasit_' + i);
                 if (el) {
@@ -501,8 +780,7 @@
             if (elWaktu) elWaktu.textContent = waktu || '00:00';
             if (elDenda) elDenda.textContent = genten !== null && genten !== undefined ? genten : 0;
 
-            // Hitung skor baru: Hilangkan nilai terbesar dan terkecil dari wasit yang aktif (> 0),
-            // jumlahkan nilai di tengah, lalu dikurangi denda.
+            // Hitung skor: Hilangkan nilai terbesar dan terkecil dari wasit yang aktif (> 0)
             const activeScores = parsedScores.filter(s => s > 0).sort((a, b) => a - b);
             let sumMiddle = 0;
 
@@ -596,6 +874,19 @@
             if (dtn) dtn.textContent = '0';
             const dta = document.getElementById('displayTotalAkhir');
             if (dta) dta.textContent = '0';
+
+            // Reset Randori
+            if (randoriNamaKiri) randoriNamaKiri.textContent = '-';
+            if (randoriKontingenKiri) randoriKontingenKiri.innerHTML = '<span>-</span>';
+            if (randoriSkorKiri) randoriSkorKiri.textContent = '0';
+            if (randoriKetKiri) randoriKetKiri.textContent = '-';
+
+            if (randoriNamaKanan) randoriNamaKanan.textContent = '-';
+            if (randoriKontingenKanan) randoriKontingenKanan.innerHTML = '<span>-</span>';
+            if (randoriSkorKanan) randoriSkorKanan.textContent = '0';
+            if (randoriKetKanan) randoriKetKanan.textContent = '-';
+
+            if (randoriAlertHasil) randoriAlertHasil.innerHTML = '';
         }
 
         // Fullscreen Toggle
@@ -610,7 +901,13 @@
         // Event Listeners
         selectKategori.addEventListener('change', onKategoriChange);
         selectTanding.addEventListener('change', onTandingChange);
-        selectPeserta.addEventListener('change', () => onPesertaChange(true));
+        selectPeserta.addEventListener('change', () => {
+            if (currentTanding && currentTanding.jenis === 'randori') {
+                onPartaiDuelChange(true);
+            } else {
+                onPesertaChange(true);
+            }
+        });
         if (filterBabakSelect) {
             filterBabakSelect.addEventListener('change', () => {
                 renderScoreFromDatabaseState();
@@ -619,7 +916,11 @@
 
         btnRefreshDb.addEventListener('click', () => {
             fetchFreshScoreFromDatabase(() => {
-                renderScoreFromDatabaseState();
+                if (currentTanding && currentTanding.jenis === 'randori') {
+                    renderRandoriScore();
+                } else {
+                    renderScoreFromDatabaseState();
+                }
             });
         });
 
@@ -632,7 +933,6 @@
     <script>
     document.addEventListener('DOMContentLoaded', function () {
         const defaultPertandinganId = {{ $pertandinganId ?: 1 }};
-        const checkUrl = "{{ route('scoreboard.check', $pertandinganId ?: 1) }}";
         const pageUrl = window.location.href;
         const containerId = 'scoreboard-content';
 
@@ -649,33 +949,17 @@
             isUpdating = true;
 
             try {
-                const response = await fetch(pageUrl, {
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'Accept': 'text/html'
-                    },
-                    cache: 'no-store'
-                });
-
-                if (!response.ok) throw new Error('HTTP status ' + response.status);
-
-                const htmlText = await response.text();
-                const parser = new DOMParser();
-                const newDoc = parser.parseFromString(htmlText, 'text/html');
-
-                const newContent = newDoc.getElementById(containerId);
-                const currentContent = document.getElementById(containerId);
-
-                if (newContent && currentContent) {
-                    // Hanya perbarui isi HTML di dalam #scoreboard-content
-                    currentContent.innerHTML = newContent.innerHTML;
-                }
-
-                // Segera tarik dan render nilai terbaru dari database ke elemen papan skor
+                // Tarik dan render nilai terbaru dari database ke elemen papan skor
                 if (typeof fetchFreshScoreFromDatabase === 'function') {
                     fetchFreshScoreFromDatabase(() => {
-                        if (typeof renderScoreFromDatabaseState === 'function') {
-                            renderScoreFromDatabaseState();
+                        if (typeof currentTanding !== 'undefined' && currentTanding && currentTanding.jenis === 'randori') {
+                            if (typeof renderRandoriScore === 'function') {
+                                renderRandoriScore();
+                            }
+                        } else {
+                            if (typeof renderScoreFromDatabaseState === 'function') {
+                                renderScoreFromDatabaseState();
+                            }
                         }
                     });
                 }

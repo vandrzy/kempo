@@ -92,4 +92,6 @@ Route::middleware('auth')->group(function () {
     Route::post('/pertandingan/{id}/set-medali', [PertandinganController::class, 'setMedali'])->name('pertandingan.set-medali');
     Route::get('/pertandingan/{id}/peserta', [PertandinganController::class, 'getPesertaPertandingan'])->name('pertandingan.peserta');
     Route::post('/pertandingan/{id}/scoresheet', [PertandinganController::class, 'saveScoresheet'])->name('pertandingan.scoresheet');
+    Route::post('/pertandingan/{id}/duel-scoresheet', [PertandinganController::class, 'saveDuelScoresheet'])->name('pertandingan.duel-scoresheet');
 });
+

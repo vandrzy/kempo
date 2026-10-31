@@ -121,10 +121,26 @@ class PertandinganController extends Controller
         $kegiatan_id = request('kegiatan_id') ?? ($_GET['kegiatan_id'] ?? optional($data['pertandingan'])->kegiatan_id);
         $data['kegiatan'] = Kegiatan::find($kegiatan_id);
 
-        $is_diacak = KontigenPertandingan::where('list_kategori_id', $id)->exists();
+        $is_diacak = KontigenPertandingan::where('list_kategori_id', $id)->exists() || PesertaTerpilih::where('list_kategori_id', $id)->exists();
         $data['is_diacak'] = $is_diacak;
-        $data['peserta_ready'] = $is_diacak ? 0 : PertandinganPeserta::where('sudah_terpilih', 'false')->where('kegiatan_id', $kegiatan_id)->where('list_kategori_id', $id)->count();
-        $data['peserta_lawan'] = PesertaTerpilih::where('list_kategori_id', $id)->where('kegiatan_id', $kegiatan_id)->paginate(10);
+        $data['peserta_ready'] = $is_diacak ? 0 : PertandinganPeserta::where('sudah_terpilih', 'false')->where('list_kategori_id', $id)->count();
+        $filterBabak = request('filter_babak') ?? request('babak');
+        $queryPesertaLawan = PesertaTerpilih::with([
+                'PertandinganPesertaPertama.Peserta.kabupaten',
+                'PertandinganPesertaKedua.Peserta.kabupaten',
+                'pemenang.Peserta.kabupaten'
+            ])
+            ->where('list_kategori_id', $id);
+
+        if ($filterBabak && $filterBabak !== 'all' && is_numeric($filterBabak)) {
+            $queryPesertaLawan->where('babak', $filterBabak);
+        }
+
+        $data['peserta_lawan'] = $queryPesertaLawan
+            ->orderBy('babak', 'asc')
+            ->orderBy('nomor_partai', 'asc')
+            ->paginate(100)
+            ->appends(request()->query());
 
         $data['kabupaten'] = PertandinganPeserta::with('Peserta.kabupaten')->where('list_kategori_id', $id)->get()->groupBy(function ($item) {
             return $item->Peserta->kabupaten_id;
@@ -132,18 +148,34 @@ class PertandinganController extends Controller
 
 
         if(isset($_GET['print']) && $_GET['print'] != "") {
-            // $data['kolom'] = KontigenPertandingan::where('urutan', $_GET['print'])->where('list_kategori_id', $id)->get();
-            // $data['kolom2'] = KontigenPertandingan::where('urutan', $_GET['print'])->where('list_kategori_id', $id)->orderByRaw('kabupaten_id IS NULL ASC')->orderBy('kabupaten_id','ASC')->get();
-            $data['pertandingan'] = ListKategori::with('pertandingan')->where('id', $id)->first();
+            $data['pertandingan'] = ListKategori::with(['pertandingan', 'kategori', 'kegiatan'])->where('id', $id)->first();
             $data['kolom1'] = KontigenPertandingan::where('urutan', $_GET['print'])->where('list_kategori_id', $id)->orderByRaw('kabupaten_id IS NULL ASC')->orderBy('kabupaten_id','ASC')->get();
-            // dd($data['kolom1']);
-            // dd($data['pertandingan']);
-            // $pdf = Pdf::loadView('admin.pertandingan.print_bagan', $data);
 
-            // // 🟢 Tampilkan langsung di browser
-            // return $pdf->stream('Data_Peserta_Kontigen_Pertandingan_'.date('Y-m-d').'.pdf');
+            $check = optional($data['pertandingan'])->pertandingan;
+            $data['isRandori'] = ($check && $check->bagan == 1) ||
+                                 stripos($check->nama ?? '', 'randori') !== false ||
+                                 stripos(optional($data['pertandingan']->kategori)->nama ?? '', 'randori') !== false;
+
+            // FASE 4: Ambil seluruh data bagan peserta_terpilihs beserta relasi atlet dan kontingen
+            $data['matches'] = PesertaTerpilih::with([
+                'PertandinganPesertaPertama.Peserta.kabupaten',
+                'PertandinganPesertaKedua.Peserta.kabupaten',
+                'pemenang.Peserta.kabupaten'
+            ])
+            ->where('list_kategori_id', $id)
+            ->orderBy('babak', 'asc')
+            ->orderBy('nomor_partai', 'asc')
+            ->get();
+
+            $data['pesertaList'] = PertandinganPeserta::with('Peserta.kabupaten')
+                ->where('list_kategori_id', $id)
+                ->get();
+
+            $data['totalPeserta'] = $data['pesertaList']->count();
+            $data['slotCount'] = pow(2, ceil(log(max(2, $data['totalPeserta']), 2)));
+            $data['totalBabak'] = (int) log($data['slotCount'], 2);
+
             return view('admin.pertandingan.print_bagan', $data);
-
         }
         $data['kolom1'] = KontigenPertandingan::with([
             'kabupaten.KontigenPertandinganKedua' => function ($q) use ($data) {
@@ -242,74 +274,261 @@ class PertandinganController extends Controller
         return $pdf->stream("nomor_tanding.pdf"); // atau ->download()
     }
 
-    public function tanding(Request $request,$id) {
+    public function tanding(Request $request, $id)
+    {
         if (!in_array(Auth::user()->role, ['admin', 'operator', 'wasit', 1, '1', 2, '2'])) {
             return redirect()->back()->with('error', 'Akses ditolak');
         }
 
-        $check = Pertandingan::find($request->pertandingan_id);
-
-        $data['kabupaten'] = PertandinganPeserta::with('Peserta.kabupaten')
-            ->where('list_kategori_id', $id)
-            ->whereHas('Peserta', function ($q) {
-                $q->whereNotNull('kabupaten_id');
-            })
-            ->get()
-            ->groupBy(function ($item) {
-                return $item->Peserta->kabupaten_id;
-            })
-            ->values();
-
-        $totalKabupaten = count($data['kabupaten']);
-        if ($totalKabupaten == 0) {
-            return redirect()->back()->with('error', 'Tidak ada kontingen/peserta yang terdaftar pada nomor tanding ini.');
-        }
-
-        if ($totalKabupaten < 2) {
-            return redirect()->back()->with('error', 'Jumlah kontingen minimal 2 untuk dapat mengacak nomor tanding.');
-        }
-
-        // Hapus undian sebelumnya jika ada
-        KontigenPertandingan::where('list_kategori_id', $id)->whereIn('urutan', [1, 2])->delete();
-
-        $kabupaten_list_1 = [];
-        $kabupaten_list_2 = [];
-
-        if ($check && $check->bagan == null) {
-            $limit = $totalKabupaten;
-        } else {
-            if ($totalKabupaten <= 4) {
-                $limit = 4;
-            } elseif ($totalKabupaten <= 8) {
-                $limit = 8;
-            } elseif ($totalKabupaten <= 16) {
-                $limit = 16;
-            } else {
-                $limit = 32;
-            }
-        }
+        $listKategori = ListKategori::with(['pertandingan', 'kegiatan', 'kategori'])->findOrFail($id);
+        $check = $listKategori->pertandingan;
 
         $isRandori = ($check && $check->bagan == 1) ||
-                     stripos($check->nama ?? '', 'randori') !== false;
+                     stripos($check->nama ?? '', 'randori') !== false ||
+                     stripos(optional($listKategori->kategori)->nama ?? '', 'randori') !== false;
 
-        for ($i = 0; $i < $limit; $i++) {
-            if (isset($data['kabupaten'][$i])) {
-                $kabupatenId = optional($data['kabupaten'][$i]->first()->Peserta->Kabupaten)->id;
-                $kabupaten_list_1[] = $kabupatenId;
-                if (!$isRandori) {
-                    $kabupaten_list_2[] = $kabupatenId;
+        if ($isRandori) {
+            // ========================================================
+            // FASE 2: ALGORITMA UNDI BAGAN OTOMATIS UNTUK RANDORI
+            // ========================================================
+            $pesertaList = PertandinganPeserta::with('Peserta.kabupaten')
+                ->where('list_kategori_id', $id)
+                ->get();
+
+            $totalPeserta = $pesertaList->count();
+            if ($totalPeserta < 2) {
+                return redirect()->back()->with('error', 'Jumlah peserta minimal 2 untuk dapat mengundi bagan pertandingan.');
+            }
+
+            // 1. Bersihkan undian lama jika ada
+            KontigenPertandingan::where('list_kategori_id', $id)->delete();
+            PesertaTerpilih::where('list_kategori_id', $id)->delete();
+            PertandinganPeserta::where('list_kategori_id', $id)->update([
+                'medali'      => null,
+                'total_nilai' => 0,
+            ]);
+            $listKategori->data_juara = null;
+            $listKategori->save();
+
+            // 2. Tentukan slot terdekat pangkat 2 ($2^k)
+            $slotCount = pow(2, ceil(log(max(2, $totalPeserta), 2)));
+            $totalBabak = (int) log($slotCount, 2);
+            $totalByes = $slotCount - $totalPeserta;
+
+            // 3. Lakukan pengacakan (shuffle) posisi peserta
+            $shuffledPeserta = $pesertaList->shuffle()->values();
+
+            // Simpan ke kontigen_pertandingans untuk konsistensi nomor undian
+            foreach ($shuffledPeserta as $index => $atlet) {
+                KontigenPertandingan::create([
+                    'list_kategori_id' => $id,
+                    'kabupaten_id'     => optional($atlet->Peserta)->kabupaten_id,
+                    'urutan'           => 1,
+                    'undian'           => $index,
+                ]);
+            }
+
+            if ($totalByes == 0) {
+                // Semua atlet bertanding mulai dari Babak 1
+                $totalPartai = $slotCount / 2;
+                for ($p = 1; $p <= $totalPartai; $p++) {
+                    $kiri = $shuffledPeserta->get(($p - 1) * 2);
+                    $kanan = $shuffledPeserta->get(($p - 1) * 2 + 1);
+
+                    PesertaTerpilih::create([
+                        'list_kategori_id'             => $id,
+                        'pertandingan_id'              => $check->id,
+                        'kegiatan_id'                  => $listKategori->kegiatan_id,
+                        'babak'                        => 1,
+                        'nomor_partai'                 => $p,
+                        'pertandingan_peserta_kiri_id'  => $kiri?->id,
+                        'pertandingan_peserta_kanan_id' => $kanan?->id,
+                        'pemenang_id'                  => null,
+                        'keterangan_menang'            => null,
+                    ]);
+
+                    if ($kiri) {
+                        $kiri->urutan = ($p - 1) * 2;
+                        $kiri->babak = 1;
+                        $kiri->sudah_terpilih = 'true';
+                        $kiri->save();
+                    }
+                    if ($kanan) {
+                        $kanan->urutan = ($p - 1) * 2 + 1;
+                        $kanan->babak = 1;
+                        $kanan->sudah_terpilih = 'true';
+                        $kanan->save();
+                    }
                 }
+
+                // Inisialisasi slot babak 2 sampai final agar bagan tree langsung lengkap
+                for ($b = 2; $b <= $totalBabak; $b++) {
+                    $partiesInRound = (int) ($slotCount / pow(2, $b));
+                    for ($pb = 1; $pb <= $partiesInRound; $pb++) {
+                        PesertaTerpilih::create([
+                            'list_kategori_id'             => $id,
+                            'pertandingan_id'              => $check->id,
+                            'kegiatan_id'                  => $listKategori->kegiatan_id,
+                            'babak'                        => $b,
+                            'nomor_partai'                 => $pb,
+                            'pertandingan_peserta_kiri_id'  => null,
+                            'pertandingan_peserta_kanan_id' => null,
+                            'pemenang_id'                  => null,
+                            'keterangan_menang'            => null,
+                        ]);
+                    }
+                }
+
+                $msg = 'Bagan pertandingan Randori berhasil diundi (' . $totalPartai . ' partai Babak 1).';
             } else {
-                $kabupaten_list_1[] = null;
-                if (!$isRandori) {
+                // Ada slot kosong: Atlet yang mendapat slot kosong LANGSUNG melaju ke Babak 2 tanpa membuat partai BYE di Babak 1
+                $totalPartaiBabak1 = $totalPeserta - ($slotCount / 2);
+                $pesertaBabak1Count = 2 * $totalPartaiBabak1;
+
+                // 1. Buat partai riil Babak 1
+                for ($p = 1; $p <= $totalPartaiBabak1; $p++) {
+                    $kiri = $shuffledPeserta->get(($p - 1) * 2);
+                    $kanan = $shuffledPeserta->get(($p - 1) * 2 + 1);
+
+                    PesertaTerpilih::create([
+                        'list_kategori_id'             => $id,
+                        'pertandingan_id'              => $check->id,
+                        'kegiatan_id'                  => $listKategori->kegiatan_id,
+                        'babak'                        => 1,
+                        'nomor_partai'                 => $p,
+                        'pertandingan_peserta_kiri_id'  => $kiri?->id,
+                        'pertandingan_peserta_kanan_id' => $kanan?->id,
+                        'pemenang_id'                  => null,
+                        'keterangan_menang'            => null,
+                    ]);
+
+                    if ($kiri) {
+                        $kiri->urutan = ($p - 1) * 2;
+                        $kiri->babak = 1;
+                        $kiri->sudah_terpilih = 'true';
+                        $kiri->save();
+                    }
+                    if ($kanan) {
+                        $kanan->urutan = ($p - 1) * 2 + 1;
+                        $kanan->babak = 1;
+                        $kanan->sudah_terpilih = 'true';
+                        $kanan->save();
+                    }
+                }
+
+                // 2. Buat Babak 2: Tempatkan atlet yang langsung lolos ke slot kosong Babak 2
+                $directIdx = $pesertaBabak1Count;
+                $totalPartaiBabak2 = (int) ($slotCount / 4);
+
+                for ($p2 = 1; $p2 <= $totalPartaiBabak2; $p2++) {
+                    $p1Kiri = 2 * $p2 - 1;
+                    $p1Kanan = 2 * $p2;
+
+                    $kiriAtlet = null;
+                    if ($p1Kiri > $totalPartaiBabak1) {
+                        $kiriAtlet = $shuffledPeserta->get($directIdx++);
+                        if ($kiriAtlet) {
+                            $kiriAtlet->urutan = $directIdx - 1;
+                            $kiriAtlet->babak = 2;
+                            $kiriAtlet->sudah_terpilih = 'true';
+                            $kiriAtlet->save();
+                        }
+                    }
+
+                    $kananAtlet = null;
+                    if ($p1Kanan > $totalPartaiBabak1) {
+                        $kananAtlet = $shuffledPeserta->get($directIdx++);
+                        if ($kananAtlet) {
+                            $kananAtlet->urutan = $directIdx - 1;
+                            $kananAtlet->babak = 2;
+                            $kananAtlet->sudah_terpilih = 'true';
+                            $kananAtlet->save();
+                        }
+                    }
+
+                    PesertaTerpilih::create([
+                        'list_kategori_id'             => $id,
+                        'pertandingan_id'              => $check->id,
+                        'kegiatan_id'                  => $listKategori->kegiatan_id,
+                        'babak'                        => 2,
+                        'nomor_partai'                 => $p2,
+                        'pertandingan_peserta_kiri_id'  => $kiriAtlet?->id,
+                        'pertandingan_peserta_kanan_id' => $kananAtlet?->id,
+                        'pemenang_id'                  => null,
+                        'keterangan_menang'            => null,
+                    ]);
+                }
+
+                // 3. Inisialisasi Babak 3 s/d Final (jika ada)
+                for ($b = 3; $b <= $totalBabak; $b++) {
+                    $partiesInRound = (int) ($slotCount / pow(2, $b));
+                    for ($pb = 1; $pb <= $partiesInRound; $pb++) {
+                        PesertaTerpilih::create([
+                            'list_kategori_id'             => $id,
+                            'pertandingan_id'              => $check->id,
+                            'kegiatan_id'                  => $listKategori->kegiatan_id,
+                            'babak'                        => $b,
+                            'nomor_partai'                 => $pb,
+                            'pertandingan_peserta_kiri_id'  => null,
+                            'pertandingan_peserta_kanan_id' => null,
+                            'pemenang_id'                  => null,
+                            'keterangan_menang'            => null,
+                        ]);
+                    }
+                }
+
+                $msg = 'Bagan pertandingan Randori berhasil diundi (' . $totalPartaiBabak1 . ' partai Babak 1, ' . $totalByes . ' atlet langsung melaju ke Babak 2 tanpa bagan BYE).';
+            }
+
+            return redirect()->back()
+                ->with('success', $msg)
+                ->withInput();
+
+        } else {
+            // ========================================================
+            // LOGIKA PENGACAKAN EMBU (TERISOLASI DARI RANDORI)
+            // ========================================================
+            $data['kabupaten'] = PertandinganPeserta::with('Peserta.kabupaten')
+                ->where('list_kategori_id', $id)
+                ->whereHas('Peserta', function ($q) {
+                    $q->whereNotNull('kabupaten_id');
+                })
+                ->get()
+                ->groupBy(function ($item) {
+                    return $item->Peserta->kabupaten_id;
+                })
+                ->values();
+
+            $totalKabupaten = count($data['kabupaten']);
+            if ($totalKabupaten == 0) {
+                return redirect()->back()->with('error', 'Tidak ada kontingen/peserta yang terdaftar pada nomor tanding ini.');
+            }
+
+            if ($totalKabupaten < 2) {
+                return redirect()->back()->with('error', 'Jumlah kontingen minimal 2 untuk dapat mengacak nomor tanding.');
+            }
+
+            // Hapus undian sebelumnya jika ada
+            KontigenPertandingan::where('list_kategori_id', $id)->whereIn('urutan', [1, 2])->delete();
+
+            $kabupaten_list_1 = [];
+            $kabupaten_list_2 = [];
+
+            $limit = $totalKabupaten;
+
+            for ($i = 0; $i < $limit; $i++) {
+                if (isset($data['kabupaten'][$i])) {
+                    $kabupatenId = optional($data['kabupaten'][$i]->first()->Peserta->Kabupaten)->id;
+                    $kabupaten_list_1[] = $kabupatenId;
+                    $kabupaten_list_2[] = $kabupatenId;
+                } else {
+                    $kabupaten_list_1[] = null;
                     $kabupaten_list_2[] = null;
                 }
             }
-        }
 
-        shuffle($kabupaten_list_1);
+            shuffle($kabupaten_list_1);
 
-        if (!$isRandori) {
             $attempts = 0;
             $maxAttempts = 100;
             do {
@@ -325,18 +544,16 @@ class PertandinganController extends Controller
                 }
                 $attempts++;
             } while (!$valid && $attempts < $maxAttempts);
-        }
 
-        foreach ($kabupaten_list_1 as $index => $a) {
-            KontigenPertandingan::create([
-                'list_kategori_id' => $id,
-                'kabupaten_id'     => $a,
-                'urutan'           => 1,
-                'undian'           => $index,
-            ]);
-        }
+            foreach ($kabupaten_list_1 as $index => $a) {
+                KontigenPertandingan::create([
+                    'list_kategori_id' => $id,
+                    'kabupaten_id'     => $a,
+                    'urutan'           => 1,
+                    'undian'           => $index,
+                ]);
+            }
 
-        if (!$isRandori) {
             foreach ($kabupaten_list_2 as $index => $a) {
                 KontigenPertandingan::create([
                     'list_kategori_id' => $id,
@@ -345,43 +562,49 @@ class PertandinganController extends Controller
                     'undian'           => $index,
                 ]);
             }
+
+            // Update status peserta agar sistem mencatat nomor tanding ini sudah diacak
+            PertandinganPeserta::where('list_kategori_id', $id)
+                ->update(['sudah_terpilih' => 'true']);
+
+            return redirect()->back()
+                ->with('success', 'Kontingen dan nomor undian tanding berhasil diacak!')
+                ->withInput();
         }
-
-        // Update status peserta agar sistem mencatat nomor tanding ini sudah diacak
-        PertandinganPeserta::where('list_kategori_id', $id)
-            ->update(['sudah_terpilih' => 'true']);
-
-        return redirect()->back()
-            ->with('success', 'Kontigen dan nomor undian tanding berhasil diacak!')
-            ->withInput();
     }
 
-    public function batal_tanding(Request $request) {
+    public function batal_tanding(Request $request)
+    {
+        if (!in_array(Auth::user()->role, ['admin', 'operator', 'wasit', 1, '1', 2, '2'])) {
+            return redirect()->back()->with('error', 'Akses ditolak');
+        }
+
         $list_kategori_id = $request->list_kategori_id;
 
         // 1. Hapus bagan undian aktif
         KontigenPertandingan::where('list_kategori_id', $list_kategori_id)->delete();
 
-        // 2. Reset status peserta menjadi belum terpilih
+        // 2. Reset status peserta menjadi belum terpilih & reset medali
         PertandinganPeserta::where('list_kategori_id', $list_kategori_id)
-            ->update(['sudah_terpilih' => 'false']);
+            ->update([
+                'sudah_terpilih' => 'false',
+                'urutan'         => 0,
+                'medali'         => null,
+                'total_nilai'    => 0,
+            ]);
 
         // 3. Bersihkan PesertaTerpilih lama jika ada
-        $pesertaTerpilih = PesertaTerpilih::where('list_kategori_id', $list_kategori_id)->get();
-        if ($pesertaTerpilih) {
-            foreach ($pesertaTerpilih as $a) {
-                PertandinganPeserta::where('id', $a->pertandingan_peserta_kiri_id)
-                    ->update(['sudah_terpilih' => 'false']);
+        PesertaTerpilih::where('list_kategori_id', $list_kategori_id)->delete();
 
-                PertandinganPeserta::where('id', $a->pertandingan_peserta_kanan_id)
-                    ->update(['sudah_terpilih' => 'false']);
-
-                $a->delete();
-            }
+        // 4. Reset data_juara pada list_kategoris
+        $lkReset = ListKategori::find($list_kategori_id);
+        if ($lkReset) {
+            $lkReset->data_juara = null;
+            $lkReset->save();
         }
 
         return redirect()->back()
-            ->with('success', 'Bagan nomor tanding telah berhasil dihapus/direset.')
+            ->with('success', 'Bagan nomor tanding dan medali telah berhasil dihapus/direset.')
             ->withInput();
     }
 
@@ -1443,8 +1666,60 @@ class PertandinganController extends Controller
 
                 $scoresheetData = $lk->data_scoresheet ?? ($tanding->data_scoresheet ?? []);
 
-                $isRandori = stripos($tanding->nama ?? '', 'randori') !== false ||
+                $isRandori = ($tanding && $tanding->bagan == 1) ||
+                             stripos($tanding->nama ?? '', 'randori') !== false ||
                              stripos($kategori->nama ?? '', 'randori') !== false;
+
+                // FASE 5: Ambil seluruh data partai duel jika Randori
+                $partaiDuel = [];
+                if ($isRandori || PesertaTerpilih::where('list_kategori_id', $lk->id)->exists()) {
+                    $duelMatches = PesertaTerpilih::with([
+                        'PertandinganPesertaPertama.Peserta.kabupaten',
+                        'PertandinganPesertaKedua.Peserta.kabupaten',
+                        'pemenang.Peserta.kabupaten'
+                    ])
+                    ->where('list_kategori_id', $lk->id)
+                    ->orderBy('babak', 'asc')
+                    ->orderBy('nomor_partai', 'asc')
+                    ->get();
+
+                    $totP = $allPeserta->count();
+                    $sCount = pow(2, ceil(log(max(2, $totP), 2)));
+                    $tBabak = (int) log($sCount, 2);
+
+                    $partaiDuel = $duelMatches->map(function ($m) use ($tBabak) {
+                        $namaBabak = 'Babak ' . $m->babak;
+                        if ($m->babak == $tBabak) $namaBabak = 'Final';
+                        elseif ($tBabak >= 2 && $m->babak == $tBabak - 1) $namaBabak = 'Semifinal';
+                        elseif ($tBabak >= 3 && $m->babak == $tBabak - 2) $namaBabak = 'Perempatfinal';
+
+                        $kiri = $m->PertandinganPesertaPertama;
+                        $kanan = $m->PertandinganPesertaKedua;
+                        $isBye = ($kanan === null && $m->keterangan_menang === 'BYE');
+
+                        $kiriNama = optional($kiri?->Peserta)->nama ?? ($m->pertandingan_peserta_kiri_id ? 'Atlet' : 'Menunggu Pemenang B' . ($m->babak - 1));
+                        $kananNama = optional($kanan?->Peserta)->nama ?? ($isBye ? 'BYE (Slot Kosong)' : ($m->pertandingan_peserta_kanan_id ? 'Atlet' : 'Menunggu Pemenang B' . ($m->babak - 1)));
+
+                        return [
+                            'id'                => $m->id,
+                            'babak'             => $m->babak,
+                            'nama_babak'        => $namaBabak,
+                            'nomor_partai'      => $m->nomor_partai,
+                            'label'             => "{$namaBabak} - Partai #{$m->nomor_partai}: {$kiriNama} vs {$kananNama}",
+                            'is_bye'            => $isBye,
+                            'kiri_id'           => $m->pertandingan_peserta_kiri_id,
+                            'kiri_nama'         => $kiriNama,
+                            'kiri_kontingen'    => optional(optional($kiri?->Peserta)->kabupaten)->name ?? (optional($kiri?->Peserta)->kontigen ?? '-'),
+                            'skor_kiri'         => $m->skor_kiri !== null ? floatval($m->skor_kiri) : 0,
+                            'kanan_id'          => $m->pertandingan_peserta_kanan_id,
+                            'kanan_nama'        => $kananNama,
+                            'kanan_kontingen'   => optional(optional($kanan?->Peserta)->kabupaten)->name ?? (optional($kanan?->Peserta)->kontigen ?? '-'),
+                            'skor_kanan'        => $m->skor_kanan !== null ? floatval($m->skor_kanan) : 0,
+                            'pemenang_id'       => $m->pemenang_id,
+                            'keterangan_menang' => $m->keterangan_menang,
+                        ];
+                    })->values()->toArray();
+                }
 
                 $tandingList[] = [
                     'id'              => $lk->id,
@@ -1453,6 +1728,7 @@ class PertandinganController extends Controller
                     'jenis'           => $isRandori ? 'randori' : 'embu',
                     'scoresheet_data' => $scoresheetData,
                     'peserta_groups'  => $pesertaGroups,
+                    'partai_duel'     => $partaiDuel,
                 ];
             }
 
@@ -1596,11 +1872,68 @@ class PertandinganController extends Controller
             $groupIndex++;
         }
 
+        $lkId = $listKategori ? $listKategori->id : $pertandingan_id;
+        $isRandori = ($pertandingan && $pertandingan->bagan == 1) ||
+                     stripos($pertandingan?->nama ?? '', 'randori') !== false ||
+                     stripos(optional($listKategori?->kategori)->nama ?? '', 'randori') !== false;
+
+        $partaiDuel = [];
+        if ($isRandori || PesertaTerpilih::where('list_kategori_id', $lkId)->exists()) {
+            $duelMatches = PesertaTerpilih::with([
+                'PertandinganPesertaPertama.Peserta.kabupaten',
+                'PertandinganPesertaKedua.Peserta.kabupaten',
+                'pemenang.Peserta.kabupaten'
+            ])
+            ->where('list_kategori_id', $lkId)
+            ->orderBy('babak', 'asc')
+            ->orderBy('nomor_partai', 'asc')
+            ->get();
+
+            $totP = $allPeserta->count();
+            $sCount = pow(2, ceil(log(max(2, $totP), 2)));
+            $tBabak = (int) log($sCount, 2);
+
+            $partaiDuel = $duelMatches->map(function ($m) use ($tBabak) {
+                $namaBabak = 'Babak ' . $m->babak;
+                if ($m->babak == $tBabak) $namaBabak = 'Final';
+                elseif ($tBabak >= 2 && $m->babak == $tBabak - 1) $namaBabak = 'Semifinal';
+                elseif ($tBabak >= 3 && $m->babak == $tBabak - 2) $namaBabak = 'Perempatfinal';
+
+                $kiri = $m->PertandinganPesertaPertama;
+                $kanan = $m->PertandinganPesertaKedua;
+                $isBye = ($kanan === null && $m->keterangan_menang === 'BYE');
+
+                $kiriNama = optional($kiri?->Peserta)->nama ?? ($m->pertandingan_peserta_kiri_id ? 'Atlet' : 'Menunggu Pemenang B' . ($m->babak - 1));
+                $kananNama = optional($kanan?->Peserta)->nama ?? ($isBye ? 'BYE (Slot Kosong)' : ($m->pertandingan_peserta_kanan_id ? 'Atlet' : 'Menunggu Pemenang B' . ($m->babak - 1)));
+
+                return [
+                    'id'                => $m->id,
+                    'babak'             => $m->babak,
+                    'nama_babak'        => $namaBabak,
+                    'nomor_partai'      => $m->nomor_partai,
+                    'label'             => "{$namaBabak} - Partai #{$m->nomor_partai}: {$kiriNama} vs {$kananNama}",
+                    'is_bye'            => $isBye,
+                    'kiri_id'           => $m->pertandingan_peserta_kiri_id,
+                    'kiri_nama'         => $kiriNama,
+                    'kiri_kontingen'    => optional(optional($kiri?->Peserta)->kabupaten)->name ?? (optional($kiri?->Peserta)->kontigen ?? '-'),
+                    'skor_kiri'         => $m->skor_kiri !== null ? floatval($m->skor_kiri) : 0,
+                    'kanan_id'          => $m->pertandingan_peserta_kanan_id,
+                    'kanan_nama'        => $kananNama,
+                    'kanan_kontingen'   => optional(optional($kanan?->Peserta)->kabupaten)->name ?? (optional($kanan?->Peserta)->kontigen ?? '-'),
+                    'skor_kanan'        => $m->skor_kanan !== null ? floatval($m->skor_kanan) : 0,
+                    'pemenang_id'       => $m->pemenang_id,
+                    'keterangan_menang' => $m->keterangan_menang,
+                ];
+            })->values()->toArray();
+        }
+
         return response()->json([
             'status'          => 'success',
             'pertandingan_id' => $pertandingan_id,
+            'is_randori'      => $isRandori,
             'scoresheet_data' => $scoresheetData,
             'peserta'         => $pesertaGroups,
+            'partai_duel'     => $partaiDuel,
         ]);
     }
 
@@ -2322,6 +2655,251 @@ class PertandinganController extends Controller
     }
 
     /**
+     * FASE 3: Simpan Scoresheet Duel Randori & Auto-Advance Bagan
+     */
+    public function saveDuelScoresheet(Request $request, $id)
+    {
+        if (!in_array(Auth::user()->role, ['admin', 'operator', 'wasit', 1, '1', 2, '2'])) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Akses ditolak.'
+            ], 403);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'peserta_terpilih_id' => 'required|exists:peserta_terpilihs,id',
+            'skor_kiri'           => 'required|numeric|min:0',
+            'skor_kanan'          => 'required|numeric|min:0',
+            'pemenang_id'         => 'nullable|exists:pertandingan_pesertas,id',
+            'keterangan_menang'   => 'nullable|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => $validator->errors()->first()
+            ], 422);
+        }
+
+        try {
+            $match = PesertaTerpilih::with(['PertandinganPesertaPertama.Peserta', 'PertandinganPesertaKedua.Peserta'])->findOrFail($request->peserta_terpilih_id);
+
+            // Pastikan kedua sisi ada
+            if (!$match->pertandingan_peserta_kiri_id || !$match->pertandingan_peserta_kanan_id) {
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => 'Partai ini belum memiliki pasangan lawan yang lengkap (belum siap ditandingkan atau BYE).'
+                ], 400);
+            }
+
+            $skorKiri = floatval($request->skor_kiri);
+            $skorKanan = floatval($request->skor_kanan);
+            $pemenangId = $request->pemenang_id;
+            $keteranganMenang = $request->keterangan_menang;
+
+            // Jika pemenang_id tidak dipilih manual, tentukan dari skor tertinggi
+            if (empty($pemenangId)) {
+                if ($skorKiri > $skorKanan) {
+                    $pemenangId = $match->pertandingan_peserta_kiri_id;
+                    if (empty($keteranganMenang)) $keteranganMenang = 'POIN';
+                } elseif ($skorKanan > $skorKiri) {
+                    $pemenangId = $match->pertandingan_peserta_kanan_id;
+                    if (empty($keteranganMenang)) $keteranganMenang = 'POIN';
+                } else {
+                    return response()->json([
+                        'status'  => 'error',
+                        'message' => 'Skor kedua atlet seri! Silakan tentukan pemenang berdasarkan keputusan wasit (HANTEI).'
+                    ], 422);
+                }
+            } else {
+                if (empty($keteranganMenang)) {
+                    $keteranganMenang = ($skorKiri != $skorKanan) ? 'POIN' : 'HANTEI';
+                }
+            }
+
+            // Simpan skor duel ke peserta_terpilihs
+            $match->skor_kiri = $skorKiri;
+            $match->skor_kanan = $skorKanan;
+            $match->pemenang_id = $pemenangId;
+            $match->keterangan_menang = $keteranganMenang;
+            $match->save();
+
+            // Akumulasi total skor pada pertandingan_pesertas
+            if ($match->PertandinganPesertaPertama) {
+                $match->PertandinganPesertaPertama->total_nilai = $skorKiri;
+                $match->PertandinganPesertaPertama->save();
+            }
+            if ($match->PertandinganPesertaKedua) {
+                $match->PertandinganPesertaKedua->total_nilai = $skorKanan;
+                $match->PertandinganPesertaKedua->save();
+            }
+
+            // Simpan detail riwayat skor ke data_scoresheet di list_kategoris jika diperlukan
+            $listKategori = ListKategori::find($match->list_kategori_id);
+            if ($listKategori) {
+                $currentScoresheet = $listKategori->data_scoresheet ?? [];
+                $currentScoresheet['randori_partai_' . $match->id] = [
+                    'babak'             => $match->babak,
+                    'nomor_partai'      => $match->nomor_partai,
+                    'kiri_id'           => $match->pertandingan_peserta_kiri_id,
+                    'kiri_nama'         => optional($match->PertandinganPesertaPertama?->Peserta)->nama,
+                    'kanan_id'          => $match->pertandingan_peserta_kanan_id,
+                    'kanan_nama'        => optional($match->PertandinganPesertaKedua?->Peserta)->nama,
+                    'skor_kiri'         => $skorKiri,
+                    'skor_kanan'        => $skorKanan,
+                    'pemenang_id'       => $pemenangId,
+                    'keterangan_menang' => $keteranganMenang,
+                    'updated_at'        => now()->toDateTimeString(),
+                ];
+                $listKategori->data_scoresheet = $currentScoresheet;
+                $listKategori->save();
+            }
+
+            // Jalankan alur Auto-Advance dan Medali
+            self::processPartaiWinner($match, $pemenangId, $keteranganMenang);
+
+            $pemenangAtlet = PertandinganPeserta::with('Peserta')->find($pemenangId);
+            $namaPemenang = optional($pemenangAtlet?->Peserta)->nama ?? 'Pemenang';
+
+            return response()->json([
+                'status'            => 'success',
+                'message'           => "Skor Partai #{$match->nomor_partai} berhasil disimpan! {$namaPemenang} melaju ke babak berikutnya.",
+                'pemenang_id'       => $pemenangId,
+                'pemenang_nama'     => $namaPemenang,
+                'keterangan_menang' => $keteranganMenang,
+                'skor_kiri'         => $skorKiri,
+                'skor_kanan'        => $skorKanan,
+            ]);
+
+        } catch (\Throwable $e) {
+            Log::error('saveDuelScoresheet error: ' . $e->getMessage());
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Gagal menyimpan skor duel: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * FASE 3: Logika Auto-Advance & Medali Turnamen Randori Kempo
+     */
+    public static function processPartaiWinner(PesertaTerpilih $match, $pemenangId, $keteranganMenang = null)
+    {
+        $match->pemenang_id = $pemenangId;
+        if ($keteranganMenang) {
+            $match->keterangan_menang = $keteranganMenang;
+        }
+        $match->save();
+
+        $currentBabak = (int) $match->babak;
+        $currentPartai = (int) $match->nomor_partai;
+
+        $totalPeserta = PertandinganPeserta::where('list_kategori_id', $match->list_kategori_id)->count();
+        $slotCount = pow(2, ceil(log(max(2, $totalPeserta), 2)));
+        $totalBabak = (int) log($slotCount, 2);
+
+        $kiriId = $match->pertandingan_peserta_kiri_id;
+        $kananId = $match->pertandingan_peserta_kanan_id;
+        $loserId = null;
+        if ($kiriId && $kananId) {
+            $loserId = ($pemenangId == $kiriId) ? $kananId : $kiriId;
+        }
+
+        // 1. Penanganan Medali Turnamen
+        if ($currentBabak == $totalBabak) {
+            // Babak FINAL: Pemenang dapat Emas, Kalah dapat Perak
+            PertandinganPeserta::where('id', $pemenangId)->update(['medali' => 'emas']);
+            if ($loserId) {
+                PertandinganPeserta::where('id', $loserId)->update(['medali' => 'perak']);
+            }
+            self::syncMedaliRandori($match->list_kategori_id);
+        } elseif ($totalBabak >= 2 && $currentBabak == ($totalBabak - 1)) {
+            // Babak SEMIFINAL: Yang kalah otomatis dapat Medali Perunggu Bersama (Standar Kempo)
+            if ($loserId) {
+                PertandinganPeserta::where('id', $loserId)->update(['medali' => 'perunggu']);
+            }
+            self::syncMedaliRandori($match->list_kategori_id);
+        }
+
+        // 2. Auto-Advance ke Babak Berikutnya jika belum Final
+        if ($currentBabak < $totalBabak) {
+            $nextBabak = $currentBabak + 1;
+            $nextPartai = (int) ceil($currentPartai / 2);
+            $isKiri = ($currentPartai % 2 !== 0); // Ganjil = Kiri (Merah), Genap = Kanan (Putih/Biru)
+
+            $nextMatch = PesertaTerpilih::firstOrNew([
+                'list_kategori_id' => $match->list_kategori_id,
+                'babak'            => $nextBabak,
+                'nomor_partai'     => $nextPartai,
+            ]);
+
+            $nextMatch->pertandingan_id = $match->pertandingan_id;
+            $nextMatch->kegiatan_id = $match->kegiatan_id;
+
+            if ($isKiri) {
+                $nextMatch->pertandingan_peserta_kiri_id = $pemenangId;
+            } else {
+                $nextMatch->pertandingan_peserta_kanan_id = $pemenangId;
+            }
+
+            $nextMatch->save();
+        }
+    }
+
+    /**
+     * FASE 3: Sinkronisasi Medali Randori ke Kolom data_juara pada list_kategoris
+     */
+    public static function syncMedaliRandori($listKategoriId)
+    {
+        $lk = ListKategori::find($listKategoriId);
+        if (!$lk) return;
+
+        $pesertaMedali = PertandinganPeserta::with('Peserta.kabupaten')
+            ->where('list_kategori_id', $listKategoriId)
+            ->whereNotNull('medali')
+            ->get();
+
+        $emasGroup = $pesertaMedali->filter(fn($p) => strtolower(trim($p->medali)) === 'emas');
+        $perakGroup = $pesertaMedali->filter(fn($p) => strtolower(trim($p->medali)) === 'perak');
+        $perungguGroup = $pesertaMedali->filter(fn($p) => strtolower(trim($p->medali)) === 'perunggu');
+
+        $firstEmas = $emasGroup->first();
+        $firstPerak = $perakGroup->first();
+
+        $perKabPerunggu = $perungguGroup->groupBy(fn($p) => optional($p->Peserta)->kabupaten_id);
+        $kabKeysPerunggu = $perKabPerunggu->keys()->all();
+
+        $g1 = isset($kabKeysPerunggu[0]) ? $perKabPerunggu[$kabKeysPerunggu[0]] : null;
+        $g2 = isset($kabKeysPerunggu[1]) ? $perKabPerunggu[$kabKeysPerunggu[1]] : null;
+
+        $juaraData = [
+            'emas' => [
+                'kabupaten_id'   => optional($firstEmas?->Peserta)->kabupaten_id,
+                'kabupaten_nama' => optional(optional($firstEmas?->Peserta)->kabupaten)->name,
+                'peserta_nama'   => $emasGroup->map(fn($p) => optional($p->Peserta)->nama)->filter()->unique()->implode(', '),
+            ],
+            'perak' => [
+                'kabupaten_id'   => optional($firstPerak?->Peserta)->kabupaten_id,
+                'kabupaten_nama' => optional(optional($firstPerak?->Peserta)->kabupaten)->name,
+                'peserta_nama'   => $perakGroup->map(fn($p) => optional($p->Peserta)->nama)->filter()->unique()->implode(', '),
+            ],
+            'perunggu' => [
+                'kabupaten_id'   => optional($g1?->first()?->Peserta)->kabupaten_id,
+                'kabupaten_nama' => optional(optional($g1?->first()?->Peserta)->kabupaten)->name,
+                'peserta_nama'   => $g1 ? $g1->map(fn($p) => optional($p->Peserta)->nama)->filter()->unique()->implode(', ') : null,
+            ],
+            'perunggu_2' => [
+                'kabupaten_id'   => optional($g2?->first()?->Peserta)->kabupaten_id,
+                'kabupaten_nama' => optional(optional($g2?->first()?->Peserta)->kabupaten)->name,
+                'peserta_nama'   => $g2 ? $g2->map(fn($p) => optional($p->Peserta)->nama)->filter()->unique()->implode(', ') : null,
+            ],
+        ];
+
+        $lk->data_juara = $juaraData;
+        $lk->save();
+    }
+
+    /**
      * Endpoint ringan untuk mengecek perubahan data papan skor (Smart Polling)
      */
     public function checkScoreUpdate($pertandinganId)
@@ -2356,6 +2934,19 @@ class PertandinganController extends Controller
         ->orderBy('id')
         ->get();
 
+        $duelRecords = \App\Models\PesertaTerpilih::where(function ($q) use ($pertandinganId, $pertandingan, $listKategori) {
+            $q->where('pertandingan_id', $pertandinganId)
+              ->orWhere('list_kategori_id', $pertandinganId);
+            if ($pertandingan && $pertandingan->id) {
+                $q->orWhere('pertandingan_id', $pertandingan->id);
+            }
+            if ($listKategori && $listKategori->id) {
+                $q->orWhere('list_kategori_id', $listKategori->id);
+            }
+        })
+        ->orderBy('id')
+        ->get();
+
         // Gabungkan seluruh atribut penting menjadi satu string untuk di-hash
         $statePayload = [
             'pertandingan_updated' => (string) ($pertandingan ? $pertandingan->updated_at : ($listKategori ? $listKategori->updated_at : '')),
@@ -2363,6 +2954,8 @@ class PertandinganController extends Controller
             'list_kategori_attrs'  => $listKategori ? md5(json_encode($listKategori->getAttributes())) : '',
             'peserta_count'        => $pesertaRecords->count(),
             'peserta_data'         => md5($pesertaRecords->toJson()),
+            'duel_count'           => $duelRecords->count(),
+            'duel_data'            => md5($duelRecords->toJson()),
         ];
 
         return response()->json([

@@ -29,19 +29,33 @@ class PertandinganPeserta extends Model
         'medali',
     ];
 
-    public function Peserta() {
+    public function Peserta()
+    {
         return $this->belongsTo(Peserta::class);
     }
 
-    public function list_kategori() {
+    public function list_kategori()
+    {
         return $this->belongsTo(ListKategori::class);
     }
 
-    public function UrutanKomposisiPeserta() {
+    public function UrutanKomposisiPeserta()
+    {
         return $this->hasOne(UrutanKomposisiPeserta::class);
     }
 
-    public function kegiatan() {
+    public function kegiatan()
+    {
         return $this->belongsTo(Kegiatan::class);
+    }
+
+    public function duelKiri()
+    {
+        return $this->hasMany(PesertaTerpilih::class, 'pertandingan_peserta_kiri_id', 'id');
+    }
+
+    public function duelKanan()
+    {
+        return $this->hasMany(PesertaTerpilih::class, 'pertandingan_peserta_kanan_id', 'id');
     }
 }

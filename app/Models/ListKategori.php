@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class ListKategori extends Model
 {
-    //
     protected $guarded = ['id'];
 
     protected $casts = [
@@ -29,11 +28,32 @@ class ListKategori extends Model
         return $this->belongsTo(Pertandingan::class);
     }
 
-    public function list_kategori() {
+    public function list_kategori()
+    {
         return $this->hasMany(PertandinganPeserta::class);
     }
 
-    public function pertandingan_peserta() {
+    public function pertandingan_peserta()
+    {
         return $this->hasMany(PertandinganPeserta::class);
+    }
+
+    public function peserta_terpilih()
+    {
+        return $this->hasMany(PesertaTerpilih::class, 'list_kategori_id', 'id');
+    }
+
+    public function isBagan(): bool
+    {
+        return (bool) (
+            optional($this->pertandingan)->bagan == 1 ||
+            stripos(optional($this->pertandingan)->nama ?? '', 'randori') !== false ||
+            stripos(optional($this->kategori)->nama ?? '', 'randori') !== false
+        );
+    }
+
+    public function isRandori(): bool
+    {
+        return $this->isBagan();
     }
 }
