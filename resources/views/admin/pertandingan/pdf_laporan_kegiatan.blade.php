@@ -385,10 +385,17 @@
                         <td>{{ $item['perak']['kabupaten'] ?: '-' }}</td>
                     </tr>
                     <tr>
-                        <td class="medali-perunggu">PERUNGGU (JUARA 3)</td>
+                        <td class="medali-perunggu">PERUNGGU (JUARA 3{{ !empty($item['perunggu_2']['kabupaten']) ? ' BERSAMA' : '' }})</td>
                         <td class="font-bold">{{ $item['perunggu']['peserta'] ?: '-' }}</td>
                         <td>{{ $item['perunggu']['kabupaten'] ?: '-' }}</td>
                     </tr>
+                    @if(!empty($item['perunggu_2']['kabupaten']))
+                    <tr>
+                        <td class="medali-perunggu">PERUNGGU (JUARA 3 BERSAMA)</td>
+                        <td class="font-bold">{{ $item['perunggu_2']['peserta'] ?: '-' }}</td>
+                        <td>{{ $item['perunggu_2']['kabupaten'] ?: '-' }}</td>
+                    </tr>
+                    @endif
                 </tbody>
             </table>
         </div>

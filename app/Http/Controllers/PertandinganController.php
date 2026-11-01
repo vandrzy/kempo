@@ -898,7 +898,27 @@ class PertandinganController extends Controller
         $juara = $lk->data_juara ?? [];
         $hasJuaraSet = !empty($juara['emas']['kabupaten_id']) || !empty($juara['perak']['kabupaten_id']) || !empty($juara['perunggu']['kabupaten_id']);
 
+        $isRandori = stripos($lk->pertandingan->nama ?? '', 'randori') !== false ||
+                     stripos($lk->kategori->nama ?? '', 'randori') !== false ||
+                     ($lk->pertandingan->bagan ?? 0) == 1;
+
         if ($hasJuaraSet) {
+            // Jika kategori Randori tapi perunggu_2 belum ada di data_juara, periksa fallback dari peserta
+            if ($isRandori && empty($juara['perunggu_2']['kabupaten_id']) && empty($juara['perunggu_2']['kabupaten_nama'])) {
+                $pesertaList = $lk->relationLoaded('list_kategori') ? $lk->list_kategori : $lk->list_kategori()->with('Peserta.kabupaten')->get();
+                $perungguGroup = $pesertaList->filter(fn($p) => strtolower(trim($p->medali ?? '')) === 'perunggu');
+                $perKab = $perungguGroup->groupBy(fn($p) => optional($p->Peserta)->kabupaten_id);
+                $p1KabId = $juara['perunggu']['kabupaten_id'] ?? null;
+                $p2KabId = collect($perKab->keys())->first(fn($k) => $k && $k != $p1KabId);
+                if ($p2KabId) {
+                    $g2 = $perKab[$p2KabId];
+                    $juara['perunggu_2'] = [
+                        'kabupaten_id'   => $p2KabId,
+                        'kabupaten_nama' => optional(optional($g2->first()->Peserta)->kabupaten)->name,
+                        'peserta_nama'   => $g2->map(fn($p) => optional($p->Peserta)->nama)->filter()->unique()->implode(', '),
+                    ];
+                }
+            }
             return $juara;
         }
 
@@ -1481,32 +1501,55 @@ class PertandinganController extends Controller
     public function setMedali(Request $request, string $id)
     {
         if (!in_array(Auth::user()->role, ['admin', 'operator', 'wasit', 1, '1', 2, '2'])) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['status' => 'error', 'message' => 'Akses ditolak'], 403);
+            }
             return redirect()->back()->with('error', 'Akses ditolak');
         }
 
-        $listKategori = ListKategori::with(['list_kategori.Peserta.kabupaten'])->findOrFail($id);
+        $listKategori = ListKategori::with(['list_kategori.Peserta.kabupaten', 'pertandingan', 'kategori'])->findOrFail($id);
 
-        $emas_kab_id = $request->emas_kabupaten_id;
-        $perak_kab_id = $request->perak_kabupaten_id;
-        $perunggu_kab_id = $request->perunggu_kabupaten_id;
+        $isRandori = stripos($listKategori->pertandingan->nama ?? '', 'randori') !== false ||
+                     stripos($listKategori->kategori->nama ?? '', 'randori') !== false ||
+                     ($listKategori->pertandingan->bagan ?? 0) == 1;
+
+        $emas_kab_id = $this->resolveKabupatenId($request->input('emas_kabupaten_id'), $request->input('emas_kontingen', $request->input('emas')));
+        $perak_kab_id = $this->resolveKabupatenId($request->input('perak_kabupaten_id'), $request->input('perak_kontingen', $request->input('perak')));
+        $perunggu_kab_id = $this->resolveKabupatenId($request->input('perunggu_kabupaten_id'), $request->input('perunggu_kontingen', $request->input('perunggu')));
+
+        $perunggu2_kab_id = null;
+        if ($isRandori) {
+            $perunggu2_kab_id = $this->resolveKabupatenId(
+                $request->input('perunggu_2_kabupaten_id', $request->input('perunggu2_kabupaten_id')),
+                $request->input('perunggu_2_kontingen', $request->input('perunggu2_kontingen', $request->input('perunggu_2', $request->input('perunggu2'))))
+            );
+        }
 
         $dataJuara = [
             'emas' => [
-                'kabupaten_id' => $emas_kab_id,
-                'kabupaten_nama' => $emas_kab_id ? optional(Kabupaten::find($emas_kab_id))->name : null,
-                'peserta_nama' => $this->getPesertaNamesByKabupaten($listKategori, $emas_kab_id),
+                'kabupaten_id'   => $emas_kab_id,
+                'kabupaten_nama' => $emas_kab_id ? optional(Kabupaten::find($emas_kab_id))->name : ($request->input('emas_kontingen') ?: null),
+                'peserta_nama'   => $this->getPesertaNamesByKabupaten($listKategori, $emas_kab_id),
             ],
             'perak' => [
-                'kabupaten_id' => $perak_kab_id,
-                'kabupaten_nama' => $perak_kab_id ? optional(Kabupaten::find($perak_kab_id))->name : null,
-                'peserta_nama' => $this->getPesertaNamesByKabupaten($listKategori, $perak_kab_id),
+                'kabupaten_id'   => $perak_kab_id,
+                'kabupaten_nama' => $perak_kab_id ? optional(Kabupaten::find($perak_kab_id))->name : ($request->input('perak_kontingen') ?: null),
+                'peserta_nama'   => $this->getPesertaNamesByKabupaten($listKategori, $perak_kab_id),
             ],
             'perunggu' => [
-                'kabupaten_id' => $perunggu_kab_id,
-                'kabupaten_nama' => $perunggu_kab_id ? optional(Kabupaten::find($perunggu_kab_id))->name : null,
-                'peserta_nama' => $this->getPesertaNamesByKabupaten($listKategori, $perunggu_kab_id),
+                'kabupaten_id'   => $perunggu_kab_id,
+                'kabupaten_nama' => $perunggu_kab_id ? optional(Kabupaten::find($perunggu_kab_id))->name : ($request->input('perunggu_kontingen') ?: null),
+                'peserta_nama'   => $this->getPesertaNamesByKabupaten($listKategori, $perunggu_kab_id),
             ],
         ];
+
+        if ($isRandori && $perunggu2_kab_id) {
+            $dataJuara['perunggu_2'] = [
+                'kabupaten_id'   => $perunggu2_kab_id,
+                'kabupaten_nama' => optional(Kabupaten::find($perunggu2_kab_id))->name ?: ($request->input('perunggu_2_kontingen') ?: null),
+                'peserta_nama'   => $this->getPesertaNamesByKabupaten($listKategori, $perunggu2_kab_id),
+            ];
+        }
 
         $listKategori->data_juara = $dataJuara;
         $listKategori->save();
@@ -1535,10 +1578,49 @@ class PertandinganController extends Controller
                 })->update(['medali' => 'perunggu']);
         }
 
+        if ($isRandori && $perunggu2_kab_id) {
+            PertandinganPeserta::where('list_kategori_id', $id)
+                ->whereHas('Peserta', function ($q) use ($perunggu2_kab_id) {
+                    $q->where('kabupaten_id', $perunggu2_kab_id);
+                })->update(['medali' => 'perunggu']);
+        }
+
         $kegiatan_id = $request->kegiatan_id ?? $listKategori->kegiatan_id;
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'status'     => 'success',
+                'message'    => 'Peraih medali ' . ($isRandori ? '(termasuk Juara 3 Perunggu Bersama) ' : '') . 'berhasil disimpan dan tercatat di Laporan Kegiatan!',
+                'data_juara' => $dataJuara
+            ]);
+        }
 
         return redirect('pertandingan/' . $id . '?kegiatan_id=' . $kegiatan_id)
             ->with('success', 'Peraih medali berhasil disimpan dan tercatat di Laporan Kegiatan!');
+    }
+
+    /**
+     * Helper untuk menyelesaikan ID kabupaten dari ID langsung atau nama kontingen
+     */
+    private function resolveKabupatenId($kabId, $kontingenName = null)
+    {
+        if (!empty($kabId) && is_numeric($kabId)) {
+            return (int) $kabId;
+        }
+        if (!empty($kontingenName) && is_string($kontingenName)) {
+            $trimmed = trim($kontingenName);
+            if ($trimmed !== '') {
+                $kab = Kabupaten::where('name', $trimmed)->first();
+                if ($kab) {
+                    return $kab->id;
+                }
+                $kabLike = Kabupaten::where('name', 'LIKE', '%' . $trimmed . '%')->first();
+                if ($kabLike) {
+                    return $kabLike->id;
+                }
+            }
+        }
+        return null;
     }
 
     /**
@@ -1557,7 +1639,19 @@ class PertandinganController extends Controller
             })
             ->get();
 
-        return $pesertas->pluck('Peserta.nama')->filter()->implode(', ');
+        if ($pesertas->isEmpty()) {
+            $kab = Kabupaten::find($kabupaten_id);
+            if ($kab) {
+                $pesertas = PertandinganPeserta::with('Peserta')
+                    ->where('list_kategori_id', $listKategori->id)
+                    ->whereHas('Peserta', function ($q) use ($kab) {
+                        $q->where('kontigen', $kab->name);
+                    })
+                    ->get();
+            }
+        }
+
+        return $pesertas->pluck('Peserta.nama')->filter()->unique()->implode(', ');
     }
 
     /**

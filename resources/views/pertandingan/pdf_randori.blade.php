@@ -262,14 +262,33 @@
                     @if(!empty($juara['perak']['peserta_nama'])) ({{ $juara['perak']['peserta_nama'] }}) @endif
                 </td>
             </tr>
-            <tr>
-                <td class="font-bold">Medali Perunggu (Juara III)</td>
-                <td>:</td>
-                <td colspan="4">
-                    <strong>{{ $juara['perunggu']['kabupaten_nama'] ?? '-' }}</strong>
-                    @if(!empty($juara['perunggu']['peserta_nama'])) ({{ $juara['perunggu']['peserta_nama'] }}) @endif
-                </td>
-            </tr>
+            @if(!empty($juara['perunggu_2']['kabupaten_nama']) || !empty($juara['perunggu_2']['peserta_nama']))
+                <tr>
+                    <td class="font-bold">Medali Perunggu 1 (Juara III Bersama)</td>
+                    <td>:</td>
+                    <td colspan="4">
+                        <strong>{{ $juara['perunggu']['kabupaten_nama'] ?? '-' }}</strong>
+                        @if(!empty($juara['perunggu']['peserta_nama'])) ({{ $juara['perunggu']['peserta_nama'] }}) @endif
+                    </td>
+                </tr>
+                <tr>
+                    <td class="font-bold">Medali Perunggu 2 (Juara III Bersama)</td>
+                    <td>:</td>
+                    <td colspan="4">
+                        <strong>{{ $juara['perunggu_2']['kabupaten_nama'] ?? '-' }}</strong>
+                        @if(!empty($juara['perunggu_2']['peserta_nama'])) ({{ $juara['perunggu_2']['peserta_nama'] }}) @endif
+                    </td>
+                </tr>
+            @else
+                <tr>
+                    <td class="font-bold">Medali Perunggu (Juara III)</td>
+                    <td>:</td>
+                    <td colspan="4">
+                        <strong>{{ $juara['perunggu']['kabupaten_nama'] ?? '-' }}</strong>
+                        @if(!empty($juara['perunggu']['peserta_nama'])) ({{ $juara['perunggu']['peserta_nama'] }}) @endif
+                    </td>
+                </tr>
+            @endif
         </table>
     </div>
 

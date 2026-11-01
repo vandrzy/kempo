@@ -155,7 +155,7 @@
 <!-- 2. MODAL PERAIH MEDALI (KEMPO UI)              -->
 <!-- ============================================== -->
 <div id="medaliModal" style="display: none;" class="fixed inset-0 z-[999999] items-center justify-center p-4 bg-black/60 backdrop-blur-xs overflow-y-auto transition-all duration-200">
-    <div class="relative w-full max-w-[650px] my-auto max-h-[90vh] bg-white rounded-3xl border border-[#ebebeb] shadow-2xl flex flex-col overflow-hidden font-body">
+    <div class="relative w-full max-w-[650px] my-auto max-h-[90vh] bg-white rounded-3xl border border-[#ebebeb] shadow-2xl flex flex-col overflow-hidden font-body animate-in fade-in zoom-in-95 duration-150">
         
         <!-- Header Modal -->
         <div class="px-6 py-5 sm:px-7 sm:py-6 shrink-0 flex items-start justify-between border-b border-[#ebebeb] bg-white">
@@ -164,10 +164,15 @@
                     <i class="fas fa-trophy"></i>
                 </div>
                 <div>
-                    <h3 class="font-heading font-bold text-xl md:text-2xl text-[#000000] mb-0 tracking-tight">
-                        Peraih Medali
-                    </h3>
-                    <p class="text-xs md:text-sm text-neutral-500 mb-0 mt-1 font-body">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <h3 class="font-heading font-bold text-xl md:text-2xl text-[#000000] mb-0 tracking-tight">
+                            Peraih Medali
+                        </h3>
+                        <span id="medali_randori_badge" style="display: none;" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-orange-100 text-[#f2470c] border border-orange-200">
+                            <i class="fas fa-medal"></i> Juara 3 Bersama (Randori)
+                        </span>
+                    </div>
+                    <p id="medali_modal_subtitle" class="text-xs md:text-sm text-neutral-500 mb-0 mt-1 font-body">
                         {{ $pertandingan->pertandingan->nama ?? '' }} (Kelas: {{ $pertandingan->pertandingan->kelas ?? '-' }}) &bull; Penilaian Berdasarkan Kontingen
                     </p>
                 </div>
@@ -177,46 +182,87 @@
             </button>
         </div>
 
-        <!-- Form Konten Medali (Cards Emas, Perak, Perunggu) -->
+        <!-- Form Konten Medali (Cards Emas, Perak, Perunggu, Perunggu Bersama) -->
         <div id="medaliForm" class="p-6 sm:p-7 flex-1 overflow-y-auto bg-[#fdfdfd] space-y-4 max-h-[calc(90vh-170px)] kempo-scrollbar">
             <input type="hidden" id="medali_pertandingan_id" value="{{ $pertandingan->id }}">
             
             <!-- Emas -->
-            <div class="p-4 sm:p-5 rounded-2xl border border-amber-200 bg-amber-50/40 shadow-2xs">
-                <label class="block text-xs font-bold mb-2 text-amber-800 font-heading flex items-center gap-2 uppercase tracking-wider">
-                    <span class="text-lg">🥇</span> Medali Emas (Juara 1)
+            <div class="p-4 sm:p-5 rounded-2xl border border-amber-200 bg-amber-50/40 shadow-2xs transition-all">
+                <label class="block text-xs font-bold mb-2 text-amber-800 font-heading flex items-center justify-between uppercase tracking-wider">
+                    <span class="flex items-center gap-2">
+                        <span class="text-lg">🥇</span> Medali Emas (Juara 1)
+                    </span>
+                    <span class="text-[10px] font-semibold text-amber-700 bg-amber-100/80 px-2 py-0.5 rounded-md border border-amber-200">Juara 1</span>
                 </label>
-                <select id="medali_emas" disabled class="w-full border border-amber-300 rounded-xl px-3.5 py-2.5 text-sm bg-white text-[#000000] font-semibold cursor-not-allowed">
+                <select id="medali_emas" name="emas_kabupaten_id" class="w-full border border-amber-300 rounded-xl px-3.5 py-2.5 text-sm bg-white text-[#000000] font-semibold focus:outline-hidden focus:ring-2 focus:ring-amber-400/30">
                     <option value="">-- Belum Ditentukan --</option>
                 </select>
             </div>
 
             <!-- Perak -->
-            <div class="p-4 sm:p-5 rounded-2xl border border-slate-200 bg-slate-50/70 shadow-2xs">
-                <label class="block text-xs font-bold mb-2 text-slate-700 font-heading flex items-center gap-2 uppercase tracking-wider">
-                    <span class="text-lg">🥈</span> Medali Perak (Juara 2)
+            <div class="p-4 sm:p-5 rounded-2xl border border-slate-200 bg-slate-50/70 shadow-2xs transition-all">
+                <label class="block text-xs font-bold mb-2 text-slate-700 font-heading flex items-center justify-between uppercase tracking-wider">
+                    <span class="flex items-center gap-2">
+                        <span class="text-lg">🥈</span> Medali Perak (Juara 2)
+                    </span>
+                    <span class="text-[10px] font-semibold text-slate-600 bg-slate-200/80 px-2 py-0.5 rounded-md border border-slate-300">Juara 2</span>
                 </label>
-                <select id="medali_perak" disabled class="w-full border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm bg-white text-[#000000] font-semibold cursor-not-allowed">
+                <select id="medali_perak" name="perak_kabupaten_id" class="w-full border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm bg-white text-[#000000] font-semibold focus:outline-hidden focus:ring-2 focus:ring-slate-400/30">
                     <option value="">-- Belum Ditentukan --</option>
                 </select>
             </div>
 
-            <!-- Perunggu -->
-            <div class="p-4 sm:p-5 rounded-2xl border border-orange-200 bg-[#fff0eb]/70 shadow-2xs">
-                <label class="block text-xs font-bold mb-2 text-[#f2470c] font-heading flex items-center gap-2 uppercase tracking-wider">
-                    <span class="text-lg">🥉</span> Medali Perunggu (Juara 3)
+            <!-- Perunggu 1 -->
+            <div id="container_medali_perunggu1" class="p-4 sm:p-5 rounded-2xl border border-orange-200 bg-[#fff0eb]/70 shadow-2xs transition-all">
+                <label class="block text-xs font-bold mb-2 text-[#f2470c] font-heading flex items-center justify-between uppercase tracking-wider">
+                    <span class="flex items-center gap-2">
+                        <span class="text-lg">🥉</span>
+                        <span id="label_text_perunggu1">Medali Perunggu (Juara 3)</span>
+                    </span>
+                    <span id="badge_perunggu_bersama1" style="display: none;" class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-orange-100 text-[#f2470c] border border-orange-200">
+                        Perunggu Bersama
+                    </span>
                 </label>
-                <select id="medali_perunggu1" disabled class="w-full border border-orange-300 rounded-xl px-3.5 py-2.5 text-sm bg-white text-[#000000] font-semibold cursor-not-allowed">
+                <select id="medali_perunggu1" name="perunggu_kabupaten_id" class="w-full border border-orange-300 rounded-xl px-3.5 py-2.5 text-sm bg-white text-[#000000] font-semibold focus:outline-hidden focus:ring-2 focus:ring-[#f2470c]/30">
                     <option value="">-- Belum Ditentukan --</option>
                 </select>
+            </div>
+
+            <!-- Perunggu 2 (Khusus Randori - Juara 3 Bersama) -->
+            <div id="container_medali_perunggu2" style="display: none;" class="p-4 sm:p-5 rounded-2xl border border-orange-200 bg-[#fff0eb]/70 shadow-2xs transition-all">
+                <label class="block text-xs font-bold mb-2 text-[#f2470c] font-heading flex items-center justify-between uppercase tracking-wider">
+                    <span class="flex items-center gap-2">
+                        <span class="text-lg">🥉</span>
+                        <span>Medali Perunggu 2 (Juara 3 Bersama)</span>
+                    </span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-orange-100 text-[#f2470c] border border-orange-200">
+                        Perunggu Bersama
+                    </span>
+                </label>
+                <select id="medali_perunggu2" name="perunggu_2_kabupaten_id" class="w-full border border-orange-300 rounded-xl px-3.5 py-2.5 text-sm bg-white text-[#000000] font-semibold focus:outline-hidden focus:ring-2 focus:ring-[#f2470c]/30">
+                    <option value="">-- Belum Ditentukan --</option>
+                </select>
+                <p class="text-[11px] text-neutral-500 mt-2 mb-0 flex items-center gap-1.5">
+                    <i class="fas fa-info-circle text-[#f2470c]"></i>
+                    Khusus Kategori Randori: Juara 3 bersama diberikan kepada kedua kontingen semifinalis.
+                </p>
             </div>
         </div>
 
         <!-- Footer Modal Medali -->
-        <div class="px-6 py-4 sm:px-7 sm:py-5 shrink-0 flex justify-end border-t border-[#ebebeb] bg-white">
-            <button type="button" onclick="closeMedaliModal()" class="btn-kempo-2 px-6 py-2.5 text-xs font-bold uppercase transition cursor-pointer border-0">
-                Tutup
-            </button>
+        <div class="px-6 py-4 sm:px-7 sm:py-5 shrink-0 flex items-center justify-between border-t border-[#ebebeb] bg-white">
+            <div class="text-xs text-neutral-500 flex items-center gap-1.5">
+                <i class="fas fa-shield-alt text-[#f2470c]"></i>
+                <span class="hidden sm:inline">Sinkron otomatis ke Rekap Klasemen Medali</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <button type="button" onclick="closeMedaliModal()" class="btn-kempo-2 px-5 py-2.5 text-xs font-bold uppercase transition cursor-pointer border-0">
+                    Tutup
+                </button>
+                <button type="button" id="btnSimpanMedali" onclick="submitMedaliModal()" class="btn-kempo-1 px-5 py-2.5 text-xs font-bold uppercase transition cursor-pointer border-0 inline-flex items-center gap-1.5 shadow-sm">
+                    <i class="fas fa-save"></i> Simpan Medali
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -646,6 +692,8 @@
         });
     };
 
+    window.currentMedaliIsRandori = {{ $isRandori ? 'true' : 'false' }};
+
     window.openMedaliModal = function(id) {
         const targetId = id || DEFAULT_PERTANDINGAN_ID;
         const modal = document.getElementById('medaliModal');
@@ -657,9 +705,10 @@
         }
 
         document.getElementById('medali_pertandingan_id').value = targetId;
-        const selects = ['medali_emas', 'medali_perak', 'medali_perunggu1'];
+        const selects = ['medali_emas', 'medali_perak', 'medali_perunggu1', 'medali_perunggu2'];
         selects.forEach(s => {
-            document.getElementById(s).innerHTML = '<option value="">Memuat data...</option>';
+            const el = document.getElementById(s);
+            if (el) el.innerHTML = '<option value="">Memuat data...</option>';
         });
 
         fetch(`/pertandingan/${targetId}/peserta`)
@@ -667,18 +716,69 @@
             .then(res => {
                 const pert = res.pertandingan || {};
                 const data = res.peserta || [];
+                const isRandori = (typeof res.is_randori !== 'undefined') ? res.is_randori : window.currentScoresheetIsRandori;
+                window.currentMedaliIsRandori = isRandori;
+
+                // Atur visibilitas dan label fitur Perunggu Bersama (khusus Randori)
+                const cPerunggu2 = document.getElementById('container_medali_perunggu2');
+                const lblP1 = document.getElementById('label_text_perunggu1');
+                const badgeP1 = document.getElementById('badge_perunggu_bersama1');
+                const badgeRandori = document.getElementById('medali_randori_badge');
+                const titleSubtitle = document.getElementById('medali_modal_subtitle');
+
+                if (titleSubtitle) {
+                    const namaKategori = (pert.pertandingan && pert.pertandingan.nama) || (pert.nama) || 'Pertandingan';
+                    const kelasKategori = (pert.pertandingan && pert.pertandingan.kelas) || (pert.kelas) || '-';
+                    const jenisKategori = isRandori ? 'Randori (Pertarungan)' : 'Embu (Kerapian Teknik)';
+                    titleSubtitle.innerHTML = `${namaKategori} (Kelas: ${kelasKategori}) &bull; ${jenisKategori}`;
+                }
+
+                if (isRandori) {
+                    if (cPerunggu2) cPerunggu2.style.display = 'block';
+                    if (lblP1) lblP1.textContent = 'Medali Perunggu 1 (Juara 3 Bersama)';
+                    if (badgeP1) badgeP1.style.display = 'inline-flex';
+                    if (badgeRandori) badgeRandori.style.display = 'inline-flex';
+                } else {
+                    if (cPerunggu2) cPerunggu2.style.display = 'none';
+                    if (lblP1) lblP1.textContent = 'Medali Perunggu (Juara 3)';
+                    if (badgeP1) badgeP1.style.display = 'none';
+                    if (badgeRandori) badgeRandori.style.display = 'none';
+                }
 
                 let optionsHtml = '<option value="">-- Belum Ditentukan --</option>';
 
                 // Opsi penilaian langsung berdasarkan kontingen
+                const kontingenMap = new Map();
                 data.forEach(item => {
-                    const label = `${item.kontingen} (${item.nama})`;
-                    const val = item.kontingen;
-                    optionsHtml += `<option value="${val}">${label}</option>`;
+                    const kName = item.kontingen;
+                    if (!kName) return;
+                    if (!kontingenMap.has(kName)) {
+                        kontingenMap.set(kName, {
+                            kontingen: kName,
+                            kabupaten_id: item.kabupaten_id || '',
+                            pesertaNames: item.nama ? [item.nama] : []
+                        });
+                    } else {
+                        const entry = kontingenMap.get(kName);
+                        if (!entry.kabupaten_id && item.kabupaten_id) {
+                            entry.kabupaten_id = item.kabupaten_id;
+                        }
+                        if (item.nama && !entry.pesertaNames.includes(item.nama)) {
+                            entry.pesertaNames.push(item.nama);
+                        }
+                    }
+                });
+
+                kontingenMap.forEach(info => {
+                    const pNamesStr = info.pesertaNames.filter(Boolean).join(', ');
+                    const label = pNamesStr ? `${info.kontingen} (${pNamesStr})` : info.kontingen;
+                    const kabIdAttr = info.kabupaten_id ? ` data-kabupaten-id="${info.kabupaten_id}"` : '';
+                    optionsHtml += `<option value="${info.kontingen}"${kabIdAttr}>${label}</option>`;
                 });
 
                 selects.forEach(s => {
-                    document.getElementById(s).innerHTML = optionsHtml;
+                    const el = document.getElementById(s);
+                    if (el) el.innerHTML = optionsHtml;
                 });
 
                 // Urutkan kontingen berdasarkan nilai_akhir / total_nilai tertinggi untuk pengisian otomatis
@@ -700,24 +800,171 @@
 
                 // Isi otomatis berdasarkan data_juara, medali peserta, atau nilai akhir tertinggi
                 const dj = pert.data_juara || {};
-                const djEmas = (dj.emas && dj.emas.kabupaten_nama) || '';
-                const djPerak = (dj.perak && dj.perak.kabupaten_nama) || '';
-                const djPerunggu1 = (dj.perunggu && dj.perunggu.kabupaten_nama) || '';
+                const djEmas = (dj.emas && (dj.emas.kabupaten_nama || dj.emas.kabupaten)) || '';
+                const djEmasKabId = dj.emas && dj.emas.kabupaten_id;
 
-                const medaliEmasKontingen = (data.find(it => it.medali && it.medali.toLowerCase() === 'emas') || {}).kontingen;
-                const medaliPerakKontingen = (data.find(it => it.medali && it.medali.toLowerCase() === 'perak') || {}).kontingen;
-                const medaliPerunggu1Kontingen = (data.find(it => it.medali && it.medali.toLowerCase() === 'perunggu') || {}).kontingen;
+                const djPerak = (dj.perak && (dj.perak.kabupaten_nama || dj.perak.kabupaten)) || '';
+                const djPerakKabId = dj.perak && dj.perak.kabupaten_id;
 
-                document.getElementById('medali_emas').value = djEmas || medaliEmasKontingen || autoCandidates[0] || pert.emas || '';
-                document.getElementById('medali_perak').value = djPerak || medaliPerakKontingen || autoCandidates[1] || pert.perak || '';
-                document.getElementById('medali_perunggu1').value = djPerunggu1 || medaliPerunggu1Kontingen || autoCandidates[2] || pert.perunggu1 || pert.perunggu || '';
+                const djPerunggu1 = (dj.perunggu && (dj.perunggu.kabupaten_nama || dj.perunggu.kabupaten)) || '';
+                const djPerunggu1KabId = dj.perunggu && dj.perunggu.kabupaten_id;
+
+                const djPerunggu2 = (dj.perunggu_2 && (dj.perunggu_2.kabupaten_nama || dj.perunggu_2.kabupaten)) || '';
+                const djPerunggu2KabId = dj.perunggu_2 && dj.perunggu_2.kabupaten_id;
+
+                const emasPeserta = data.find(it => it.medali && it.medali.toLowerCase() === 'emas');
+                const perakPeserta = data.find(it => it.medali && it.medali.toLowerCase() === 'perak');
+                const perungguPesertas = data.filter(it => it.medali && it.medali.toLowerCase() === 'perunggu');
+
+                const medaliEmasKontingen = emasPeserta ? emasPeserta.kontingen : '';
+                const medaliPerakKontingen = perakPeserta ? perakPeserta.kontingen : '';
+                const medaliPerunggu1Kontingen = perungguPesertas[0] ? perungguPesertas[0].kontingen : '';
+                let medaliPerunggu2Kontingen = '';
+                for (let i = 1; i < perungguPesertas.length; i++) {
+                    if (perungguPesertas[i].kontingen !== medaliPerunggu1Kontingen) {
+                        medaliPerunggu2Kontingen = perungguPesertas[i].kontingen;
+                        break;
+                    }
+                }
+                if (!medaliPerunggu2Kontingen && perungguPesertas[1]) {
+                    medaliPerunggu2Kontingen = perungguPesertas[1].kontingen;
+                }
+
+                function applySelectValue(selId, targetVal, targetKabId, fallbackVal) {
+                    const selectEl = document.getElementById(selId);
+                    if (!selectEl) return;
+                    const valToSet = targetVal || fallbackVal || '';
+                    if (valToSet) {
+                        selectEl.value = valToSet;
+                        if (selectEl.value === valToSet) return;
+                        const lower = valToSet.toLowerCase().trim();
+                        for (let opt of selectEl.options) {
+                            if (opt.value && opt.value.toLowerCase().trim() === lower) {
+                                selectEl.value = opt.value;
+                                return;
+                            }
+                        }
+                    }
+                    if (targetKabId) {
+                        for (let opt of selectEl.options) {
+                            if (opt.dataset && String(opt.dataset.kabupatenId) === String(targetKabId)) {
+                                selectEl.value = opt.value;
+                                return;
+                            }
+                        }
+                    }
+                    if (valToSet) {
+                        const lower = valToSet.toLowerCase().trim();
+                        for (let opt of selectEl.options) {
+                            if (opt.text && opt.text.toLowerCase().includes(lower)) {
+                                selectEl.value = opt.value;
+                                return;
+                            }
+                        }
+                    }
+                    selectEl.value = '';
+                }
+
+                applySelectValue('medali_emas', djEmas, djEmasKabId, medaliEmasKontingen || autoCandidates[0] || pert.emas);
+                applySelectValue('medali_perak', djPerak, djPerakKabId, medaliPerakKontingen || autoCandidates[1] || pert.perak);
+                applySelectValue('medali_perunggu1', djPerunggu1, djPerunggu1KabId, medaliPerunggu1Kontingen || autoCandidates[2] || pert.perunggu1 || pert.perunggu);
+
+                if (isRandori) {
+                    applySelectValue('medali_perunggu2', djPerunggu2, djPerunggu2KabId, medaliPerunggu2Kontingen || autoCandidates[3] || pert.perunggu_2 || pert.perunggu2);
+                }
             })
             .catch(err => {
                 console.error(err);
                 selects.forEach(s => {
-                    document.getElementById(s).innerHTML = '<option value="">Gagal memuat</option>';
+                    const el = document.getElementById(s);
+                    if (el) el.innerHTML = '<option value="">Gagal memuat</option>';
                 });
             });
+    };
+
+    window.submitMedaliModal = function() {
+        const targetId = document.getElementById('medali_pertandingan_id').value || DEFAULT_PERTANDINGAN_ID;
+        const btnSimpan = document.getElementById('btnSimpanMedali');
+
+        const selEmas = document.getElementById('medali_emas');
+        const selPerak = document.getElementById('medali_perak');
+        const selP1 = document.getElementById('medali_perunggu1');
+        const selP2 = document.getElementById('medali_perunggu2');
+
+        const optEmas = selEmas && selEmas.selectedIndex >= 0 ? selEmas.options[selEmas.selectedIndex] : null;
+        const optPerak = selPerak && selPerak.selectedIndex >= 0 ? selPerak.options[selPerak.selectedIndex] : null;
+        const optP1 = selP1 && selP1.selectedIndex >= 0 ? selP1.options[selP1.selectedIndex] : null;
+        const optP2 = (selP2 && window.currentMedaliIsRandori && selP2.selectedIndex >= 0) ? selP2.options[selP2.selectedIndex] : null;
+
+        const payload = {
+            emas_kontingen: selEmas ? selEmas.value : '',
+            emas_kabupaten_id: optEmas ? (optEmas.dataset.kabupatenId || '') : '',
+            perak_kontingen: selPerak ? selPerak.value : '',
+            perak_kabupaten_id: optPerak ? (optPerak.dataset.kabupatenId || '') : '',
+            perunggu_kontingen: selP1 ? selP1.value : '',
+            perunggu_kabupaten_id: optP1 ? (optP1.dataset.kabupatenId || '') : '',
+            perunggu_2_kontingen: optP2 ? selP2.value : '',
+            perunggu_2_kabupaten_id: optP2 ? (optP2.dataset.kabupatenId || '') : '',
+            is_randori: window.currentMedaliIsRandori ? 1 : 0
+        };
+
+        if (btnSimpan) {
+            btnSimpan.disabled = true;
+            btnSimpan.innerHTML = '<i class="fas fa-spinner fa-spin mr-1.5"></i> Menyimpan...';
+        }
+
+        fetch(`/pertandingan/${targetId}/set-medali`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (btnSimpan) {
+                btnSimpan.disabled = false;
+                btnSimpan.innerHTML = '<i class="fas fa-save mr-1.5"></i> Simpan Medali';
+            }
+            if (data.status === 'success') {
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil',
+                        text: data.message || 'Peraih medali berhasil disimpan!',
+                        timer: 1800,
+                        showConfirmButton: false
+                    });
+                } else {
+                    alert(data.message || 'Peraih medali berhasil disimpan!');
+                }
+                closeMedaliModal();
+                setTimeout(() => {
+                    window.location.reload();
+                }, 800);
+            } else {
+                const msg = data.message || 'Gagal menyimpan medali.';
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({ icon: 'error', title: 'Gagal', text: msg });
+                } else {
+                    alert(msg);
+                }
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            if (btnSimpan) {
+                btnSimpan.disabled = false;
+                btnSimpan.innerHTML = '<i class="fas fa-save mr-1.5"></i> Simpan Medali';
+            }
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({ icon: 'error', title: 'Kesalahan Sistem', text: 'Terjadi kesalahan saat menyimpan medali.' });
+            } else {
+                alert('Terjadi kesalahan saat menyimpan peraih medali.');
+            }
+        });
     };
 
     window.closeMedaliModal = function() {
