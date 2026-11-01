@@ -174,6 +174,13 @@
                 <p class="text-[11px] text-neutral-400 mt-1.5">Format: JPG, JPEG, PNG (Maks 1MB)</p>
                 <div class="mt-3">
                     <img src="{{ !empty($peserta->foto) ? url($peserta->foto) : '' }}" id="preview" class="w-28 h-36 object-cover rounded-xl border border-[#ebebeb] shadow-2xs bg-neutral-100 {{ empty($peserta->foto) ? 'hidden' : '' }}" alt="Preview Foto">
+                    <div id="card-foto-lama" class="hidden w-28 h-36 rounded-xl bg-neutral-100 border-2 border-dashed border-neutral-300 flex flex-col items-center justify-center p-3 text-center text-neutral-600 shadow-2xs transition-all">
+                        <div class="w-9 h-9 rounded-full bg-neutral-200 text-[#f2470c] flex items-center justify-center text-base mb-2 shadow-2xs">
+                            <i class="fas fa-id-badge"></i>
+                        </div>
+                        <span class="text-xs font-bold font-heading text-neutral-800 leading-tight">Menggunakan Pas Foto Lama</span>
+                        <span class="text-[10px] text-neutral-400 mt-1 leading-tight">Foto tersimpan aman</span>
+                    </div>
                 </div>
                 <span class="error text-xs font-semibold text-[#e54b4f] mt-1 inline-block"></span>
             </div>
