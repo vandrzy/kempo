@@ -242,7 +242,7 @@
             <div class="bg-white rounded-xl px-4 py-1.5 border border-slate-200/90 shadow-sm flex items-center justify-between flex-shrink-0 gap-2">
                 <div class="flex items-center gap-2">
                     <span id="randoriBadgeBabak" class="px-2.5 py-0.5 bg-slate-800 text-white font-extrabold text-xs rounded-md uppercase tracking-wider">
-                        BABAK 1 - PARTAI #1
+                        -
                     </span>
                 </div>
                 <div id="randoriAlertHasil" class="text-xs sm:text-sm font-bold text-slate-700 truncate">
@@ -412,6 +412,7 @@
 
         // 1. Inisialisasi Dropdown Kategori
         function initKategoriDropdown() {
+            selectKategori.innerHTML = '<option value="">-- Pilih Kategori --</option>';
             structuredData.forEach(kat => {
                 const opt = document.createElement('option');
                 opt.value = kat.id;
@@ -419,33 +420,53 @@
                 selectKategori.appendChild(opt);
             });
 
-            if (structuredData.length > 0) {
-                selectKategori.value = structuredData[0].id;
-                onKategoriChange();
-            }
+            // Default seluruh dropdown ke opsi "Pilih", jangan ada yang auto-select
+            selectKategori.value = "";
+            selectTanding.innerHTML = '<option value="">-- Pilih Tanding --</option>';
+            selectTanding.value = "";
+            selectTanding.disabled = true;
+
+            selectPeserta.innerHTML = '<option value="">-- Pilih Peserta --</option>';
+            selectPeserta.value = "";
+            selectPeserta.disabled = true;
+
+            if (containerFilterBabak) containerFilterBabak.style.display = 'none';
+            if (filterDropdownGrid) filterDropdownGrid.className = 'grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs';
+            if (labelDropdown3) labelDropdown3.innerHTML = '<i class="fas fa-user-ninja mr-1 text-blue-500"></i> Pilih Peserta';
+
+            resetScoreboard();
         }
 
         // 2. Kategori Berubah
         function onKategoriChange() {
             const katId = parseInt(selectKategori.value);
             currentKategori = structuredData.find(k => k.id === katId) || null;
+            currentTanding = null;
+            currentPesertaGroup = null;
+            currentPartaiDuel = null;
 
             selectTanding.innerHTML = '<option value="">-- Pilih Tanding --</option>';
             selectPeserta.innerHTML = '<option value="">-- Pilih Peserta --</option>';
+            selectTanding.value = "";
+            selectPeserta.value = "";
             selectTanding.disabled = !currentKategori;
             selectPeserta.disabled = true;
 
-            if (currentKategori && currentKategori.tandings.length > 0) {
+            if (containerFilterBabak) containerFilterBabak.style.display = 'none';
+            if (filterDropdownGrid) filterDropdownGrid.className = 'grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs';
+            if (labelDropdown3) labelDropdown3.innerHTML = '<i class="fas fa-user-ninja mr-1 text-blue-500"></i> Pilih Peserta';
+
+            resetScoreboard();
+
+            if (currentKategori && currentKategori.tandings && currentKategori.tandings.length > 0) {
                 currentKategori.tandings.forEach(t => {
                     const opt = document.createElement('option');
                     opt.value = t.id;
                     opt.textContent = `${t.nama_tanding} (${t.jenis.toUpperCase()})`;
                     selectTanding.appendChild(opt);
                 });
-                selectTanding.value = currentKategori.tandings[0].id;
-                onTandingChange();
-            } else {
-                resetScoreboard();
+                // Tetap pada opsi default "-- Pilih Tanding --"
+                selectTanding.value = "";
             }
         }
 
@@ -453,7 +474,20 @@
         function onTandingChange() {
             if (!currentKategori) return;
             const tandingId = parseInt(selectTanding.value);
-            currentTanding = currentKategori.tandings.find(t => t.id === tandingId) || null;
+            currentTanding = (currentKategori.tandings || []).find(t => t.id === tandingId) || null;
+            currentPesertaGroup = null;
+            currentPartaiDuel = null;
+
+            resetScoreboard();
+
+            if (!currentTanding) {
+                selectPeserta.innerHTML = '<option value="">-- Pilih Peserta --</option>';
+                selectPeserta.value = "";
+                selectPeserta.disabled = true;
+                if (containerFilterBabak) containerFilterBabak.style.display = 'none';
+                if (filterDropdownGrid) filterDropdownGrid.className = 'grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs';
+                return;
+            }
 
             const isRandori = currentTanding && currentTanding.jenis === 'randori';
             const isEmbu = currentTanding && currentTanding.jenis === 'embu';
@@ -492,47 +526,38 @@
             }
 
             selectPeserta.innerHTML = isRandori ? '<option value="">-- Pilih Partai Duel --</option>' : '<option value="">-- Pilih Peserta --</option>';
-            selectPeserta.disabled = !currentTanding;
+            selectPeserta.disabled = false;
 
             if (isRandori) {
                 const partaiList = currentTanding.partai_duel || [];
-                if (partaiList.length > 0) {
-                    partaiList.forEach(p => {
-                        const opt = document.createElement('option');
-                        opt.value = p.id;
-                        opt.textContent = p.label;
-                        selectPeserta.appendChild(opt);
-                    });
-                    selectPeserta.value = partaiList[0].id;
-                    fetchFreshScoreFromDatabase(() => {
-                        onPartaiDuelChange(false);
-                    });
-                } else {
-                    resetScoreboard();
-                }
+                partaiList.forEach(p => {
+                    const opt = document.createElement('option');
+                    opt.value = p.id;
+                    opt.textContent = p.label;
+                    selectPeserta.appendChild(opt);
+                });
             } else {
                 const pGroups = currentTanding.peserta_groups || [];
-                if (pGroups.length > 0) {
-                    pGroups.forEach(pg => {
-                        const opt = document.createElement('option');
-                        opt.value = pg.row_index;
-                        const labelKontingen = (pg.kontingen && pg.kontingen !== '-') ? pg.kontingen : 'Kontingen';
-                        opt.textContent = `${labelKontingen} - ${pg.nama_gabungan || pg.nama}`;
-                        selectPeserta.appendChild(opt);
-                    });
-                    selectPeserta.value = pGroups[0].row_index;
-                    fetchFreshScoreFromDatabase(() => {
-                        onPesertaChange(false);
-                    });
-                } else {
-                    resetScoreboard();
-                }
+                pGroups.forEach(pg => {
+                    const opt = document.createElement('option');
+                    opt.value = pg.row_index;
+                    const labelKontingen = (pg.kontingen && pg.kontingen !== '-') ? pg.kontingen : 'Kontingen';
+                    opt.textContent = `${labelKontingen} - ${pg.nama_gabungan || pg.nama}`;
+                    selectPeserta.appendChild(opt);
+                });
             }
+
+            // Tetap pada opsi default pilih, jangan auto-select atau menampilkan score
+            selectPeserta.value = "";
         }
 
         // 4. Peserta Berubah (Khusus Embu)
         function onPesertaChange(shouldFetchDb = true) {
-            if (!currentTanding) return;
+            if (!currentTanding || !selectPeserta.value) {
+                currentPesertaGroup = null;
+                resetScoreboard();
+                return;
+            }
             const rowIndex = parseInt(selectPeserta.value);
             currentPesertaGroup = (currentTanding.peserta_groups || []).find(pg => pg.row_index === rowIndex) || null;
 
@@ -562,7 +587,11 @@
 
         // 5. Partai Duel Berubah (Khusus Randori)
         function onPartaiDuelChange(shouldFetchDb = true) {
-            if (!currentTanding) return;
+            if (!currentTanding || !selectPeserta.value) {
+                currentPartaiDuel = null;
+                resetScoreboard();
+                return;
+            }
             const partaiId = parseInt(selectPeserta.value);
             const partaiList = currentTanding.partai_duel || [];
             currentPartaiDuel = partaiList.find(p => p.id === partaiId) || null;
@@ -846,7 +875,16 @@
             const dta = document.getElementById('displayTotalAkhir');
             if (dta) dta.textContent = '0';
 
+            if (cardTotalAkhir) cardTotalAkhir.style.display = 'none';
+            if (cardTotalNilai) {
+                cardTotalNilai.className = 'col-span-10 sm:col-span-8 md:col-span-6 bg-gradient-to-br from-blue-600 to-indigo-700 text-white rounded-xl border-2 border-blue-600 shadow-md flex flex-col overflow-hidden transition-all duration-300';
+            }
+            if (labelTotalNilai) labelTotalNilai.textContent = 'TOTAL NILAI';
+            if (spacerLeftTotal) spacerLeftTotal.className = 'col-span-1 sm:col-span-2 md:col-span-3';
+            if (spacerRightTotal) spacerRightTotal.className = 'col-span-1 sm:col-span-2 md:col-span-3';
+
             // Reset Randori
+            if (randoriBadgeBabak) randoriBadgeBabak.textContent = '-';
             if (randoriNamaKiri) randoriNamaKiri.textContent = '-';
             if (randoriKontingenKiri) randoriKontingenKiri.innerHTML = '<span>-</span>';
             if (randoriSkorKiri) randoriSkorKiri.textContent = '0';
@@ -873,6 +911,12 @@
         selectKategori.addEventListener('change', onKategoriChange);
         selectTanding.addEventListener('change', onTandingChange);
         selectPeserta.addEventListener('change', () => {
+            if (!selectPeserta.value) {
+                currentPesertaGroup = null;
+                currentPartaiDuel = null;
+                resetScoreboard();
+                return;
+            }
             if (currentTanding && currentTanding.jenis === 'randori') {
                 onPartaiDuelChange(true);
             } else {
@@ -881,11 +925,16 @@
         });
         if (filterBabakSelect) {
             filterBabakSelect.addEventListener('change', () => {
-                renderScoreFromDatabaseState();
+                if (currentPesertaGroup) {
+                    renderScoreFromDatabaseState();
+                }
             });
         }
 
         btnRefreshDb.addEventListener('click', () => {
+            if (!currentTanding || (!currentPesertaGroup && !currentPartaiDuel)) {
+                return;
+            }
             fetchFreshScoreFromDatabase(() => {
                 if (currentTanding && currentTanding.jenis === 'randori') {
                     renderRandoriScore();
@@ -917,6 +966,7 @@
 
         async function updateScoreboardDOM() {
             if (isUpdating) return;
+            if (!currentTanding || (!currentPesertaGroup && !currentPartaiDuel)) return;
             isUpdating = true;
 
             try {
@@ -945,34 +995,34 @@
             // Hanya lakukan request jika tab browser sedang aktif dilihat
             if (!document.hidden) {
                 try {
-                    const controller = new AbortController();
-                    const timeoutId = setTimeout(() => controller.abort(), 5000);
+                    // Hanya polling jika pertandingan dan peserta/partai duel sudah dipilih
+                    if (typeof currentTanding !== 'undefined' && currentTanding && (currentPesertaGroup || currentPartaiDuel)) {
+                        const controller = new AbortController();
+                        const timeoutId = setTimeout(() => controller.abort(), 5000);
 
-                    // Gunakan ID tanding aktif jika dipilih, fallback ke defaultPertandinganId
-                    const activeTandingId = (typeof currentTanding !== 'undefined' && currentTanding && (currentTanding.pertandingan_id || currentTanding.id))
-                        ? (currentTanding.pertandingan_id || currentTanding.id)
-                        : defaultPertandinganId;
-                    const urlToFetch = "{{ url('/scoreboard') }}/" + activeTandingId + "/check-update";
+                        const activeTandingId = currentTanding.pertandingan_id || currentTanding.id;
+                        const urlToFetch = "{{ url('/scoreboard') }}/" + activeTandingId + "/check-update";
 
-                    const response = await fetch(urlToFetch, {
-                        signal: controller.signal,
-                        headers: { 'Accept': 'application/json' },
-                        cache: 'no-store'
-                    });
+                        const response = await fetch(urlToFetch, {
+                            signal: controller.signal,
+                            headers: { 'Accept': 'application/json' },
+                            cache: 'no-store'
+                        });
 
-                    clearTimeout(timeoutId);
+                        clearTimeout(timeoutId);
 
-                    if (response.ok) {
-                        const result = await response.json();
+                        if (response.ok) {
+                            const result = await response.json();
 
-                        if (result && result.hash) {
-                            if (currentHash === null) {
-                                // Simpan hash awal saat halaman pertama kali dibuka
-                                currentHash = result.hash;
-                            } else if (currentHash !== result.hash) {
-                                // Hash berubah! Perbarui hash dan muat ulang bagian skor
-                                currentHash = result.hash;
-                                await updateScoreboardDOM();
+                            if (result && result.hash) {
+                                if (currentHash === null) {
+                                    // Simpan hash awal saat pertandingan & peserta aktif
+                                    currentHash = result.hash;
+                                } else if (currentHash !== result.hash) {
+                                    // Hash berubah! Perbarui hash dan muat ulang bagian skor
+                                    currentHash = result.hash;
+                                    await updateScoreboardDOM();
+                                }
                             }
                         }
                     }
