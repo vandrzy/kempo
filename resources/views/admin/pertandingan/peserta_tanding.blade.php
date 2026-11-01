@@ -1,130 +1,379 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <title>Cetak Nomor Tanding</title>
-<style>
-.table {
-  width: 100%;
-  border-collapse: collapse;
-  border-spacing: 0;
-  font-size: 12px;
-  margin-bottom: 1rem;
-}
+    <meta charset="UTF-8">
+    <title>Bagan Pertandingan & Pasangan Lawan Randori - {{ $pertandingan->pertandingan->nama ?? 'Randori' }}</title>
+    <style>
+        @page {
+            margin: 1cm 0.8cm 1cm 0.8cm;
+            size: A4 landscape;
+        }
 
-.table thead {
-  display: table-header-group; /* penting: header tabel muncul di setiap halaman */
-}
+        body {
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 10px;
+            color: #111827;
+            line-height: 1.3;
+        }
 
-.table tfoot {
-  display: table-footer-group;
-}
+        .header-title {
+            text-align: center;
+            border-bottom: 2px solid #111827;
+            padding-bottom: 6px;
+            margin-bottom: 10px;
+        }
 
-.table th,
-.table td {
-  padding: 8px 10px;
-  border: 1px solid #444;
-  text-align: left;
-  vertical-align: middle;
-}
+        .header-title h2 {
+            margin: 0;
+            font-size: 13px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            color: #111827;
+        }
 
-.table thead th {
-  background: #f3f4f6;
-  font-weight: bold;
-}
+        .header-title h3 {
+            margin: 3px 0 0 0;
+            font-size: 11px;
+            font-weight: bold;
+            color: #dc2626;
+            text-transform: uppercase;
+        }
 
-.table tbody tr:nth-child(even) td {
-  background: #fbfbfb;
-}
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px;
+            font-size: 10px;
+        }
 
-.table tr {
-  page-break-inside: avoid; /* jangan pecah row */
-}
-</style>
+        .info-table td {
+            padding: 2px 4px;
+            vertical-align: top;
+        }
 
+        .info-label {
+            width: 14%;
+            font-weight: bold;
+            color: #374151;
+        }
+
+        .info-colon {
+            width: 2%;
+        }
+
+        .info-val {
+            width: 34%;
+        }
+
+        /* Table Bagan Duel */
+        table.kempo-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+            font-size: 9.5px;
+        }
+
+        table.kempo-table th, 
+        table.kempo-table td {
+            border: 1px solid #4b5563;
+            padding: 5px 6px;
+            vertical-align: middle;
+        }
+
+        table.kempo-table thead th {
+            background-color: #f3f4f6;
+            color: #111827;
+            font-weight: bold;
+            text-align: center;
+            text-transform: uppercase;
+            font-size: 9px;
+        }
+
+        .row-merah {
+            background-color: #fff1f2;
+        }
+
+        .row-putih {
+            background-color: #f8fafc;
+        }
+
+        .text-center { text-align: center; }
+        .text-left { text-align: left; }
+        .text-right { text-align: right; }
+        .font-bold { font-weight: bold; }
+
+        .badge-babak {
+            display: inline-block;
+            padding: 2px 5px;
+            background-color: #e5e7eb;
+            color: #1f2937;
+            border-radius: 4px;
+            font-size: 8.5px;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 2px;
+        }
+
+        .badge-final {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge-semifinal {
+            background-color: #f3e8ff;
+            color: #6b21a8;
+        }
+
+        .badge-menang {
+            display: inline-block;
+            padding: 1px 4px;
+            background-color: #dcfce7;
+            color: #15803d;
+            border: 1px solid #86efac;
+            border-radius: 3px;
+            font-size: 8px;
+            font-weight: bold;
+            margin-left: 3px;
+        }
+
+        /* Signatures */
+        .signature-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            page-break-inside: avoid;
+        }
+
+        .signature-table td {
+            text-align: center;
+            vertical-align: top;
+            padding: 0 20px;
+        }
+
+        .sign-line {
+            display: inline-block;
+            width: 70%;
+            border-bottom: 1px solid #111827;
+            margin-top: 45px;
+        }
+    </style>
 </head>
 <body>
-    <h3 class="dark:text-white">{{ $pertandingan->pertandingan->kategori->nama }} </h3>
-    <h4 class="dark:text-white">{{ $pertandingan->kegiatan->nama }} / {{ $pertandingan->pertandingan->nama }} / Tanding</h4>
-    <table class="table">
+
+    <!-- Header Dokumen -->
+    <div class="header-title">
+        <h2>PERSAUDARAAN BELADIRI SHORINJI KEMPO (PERKEMI)</h2>
+        <h3>BAGAN PERTANDINGAN &amp; PASANGAN LAWAN RANDORI</h3>
+    </div>
+
+    <!-- Informasi Kelas Pertandingan -->
+    <table class="info-table">
+        <tr>
+            <td class="info-label">Kegiatan</td>
+            <td class="info-colon">:</td>
+            <td class="info-val font-bold">{{ $pertandingan->kegiatan->nama_kegiatan ?? ($pertandingan->kegiatan->nama ?? '-') }}</td>
+
+            <td class="info-label">Kategori</td>
+            <td class="info-colon">:</td>
+            <td class="info-val font-bold">Randori (Bagan Gugur)</td>
+        </tr>
+        <tr>
+            <td class="info-label">Nomor / Kelas</td>
+            <td class="info-colon">:</td>
+            <td class="info-val font-bold">{{ $pertandingan->pertandingan->nama ?? '-' }} (Kelas: {{ $pertandingan->pertandingan->kelas ?? '-' }})</td>
+
+            <td class="info-label">Jenis Kelamin</td>
+            <td class="info-colon">:</td>
+            <td class="info-val">{{ $pertandingan->pertandingan->jenis_kelamin ?? '-' }}</td>
+        </tr>
+        <tr>
+            <td class="info-label">Jumlah Partai</td>
+            <td class="info-colon">:</td>
+            <td class="info-val font-bold">{{ $peserta_lawan->count() }} Partai Duel</td>
+
+            <td class="info-label">Tanggal Cetak</td>
+            <td class="info-colon">:</td>
+            <td class="info-val">{{ date('d-m-Y H:i') }} WIB</td>
+        </tr>
+    </table>
+
+    <!-- Tabel Bagan Pertandingan & Pasangan Lawan Randori -->
+    <table class="kempo-table">
         <thead>
             <tr>
-                <th rowspan="2" style="text-align: center">No</th>
-                <th rowspan="2" style="text-align: center">Nama</th>
-                <th colspan="2" style="text-align: center">Tingkat</th>
-                <th rowspan="2" style="text-align: center">Kelas</th>
-                <th rowspan="2" style="text-align: center">Berat Badan</th>
+                <th rowspan="2" style="width: 13%;">Babak &amp; Partai</th>
+                <th rowspan="2" style="width: 11%;">Sudut</th>
+                <th rowspan="2" style="width: 18%;">Kontingen</th>
+                <th rowspan="2" style="width: 25%;">Nama Atlet</th>
+                <th colspan="2" style="width: 10%;">Sabuk</th>
+                <th rowspan="2" style="width: 8%;">Skor</th>
+                <th rowspan="2" style="width: 15%;">Status &amp; Pemenang</th>
             </tr>
             <tr>
-                <th style="text-align: center">KYU</th>
-                <th style="text-align: center">DAN</th>
+                <th style="width: 5%;">KYU</th>
+                <th style="width: 5%;">DAN</th>
             </tr>
         </thead>
         <tbody>
-            @foreach ($peserta_lawan as $a)
-                <tr>
-                    <td>{{ optional($a->PertandinganPesertaPertama)->urutan ?? '-' }}</td>
-                    <td style="text-align: center">{{ optional(optional($a->PertandinganPesertaPertama)->Peserta)->nama ?? ($a->babak > 1 ? 'Menunggu Pemenang Babak ' . ($a->babak - 1) . ' Partai #' . (2 * $a->nomor_partai - 1) : '-') }}</td>
-                    <td style="text-align: center">{{ strtoupper(substr(optional(optional($a->PertandinganPesertaPertama)->Peserta)->tingkatan_sabuk ?? '', 0, 1)) == "K" ? "V" : ''}}</td>
-                    <td style="text-align: center">{{ strtoupper(substr(optional(optional($a->PertandinganPesertaPertama)->Peserta)->tingkatan_sabuk ?? '', 0, 1)) == "D" ? 'V' : ''}}</td>
-                    <td style="text-align: center">{{ optional(optional(optional(optional($a->PertandinganPesertaPertama)->Peserta)->PertandinganPesertaUtama)->list_kategori)->pertandingan->kelas ?? '-' }}</td>
-                    <td style="text-align: center">{{ optional(optional($a->PertandinganPesertaPertama)->Peserta)->berat_badan ? $a->PertandinganPesertaPertama->Peserta->berat_badan . ' Kg' : '-' }}</td>
-                </tr>
-                <tr>
-                    <td>{{ optional($a->PertandinganPesertaKedua)->urutan ?? '-' }}</td>
-                    <td style="text-align: center">{{ optional(optional($a->PertandinganPesertaKedua)->Peserta)->nama ?? ($a->pertandingan_peserta_kanan_id === null && $a->keterangan_menang === 'BYE' ? 'Belum Ada Lawan (BYE)' : ($a->babak > 1 ? 'Menunggu Pemenang Babak ' . ($a->babak - 1) . ' Partai #' . (2 * $a->nomor_partai) : 'Belum Ada')) }}</td>
-                    <td style="text-align: center">{{ strtoupper(substr(optional(optional($a->PertandinganPesertaKedua)->Peserta)->tingkatan_sabuk ?? '', 0, 1)) == "K" ? "V" : ''}}</td>
-                    <td style="text-align: center">{{ strtoupper(substr(optional(optional($a->PertandinganPesertaKedua)->Peserta)->tingkatan_sabuk ?? '', 0, 1)) == "D" ? 'V' : ''}}</td>
-                    <td style="text-align: center">{{ optional(optional(optional(optional($a->PertandinganPesertaKedua)->Peserta)->PertandinganPesertaUtama)->list_kategori)->pertandingan->kelas ?? '-' }}</td>
-                    <td style="text-align: center">{{ optional(optional($a->PertandinganPesertaKedua)->Peserta)->berat_badan ? $a->PertandinganPesertaKedua->Peserta->berat_badan . ' Kg' : '-' }}</td>
-                </tr>
-                {{-- <div style="background-color: rgb(237, 162, 162); color: black;" class="bg-red-100 p-2 rounded shadow w-40 text-center">{{ $a->PertandinganPesertaPertama->urutan }} | {{ $a->PertandinganPesertaPertama->Peserta->nama }}</div>
-                <div style="background-color: rgb(116, 202, 234); color: black;" class="bg-blue-100 p-2 rounded shadow w-40 text-center">{{ $a->PertandinganPesertaKedua->urutan ?? '0' }} | {{ $a->PertandinganPesertaKedua->Peserta->nama ?? 'WO' }}</div> --}}
+            @php
+                $totalBabak = $totalBabakKategori ?? 1;
+            @endphp
+            @forelse ($peserta_lawan as $a)
+                @php
+                    $isReady = $a->pertandingan_peserta_kiri_id && $a->pertandingan_peserta_kanan_id;
+                    $isBye = ($a->pertandingan_peserta_kanan_id === null && $a->keterangan_menang === 'BYE');
 
-            @endforeach
+                    $namaBabak = 'Babak ' . $a->babak;
+                    $badgeClass = 'badge-babak';
+                    if ($a->babak == $totalBabak) {
+                        $namaBabak = 'Final';
+                        $badgeClass .= ' badge-final';
+                    } elseif ($totalBabak >= 2 && $a->babak == $totalBabak - 1) {
+                        $namaBabak = 'Semifinal';
+                        $badgeClass .= ' badge-semifinal';
+                    } elseif ($totalBabak >= 3 && $a->babak == $totalBabak - 2) {
+                        $namaBabak = 'Perempatfinal';
+                    }
+
+                    $kiriMenang = ($a->pemenang_id && $a->pemenang_id == $a->pertandingan_peserta_kiri_id);
+                    $kananMenang = ($a->pemenang_id && $a->pemenang_id == $a->pertandingan_peserta_kanan_id);
+
+                    $atletMerah = optional(optional($a->PertandinganPesertaPertama)->Peserta);
+                    $atletPutih = optional(optional($a->PertandinganPesertaKedua)->Peserta);
+                @endphp
+
+                <!-- Baris Sudut Merah (AKA) -->
+                <tr class="row-merah">
+                    <!-- Babak & Partai (Rowspan 2) -->
+                    <td rowspan="2" class="text-center font-bold">
+                        <span class="{{ $badgeClass }}">{{ $namaBabak }}</span><br>
+                        <strong>Partai #{{ $a->nomor_partai }}</strong>
+                    </td>
+
+                    <!-- Sudut Merah -->
+                    <td class="font-bold text-center" style="color: #dc2626;">
+                        ● [Merah]
+                    </td>
+
+                    <!-- Kontingen Merah -->
+                    <td class="font-bold">
+                        {{ $atletMerah->kabupaten->name ?? ($atletMerah->kontigen ?? ($a->pertandingan_peserta_kiri_id ? 'Tanpa Kontingen' : 'Belum Ada')) }}
+                    </td>
+
+                    <!-- Nama Atlet Merah -->
+                    <td>
+                        @if($a->PertandinganPesertaPertama)
+                            <strong style="{{ $kiriMenang ? 'color: #15803d;' : '' }}">{{ $atletMerah->nama ?? 'Atlet Merah' }}</strong>
+                            @if($kiriMenang)
+                                <span class="badge-menang">✓ MENANG</span>
+                            @endif
+                        @else
+                            <span style="color: #6b7280; font-style: italic;">Menunggu Pemenang Babak {{ $a->babak - 1 }} Partai #{{ (2 * $a->nomor_partai) - 1 }}</span>
+                        @endif
+                    </td>
+
+                    <!-- Sabuk KYU Merah -->
+                    <td class="text-center font-bold">
+                        {{ strtoupper(substr($atletMerah->tingkatan_sabuk ?? '', 0, 1)) == "K" ? "✓" : '-' }}
+                    </td>
+
+                    <!-- Sabuk DAN Merah -->
+                    <td class="text-center font-bold">
+                        {{ strtoupper(substr($atletMerah->tingkatan_sabuk ?? '', 0, 1)) == "D" ? "✓" : '-' }}
+                    </td>
+
+                    <!-- Skor Merah -->
+                    <td class="text-center font-bold" style="font-size: 12px; color: #dc2626;">
+                        {{ $a->skor_kiri !== null ? $a->skor_kiri : '-' }}
+                    </td>
+
+                    <!-- Status & Pemenang (Rowspan 2) -->
+                    <td rowspan="2" class="text-center">
+                        @if($isBye)
+                            <span style="color: #15803d; font-weight: bold;">Lolos (BYE)</span>
+                        @elseif($a->pemenang_id)
+                            <strong style="color: #15803d;">{{ $kiriMenang ? 'Merah Menang' : 'Putih Menang' }}</strong><br>
+                            <span style="font-size: 8.5px; color: #4b5563;">{{ $a->keterangan_menang ?? 'POIN' }} ({{ $a->skor_kiri }} - {{ $a->skor_kanan }})</span>
+                        @elseif($isReady)
+                            <span style="color: #b45309; font-weight: bold;">Siap Bertanding</span>
+                        @else
+                            <span style="color: #6b7280; font-style: italic;">Menunggu Lawan</span>
+                        @endif
+                    </td>
+                </tr>
+
+                <!-- Baris Sudut Putih (SHIRO) -->
+                <tr class="row-putih">
+                    <!-- Sudut Putih -->
+                    <td class="font-bold text-center" style="color: #2563eb;">
+                        ○ [Putih]
+                    </td>
+
+                    <!-- Kontingen Putih -->
+                    <td class="font-bold">
+                        {{ $atletPutih->kabupaten->name ?? ($atletPutih->kontigen ?? ($a->pertandingan_peserta_kanan_id ? 'Tanpa Kontingen' : 'Belum Ada')) }}
+                    </td>
+
+                    <!-- Nama Atlet Putih -->
+                    <td>
+                        @if($a->PertandinganPesertaKedua)
+                            <strong style="{{ $kananMenang ? 'color: #15803d;' : '' }}">{{ $atletPutih->nama ?? 'Atlet Putih' }}</strong>
+                            @if($kananMenang)
+                                <span class="badge-menang">✓ MENANG</span>
+                            @endif
+                        @elseif($isBye)
+                            <span style="color: #6b7280; font-style: italic;">Belum Ada Lawan (BYE)</span>
+                        @else
+                            <span style="color: #6b7280; font-style: italic;">Menunggu Pemenang Babak {{ $a->babak - 1 }} Partai #{{ 2 * $a->nomor_partai }}</span>
+                        @endif
+                    </td>
+
+                    <!-- Sabuk KYU Putih -->
+                    <td class="text-center font-bold">
+                        {{ strtoupper(substr($atletPutih->tingkatan_sabuk ?? '', 0, 1)) == "K" ? "✓" : '-' }}
+                    </td>
+
+                    <!-- Sabuk DAN Putih -->
+                    <td class="text-center font-bold">
+                        {{ strtoupper(substr($atletPutih->tingkatan_sabuk ?? '', 0, 1)) == "D" ? "✓" : '-' }}
+                    </td>
+
+                    <!-- Skor Putih -->
+                    <td class="text-center font-bold" style="font-size: 12px; color: #2563eb;">
+                        {{ $a->skor_kanan !== null ? $a->skor_kanan : '-' }}
+                    </td>
+                </tr>
+            @empty
+                <tr>
+                    <td colspan="8" class="text-center" style="padding: 20px; color: #6b7280;">
+                        Belum ada data bagan undian pertandingan untuk kelas ini. Silakan lakukan undi bagan terlebih dahulu.
+                    </td>
+                </tr>
+            @endforelse
         </tbody>
     </table>
-    {{-- <div class="page_pertama">
-        <h4>Peserta tersedia : {{ $peserta_ready }}</h4>
-        <div class="peserta-wrapper">
-            @foreach ($peserta_lawan as $a)
-                <div class="peserta merah">
-                    {{ $a->PertandinganPesertaPertama->urutan }}
-                    | {{ $a->PertandinganPesertaPertama->Peserta->nama }}
-                </div>
 
-                <div class="peserta biru">
-                    {{ $a->PertandinganPesertaKedua->urutan ?? '0' }}
-                    | {{ $a->PertandinganPesertaKedua->Peserta->nama ?? 'WO' }}
-                </div>
+    <!-- Tanda Tangan Pengesahan -->
+    <table class="signature-table">
+        <tr>
+            <td style="width: 50%;">
+                Mengetahui,<br>
+                <strong>Dewan Wasit / Wasit Kepala (Shinpan-cho)</strong>
+                <br><br>
+                <div class="sign-line"></div>
+                <br>
+                ( ____________________________________ )
+            </td>
+            <td style="width: 50%;">
+                Petugas Pencatat,<br>
+                <strong>Operator Gelanggang (Kiroku)</strong>
+                <br><br>
+                <div class="sign-line"></div>
+                <br>
+                ( ____________________________________ )
+            </td>
+        </tr>
+    </table>
 
-                <hr>
-            @endforeach
-        </div>
-
-        <div class="pagination">
-            {{ $peserta_lawan->withQueryString()->links('vendor.pagination.tailwind') }}
-        </div>
-    </div> --}}
-
-      <!-- Pindah halaman -->
-  {{-- <div class="page-break"></div> --}}
-  {{-- <div class="container">
-    @foreach ($peserta_lawan as $a)
-      <div class="pair">
-        <div class="card">
-          <div class="title">{{ $pertandingan->kegiatan->nama }}</div>
-          <div class="number">{{ $a->PertandinganPesertaPertama->urutan }}</div>
-          <div class="category">Kategori:<br>{{ $pertandingan->pertandingan->nama }}</div>
-        </div>
-
-        <div class="card">
-          <div class="title">{{ $pertandingan->kegiatan->nama }}</div>
-          <div class="number">{{ $a->PertandinganPesertaKedua->urutan ?? '0' }}</div>
-          <div class="category">Kategori:<br>{{ $pertandingan->pertandingan->nama }}</div>
-        </div>
-      </div>
-    @endforeach
-  </div> --}}
 </body>
 </html>

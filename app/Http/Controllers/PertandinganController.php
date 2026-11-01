@@ -282,12 +282,27 @@ class PertandinganController extends Controller
         if (!$kegiatan_id && $data['pertandingan']) {
             $kegiatan_id = $data['pertandingan']->kegiatan_id;
         }
+
+        $check = optional($data['pertandingan'])->pertandingan;
+        $isRandori = ($check && $check->bagan == 1) ||
+                     stripos($check->nama ?? '', 'randori') !== false ||
+                     stripos(optional($data['pertandingan']->kategori)->nama ?? '', 'randori') !== false;
+
+        if (!$isRandori) {
+            return redirect()->route('pertandingan.cetak-pdf', $id);
+        }
+
+        $totalPesertaKategori = PertandinganPeserta::where('list_kategori_id', $id)->count();
+        $slotCountKategori = pow(2, ceil(log(max(2, $totalPesertaKategori), 2)));
+        $data['totalBabakKategori'] = (int) log($slotCountKategori, 2);
+
         $data['peserta_ready'] = PertandinganPeserta::where('sudah_terpilih', 'false')->where('list_kategori_id', $id)->count();
         $data['peserta_lawan'] = PesertaTerpilih::with([
                 'PertandinganPesertaPertama.Peserta.kabupaten',
                 'PertandinganPesertaPertama.Peserta.PertandinganPesertaUtama.list_kategori.pertandingan',
                 'PertandinganPesertaKedua.Peserta.kabupaten',
-                'PertandinganPesertaKedua.Peserta.PertandinganPesertaUtama.list_kategori.pertandingan'
+                'PertandinganPesertaKedua.Peserta.PertandinganPesertaUtama.list_kategori.pertandingan',
+                'pemenang.Peserta.kabupaten'
             ])
             ->where('list_kategori_id', $id)
             ->orderBy('babak', 'asc')
@@ -296,7 +311,7 @@ class PertandinganController extends Controller
 
         $pdf = Pdf::loadView('admin.pertandingan.peserta_tanding', $data)->setPaper('a4', 'landscape');
 
-        return $pdf->stream("nomor_tanding.pdf");
+        return $pdf->stream("Bagan_Pasangan_Lawan_Randori_".date('Y-m-d').".pdf");
     }
 
     public function tanding(Request $request, $id)

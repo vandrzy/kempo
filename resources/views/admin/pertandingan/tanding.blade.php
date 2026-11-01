@@ -35,16 +35,24 @@
                 <!-- Action Button Group -->
                 @if(!isset($_GET['kabupaten_id']))
                     <div class="flex flex-wrap items-center gap-2">
-                        <button type="button" onclick="openScoresheetModal({{ $pertandingan->id }})" class="btn-kempo-4 inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold uppercase tracking-wider shadow-xs hover:opacity-90 transition-all cursor-pointer">
-                            <i class="fa fa-file-text-o"></i> Score Sheet &amp; PDF
-                        </button>
+                        @if(!$isRandori)
+                            <button type="button" onclick="openScoresheetModal({{ $pertandingan->id }})" class="btn-kempo-4 inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold uppercase tracking-wider shadow-xs hover:opacity-90 transition-all cursor-pointer">
+                                <i class="fa fa-file-text-o"></i> Score Sheet &amp; PDF
+                            </button>
+                        @endif
                         <button type="button" onclick="openMedaliModal({{ $pertandingan->id }})" class="btn-kempo-5 inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold uppercase tracking-wider shadow-xs hover:opacity-90 transition-all cursor-pointer">
                             <i class="fa fa-trophy"></i> Peraih Medali
                         </button>
                         @if($peserta_ready == 0)
-                            <a href="{{ url('pertandingans/'.$pertandingan->id.'/print') }}?kegiatan_id={{ $current_kegiatan_id }}" target="_blank" class="btn-kempo-4 inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold uppercase tracking-wider shadow-xs hover:opacity-90 transition-all cursor-pointer">
-                                <i class="fa fa-print"></i> Print Nomor Tanding
-                            </a>
+                            @if($isRandori)
+                                <a href="{{ url('pertandingans/'.$pertandingan->id.'/print') }}?kegiatan_id={{ $current_kegiatan_id }}" target="_blank" class="btn-kempo-4 inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold uppercase tracking-wider shadow-xs hover:opacity-90 transition-all cursor-pointer">
+                                    <i class="fa fa-print"></i> Print Nomor Tanding
+                                </a>
+                            @else
+                                <a href="{{ url('pertandingan/'.$pertandingan->id.'/cetak-pdf') }}" target="_blank" class="btn-kempo-4 inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold uppercase tracking-wider shadow-xs hover:opacity-90 transition-all cursor-pointer">
+                                    <i class="fa fa-print"></i> Print Nomor Tanding
+                                </a>
+                            @endif
                             <form action="{{ url('pertandingans/tanding-delete/') }}" method="post" class="delete-form inline-block mb-0">
                                 @csrf
                                 @method('DELETE')
