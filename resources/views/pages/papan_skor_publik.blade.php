@@ -277,7 +277,7 @@
                     <!-- Header Sudut Merah -->
                     <div class="bg-red-600 text-white px-3.5 py-1.5 flex items-center justify-between shadow-sm flex-shrink-0">
                         <span class="font-extrabold text-xs sm:text-sm uppercase tracking-wider">
-                            SUDUT MERAH (AKA)
+                            SUDUT MERAH
                         </span>
                     </div>
 
@@ -312,7 +312,7 @@
                     <!-- Header Sudut Putih -->
                     <div class="bg-blue-600 text-white px-3.5 py-1.5 flex items-center justify-between shadow-sm flex-shrink-0">
                         <span class="font-extrabold text-xs sm:text-sm uppercase tracking-wider">
-                            SUDUT PUTIH (SHIRO)
+                            SUDUT PUTIH
                         </span>
                     </div>
 
