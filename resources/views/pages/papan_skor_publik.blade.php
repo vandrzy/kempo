@@ -296,7 +296,7 @@
 
                     <!-- Display Skor Raksasa Merah -->
                     <div class="flex-1 flex items-center justify-center p-2 min-h-0 bg-white overflow-hidden">
-                        <div id="randoriSkorKiri" class="score-font font-black text-red-600 randori-score-digits text-[14rem] sm:text-[14rem] md:text-[15rem] lg:text-[19rem] leading-none select-none">
+                        <div id="randoriSkorKiri" class="score-font font-black text-red-600 randori-score-digits text-[2rem] sm:text-[4rem] md:text-[15rem] lg:text-[19rem] leading-none select-none">
                             0
                         </div>
                     </div>
@@ -331,7 +331,7 @@
 
                     <!-- Display Skor Raksasa Biru -->
                     <div class="flex-1 flex items-center justify-center p-2 min-h-0 bg-white overflow-hidden">
-                        <div id="randoriSkorKanan" class="score-font font-black text-blue-600 randori-score-digits text-[14rem] sm:text-[14rem] md:text-[15rem] lg:text-[19rem] leading-none select-none">
+                        <div id="randoriSkorKanan" class="score-font font-black text-blue-600 randori-score-digits text-[2rem] sm:text-[4rem] md:text-[15rem] lg:text-[19rem] leading-none select-none">
                             0
                         </div>
                     </div>
