@@ -33,6 +33,25 @@
         .score-font {
             font-family: 'Montserrat', sans-serif;
         }
+        .randori-score-digits {
+            font-size: 14rem;
+            line-height: 1;
+        }
+        @media (min-width: 640px) {
+            .randori-score-digits {
+                font-size: 14rem;
+            }
+        }
+        @media (min-width: 768px) {
+            .randori-score-digits {
+                font-size: 15rem;
+            }
+        }
+        @media (min-width: 1024px) {
+            .randori-score-digits {
+                font-size: 19rem;
+            }
+        }
     </style>
 </head>
 
@@ -276,8 +295,8 @@
                     </div>
 
                     <!-- Display Skor Raksasa Merah -->
-                    <div class="flex-1 flex items-center justify-center p-2 min-h-0 bg-white">
-                        <div id="randoriSkorKiri" class="score-font font-black text-red-600 text-6xl sm:text-7xl md:text-8xl lg:text-9xl select-none">
+                    <div class="flex-1 flex items-center justify-center p-2 min-h-0 bg-white overflow-hidden">
+                        <div id="randoriSkorKiri" class="score-font font-black text-red-600 randori-score-digits text-[14rem] sm:text-[14rem] md:text-[15rem] lg:text-[19rem] leading-none select-none">
                             0
                         </div>
                     </div>
@@ -311,8 +330,8 @@
                     </div>
 
                     <!-- Display Skor Raksasa Biru -->
-                    <div class="flex-1 flex items-center justify-center p-2 min-h-0 bg-white">
-                        <div id="randoriSkorKanan" class="score-font font-black text-blue-600 text-6xl sm:text-7xl md:text-8xl lg:text-9xl select-none">
+                    <div class="flex-1 flex items-center justify-center p-2 min-h-0 bg-white overflow-hidden">
+                        <div id="randoriSkorKanan" class="score-font font-black text-blue-600 randori-score-digits text-[14rem] sm:text-[14rem] md:text-[15rem] lg:text-[19rem] leading-none select-none">
                             0
                         </div>
                     </div>
