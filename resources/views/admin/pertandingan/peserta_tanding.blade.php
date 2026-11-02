@@ -268,7 +268,7 @@
                                 <span class="badge-menang">✓ MENANG</span>
                             @endif
                         @else
-                            <span style="color: #6b7280; font-style: italic;">Menunggu Pemenang Babak {{ $a->babak - 1 }} Partai #{{ (2 * $a->nomor_partai) - 1 }}</span>
+                            <span style="color: #6b7280; font-style: italic;">{{ $a->getWaitingPlaceholderText('kiri') }}</span>
                         @endif
                     </td>
 
@@ -324,7 +324,7 @@
                         @elseif($isBye)
                             <span style="color: #6b7280; font-style: italic;">Belum Ada Lawan (BYE)</span>
                         @else
-                            <span style="color: #6b7280; font-style: italic;">Menunggu Pemenang Babak {{ $a->babak - 1 }} Partai #{{ 2 * $a->nomor_partai }}</span>
+                            <span style="color: #6b7280; font-style: italic;">{{ $a->getWaitingPlaceholderText('kanan') }}</span>
                         @endif
                     </td>
 

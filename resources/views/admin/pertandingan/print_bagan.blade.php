@@ -538,7 +538,7 @@
                                                     </p>
                                                 @else
                                                     <p class="text-xs font-medium text-slate-400 italic mb-0">
-                                                        Menunggu Pemenang Babak {{ $b - 1 }} Partai #{{ (2 * $m->nomor_partai) - 1 }}
+                                                        {{ $m->getWaitingPlaceholderText('kiri') }}
                                                         @if($b == 1)
                                                             <span class="text-amber-600 font-bold text-[10px] ml-1">(Slot BYE)</span>
                                                         @endif
@@ -591,7 +591,7 @@
                                                     </p>
                                                     <p class="text-[10px] text-slate-400 mb-0">Belum Ada</p>
                                                 @else
-                                                    <p class="text-xs font-medium text-slate-400 italic mb-0">Menunggu Pemenang Babak {{ $b - 1 }} Partai #{{ 2 * $m->nomor_partai }}</p>
+                                                    <p class="text-xs font-medium text-slate-400 italic mb-0">{{ $m->getWaitingPlaceholderText('kanan') }}</p>
                                                     <p class="text-[10px] text-slate-400 mb-0">Belum Ada</p>
                                                 @endif
                                             </div>
@@ -869,7 +869,16 @@
                 const winnerId = card.getAttribute('data-winner-id');
 
                 const nextBabak = babak + 1;
-                const nextPartai = Math.ceil(partai / 2);
+                let nextPartai = Math.ceil(partai / 2);
+                let isOdd = (partai % 2 !== 0);
+
+                // Cek kasus khusus 6 peserta: Babak 1 ada 2 partai dan Babak 2 ada 2 partai
+                const b1Cards = document.querySelectorAll('.match-card[data-babak="1"]');
+                const b2Cards = document.querySelectorAll('.match-card[data-babak="2"]');
+                if (babak === 1 && b1Cards.length === 2 && b2Cards.length === 2) {
+                    nextPartai = partai; // Babak 1 Partai 1 -> Semifinal 1, Babak 1 Partai 2 -> Semifinal 2
+                    isOdd = true;        // Masuk ke Sudut Merah / Kiri (bagian atas kartu)
+                }
 
                 const nextCard = document.querySelector(`.match-card[data-babak="${nextBabak}"][data-partai="${nextPartai}"]`);
                 if (!nextCard) return;
@@ -882,7 +891,6 @@
 
                 // Partai ganjil -> Slot Merah (bagian atas, ~35% tinggi kartu)
                 // Partai genap  -> Slot Putih (bagian bawah, ~75% tinggi kartu)
-                const isOdd = (partai % 2 !== 0);
                 const targetYOffset = isOdd ? (toRect.height * 0.35) : (toRect.height * 0.75);
 
                 const endX = Math.round((toRect.left - wrapRect.left) / zoom);
@@ -1019,10 +1027,22 @@
             }
 
             const matchId = parseInt(el.getAttribute('data-match-id'));
+            const babak = parseInt(el.getAttribute('data-babak'));
             const corner = el.getAttribute('data-corner');
             const partai = el.getAttribute('data-partai');
             const athleteName = el.getAttribute('data-athlete-name') || 'BYE / Kosong';
             const athleteId = el.getAttribute('data-athlete-id');
+
+            // Mencegah memilih slot kosong di babak lanjutan yang menunggu pemenang partai sebelumnya
+            if ((!athleteId || athleteId === 'null') && babak > 1) {
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Slot Menunggu Pemenang',
+                    text: 'Slot ini dialokasikan untuk pemenang partai duel babak sebelumnya dan akan terisi secara otomatis.',
+                    confirmButtonColor: '#3b82f6'
+                });
+                return;
+            }
 
             // Klik pada slot yang sama -> Batalkan pilihan
             if (selectedSlot && selectedSlot.matchId === matchId && selectedSlot.corner === corner) {

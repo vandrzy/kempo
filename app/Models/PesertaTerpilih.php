@@ -125,11 +125,59 @@ class PesertaTerpilih extends Model
     public function getNextMatchCoordinates(): array
     {
         $currentPartai = (int) ($this->nomor_partai ?: 1);
+        $currentBabak = (int) ($this->babak ?: 1);
+
+        // Kasus khusus bagan 6 peserta (Babak 1 ada 2 partai dan Babak 2 ada 2 partai)
+        // Partai 1 Babak 1 -> Semifinal 1 (Partai 1), Sudut Kiri (Merah)
+        // Partai 2 Babak 1 -> Semifinal 2 (Partai 2), Sudut Kiri (Merah)
+        if ($currentBabak === 1 && $this->list_kategori_id) {
+            $b1Count = self::where('list_kategori_id', $this->list_kategori_id)->where('babak', 1)->count();
+            $b2Count = self::where('list_kategori_id', $this->list_kategori_id)->where('babak', 2)->count();
+            if ($b1Count === 2 && $b2Count === 2) {
+                return [
+                    'babak'        => 2,
+                    'nomor_partai' => $currentPartai,
+                    'sudut'        => 'kiri',
+                ];
+            }
+        }
+
         return [
-            'babak'        => ((int) $this->babak) + 1,
+            'babak'        => $currentBabak + 1,
             'nomor_partai' => (int) ceil($currentPartai / 2),
             'sudut'        => ($currentPartai % 2 !== 0) ? 'kiri' : 'kanan',
         ];
+    }
+
+    /**
+     * Dapatkan teks placeholder atlet menunggu pemenang babak sebelumnya
+     */
+    public function getWaitingPlaceholderText(string $corner = 'kiri'): string
+    {
+        $babak = (int) ($this->babak ?: 1);
+        $prevBabak = $babak - 1;
+        if ($prevBabak < 1) {
+            return 'Belum Ada';
+        }
+
+        // Kasus khusus bagan 6 peserta (Babak 2 ada 2 partai dan Babak 1 ada 2 partai)
+        // Partai 1 Babak 2 (Semifinal 1) menunggu Babak 1 Partai 1
+        // Partai 2 Babak 2 (Semifinal 2) menunggu Babak 1 Partai 2
+        if ($babak === 2 && $this->list_kategori_id) {
+            $b1Count = self::where('list_kategori_id', $this->list_kategori_id)->where('babak', 1)->count();
+            $b2Count = self::where('list_kategori_id', $this->list_kategori_id)->where('babak', 2)->count();
+            if ($b1Count === 2 && $b2Count === 2) {
+                if ($corner === 'kiri') {
+                    return "Menunggu Pemenang Babak 1 Partai #{$this->nomor_partai}";
+                }
+            }
+        }
+
+        $sourcePartai = ($corner === 'kiri')
+            ? (2 * (int) $this->nomor_partai) - 1
+            : 2 * (int) $this->nomor_partai;
+
+        return "Menunggu Pemenang Babak {$prevBabak} Partai #{$sourcePartai}";
     }
 
     /**

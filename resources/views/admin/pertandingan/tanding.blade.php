@@ -361,6 +361,7 @@
                                             data-match-id="{{ $a->id }}"
                                             data-corner="merah"
                                             data-partai="{{ $a->nomor_partai }}"
+                                            data-athlete-id="{{ $a->pertandingan_peserta_kiri_id }}"
                                             data-athlete-name="{{ $a->PertandinganPesertaPertama ? ($a->PertandinganPesertaPertama->Peserta->nama ?? 'Atlet') : 'BYE / Kosong' }}"
                                             data-is-played="{{ $isPlayedThisMatch ? '1' : '0' }}"
                                             onclick="handleTableSlotClick(this, event)">
@@ -403,7 +404,7 @@
                                                         </span>
                                                     @endif
                                                 @else
-                                                    <span class="text-neutral-400 italic text-xs">Menunggu Pemenang Babak {{ $a->babak - 1 }} Partai #{{ (2 * $a->nomor_partai) - 1 }}</span>
+                                                    <span class="text-neutral-400 italic text-xs">{{ $a->getWaitingPlaceholderText('kiri') }}</span>
                                                 @endif
                                             </td>
 
@@ -499,6 +500,7 @@
                                             data-match-id="{{ $a->id }}"
                                             data-corner="putih"
                                             data-partai="{{ $a->nomor_partai }}"
+                                            data-athlete-id="{{ $a->pertandingan_peserta_kanan_id }}"
                                             data-athlete-name="{{ $a->PertandinganPesertaKedua ? ($a->PertandinganPesertaKedua->Peserta->nama ?? 'Atlet') : 'BYE / Kosong' }}"
                                             data-is-played="{{ $isPlayedThisMatch ? '1' : '0' }}"
                                             onclick="handleTableSlotClick(this, event)">
@@ -531,7 +533,7 @@
                                                 @elseif($isBye)
                                                     <span class="text-neutral-400 italic text-xs">Belum Ada Lawan (BYE)</span>
                                                 @else
-                                                    <span class="text-neutral-400 italic text-xs">Menunggu Pemenang Babak {{ $a->babak - 1 }} Partai #{{ 2 * $a->nomor_partai }}</span>
+                                                    <span class="text-neutral-400 italic text-xs">{{ $a->getWaitingPlaceholderText('kanan') }}</span>
                                                 @endif
                                             </td>
 
@@ -1020,9 +1022,26 @@
         }
 
         const matchId = parseInt(el.getAttribute('data-match-id'));
+        const babak = parseInt(el.getAttribute('data-duel-babak'));
         const corner = el.getAttribute('data-corner');
         const partai = el.getAttribute('data-partai');
         const athleteName = el.getAttribute('data-athlete-name') || 'BYE / Kosong';
+        const athleteId = el.getAttribute('data-athlete-id');
+
+        // Mencegah memilih slot kosong di babak lanjutan yang menunggu pemenang partai sebelumnya
+        if ((!athleteId || athleteId === 'null') && babak > 1) {
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Slot Menunggu Pemenang',
+                    text: 'Slot ini dialokasikan untuk pemenang partai duel babak sebelumnya dan akan terisi secara otomatis.',
+                    confirmButtonColor: '#3b82f6'
+                });
+            } else {
+                alert('Slot ini dialokasikan untuk pemenang partai duel babak sebelumnya dan akan terisi secara otomatis.');
+            }
+            return;
+        }
 
         // Klik slot yang sama -> Batalkan pilihan
         if (selectedTableSlot && selectedTableSlot.matchId === matchId && selectedTableSlot.corner === corner) {

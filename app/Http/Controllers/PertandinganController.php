@@ -422,6 +422,91 @@ class PertandinganController extends Controller
                 }
 
                 $msg = 'Bagan pertandingan Randori berhasil diundi (' . $totalPartai . ' partai Babak 1).';
+            } elseif ($totalPeserta == 6) {
+                // Kasus Khusus 6 Peserta:
+                // 2 peserta yang mendapatkan hak BYE ditempatkan langsung menunggu di babak Semifinal
+                // (disebar di blok atas / Semifinal 1 dan blok bawah / Semifinal 2),
+                // sementara 4 peserta lainnya bertanding di Babak 1:
+
+                // 1. Babak 1 Partai 1 (Blok Atas)
+                $p1Kiri = $shuffledPeserta->get(0);
+                $p1Kanan = $shuffledPeserta->get(1);
+                PesertaTerpilih::create([
+                    'list_kategori_id'             => $id,
+                    'pertandingan_id'              => $check->id,
+                    'kegiatan_id'                  => $listKategori->kegiatan_id,
+                    'babak'                        => 1,
+                    'nomor_partai'                 => 1,
+                    'pertandingan_peserta_kiri_id'  => $p1Kiri?->id,
+                    'pertandingan_peserta_kanan_id' => $p1Kanan?->id,
+                    'pemenang_id'                  => null,
+                    'keterangan_menang'            => null,
+                ]);
+                if ($p1Kiri) { $p1Kiri->urutan = 0; $p1Kiri->babak = 1; $p1Kiri->sudah_terpilih = 'true'; $p1Kiri->save(); }
+                if ($p1Kanan) { $p1Kanan->urutan = 1; $p1Kanan->babak = 1; $p1Kanan->sudah_terpilih = 'true'; $p1Kanan->save(); }
+
+                // 2. Babak 1 Partai 2 (Blok Bawah)
+                $p2Kiri = $shuffledPeserta->get(2);
+                $p2Kanan = $shuffledPeserta->get(3);
+                PesertaTerpilih::create([
+                    'list_kategori_id'             => $id,
+                    'pertandingan_id'              => $check->id,
+                    'kegiatan_id'                  => $listKategori->kegiatan_id,
+                    'babak'                        => 1,
+                    'nomor_partai'                 => 2,
+                    'pertandingan_peserta_kiri_id'  => $p2Kiri?->id,
+                    'pertandingan_peserta_kanan_id' => $p2Kanan?->id,
+                    'pemenang_id'                  => null,
+                    'keterangan_menang'            => null,
+                ]);
+                if ($p2Kiri) { $p2Kiri->urutan = 2; $p2Kiri->babak = 1; $p2Kiri->sudah_terpilih = 'true'; $p2Kiri->save(); }
+                if ($p2Kanan) { $p2Kanan->urutan = 3; $p2Kanan->babak = 1; $p2Kanan->sudah_terpilih = 'true'; $p2Kanan->save(); }
+
+                // 3. Babak 2 (Semifinal 1 & Semifinal 2)
+                // Semifinal 1 (Blok Atas): Menunggu Pemenang Babak 1 Partai 1 vs BYE 1 (Peserta ke-5)
+                $bye1 = $shuffledPeserta->get(4);
+                if ($bye1) { $bye1->urutan = 4; $bye1->babak = 2; $bye1->sudah_terpilih = 'true'; $bye1->save(); }
+                PesertaTerpilih::create([
+                    'list_kategori_id'             => $id,
+                    'pertandingan_id'              => $check->id,
+                    'kegiatan_id'                  => $listKategori->kegiatan_id,
+                    'babak'                        => 2,
+                    'nomor_partai'                 => 1,
+                    'pertandingan_peserta_kiri_id'  => null,
+                    'pertandingan_peserta_kanan_id' => $bye1?->id,
+                    'pemenang_id'                  => null,
+                    'keterangan_menang'            => null,
+                ]);
+
+                // Semifinal 2 (Blok Bawah): Menunggu Pemenang Babak 1 Partai 2 vs BYE 2 (Peserta ke-6)
+                $bye2 = $shuffledPeserta->get(5);
+                if ($bye2) { $bye2->urutan = 5; $bye2->babak = 2; $bye2->sudah_terpilih = 'true'; $bye2->save(); }
+                PesertaTerpilih::create([
+                    'list_kategori_id'             => $id,
+                    'pertandingan_id'              => $check->id,
+                    'kegiatan_id'                  => $listKategori->kegiatan_id,
+                    'babak'                        => 2,
+                    'nomor_partai'                 => 2,
+                    'pertandingan_peserta_kiri_id'  => null,
+                    'pertandingan_peserta_kanan_id' => $bye2?->id,
+                    'pemenang_id'                  => null,
+                    'keterangan_menang'            => null,
+                ]);
+
+                // 4. Babak 3 (Final)
+                PesertaTerpilih::create([
+                    'list_kategori_id'             => $id,
+                    'pertandingan_id'              => $check->id,
+                    'kegiatan_id'                  => $listKategori->kegiatan_id,
+                    'babak'                        => 3,
+                    'nomor_partai'                 => 1,
+                    'pertandingan_peserta_kiri_id'  => null,
+                    'pertandingan_peserta_kanan_id' => null,
+                    'pemenang_id'                  => null,
+                    'keterangan_menang'            => null,
+                ]);
+
+                $msg = 'Bagan pertandingan Randori (6 peserta) berhasil diundi. 2 atlet mendapatkan hak BYE dan ditempatkan langsung menunggu di Semifinal (disebar di blok atas & blok bawah), sementara 4 atlet lainnya bertanding di Babak 1.';
             } else {
                 // Ada slot kosong: Atlet yang mendapat slot kosong LANGSUNG melaju ke Babak 2 tanpa membuat partai BYE di Babak 1
                 $totalPartaiBabak1 = $totalPeserta - ($slotCount / 2);
@@ -3122,9 +3207,10 @@ class PertandinganController extends Controller
 
         // 2. Auto-Advance ke Babak Berikutnya jika belum Final
         if ($currentBabak < $totalBabak) {
-            $nextBabak = $currentBabak + 1;
-            $nextPartai = (int) ceil($currentPartai / 2);
-            $isKiri = ($currentPartai % 2 !== 0); // Ganjil = Kiri (Merah), Genap = Kanan (Putih/Biru)
+            $nextCoord = $match->getNextMatchCoordinates();
+            $nextBabak = $nextCoord['babak'];
+            $nextPartai = $nextCoord['nomor_partai'];
+            $isKiri = ($nextCoord['sudut'] === 'kiri');
 
             $nextMatch = PesertaTerpilih::firstOrNew([
                 'list_kategori_id' => $match->list_kategori_id,
@@ -3734,6 +3820,11 @@ class PertandinganController extends Controller
      */
     private function evaluateRoundOneMatch(PesertaTerpilih $match, $listKategoriId)
     {
+        // Hanya berlaku untuk evaluasi partai di Babak 1
+        if ((int) $match->babak !== 1) {
+            return;
+        }
+
         $kiriId = $match->pertandingan_peserta_kiri_id;
         $kananId = $match->pertandingan_peserta_kanan_id;
 
