@@ -1851,6 +1851,18 @@ class PertandinganController extends Controller
                             'skor_kanan'        => $m->skor_kanan !== null ? floatval($m->skor_kanan) : 0,
                             'pemenang_id'       => $m->pemenang_id,
                             'keterangan_menang' => $m->keterangan_menang,
+                            'merah_mujoken_kachi' => (int) ($m->merah_mujoken_kachi ?? 0),
+                            'merah_ippon'         => (int) ($m->merah_ippon ?? 0),
+                            'merah_waza_ari'      => (int) ($m->merah_waza_ari ?? 0),
+                            'merah_batsu_5'       => (int) ($m->merah_batsu_5 ?? 0),
+                            'merah_batsu_10'      => (int) ($m->merah_batsu_10 ?? 0),
+                            'merah_yusei_kachi'   => (int) ($m->merah_yusei_kachi ?? 0),
+                            'putih_mujoken_kachi' => (int) ($m->putih_mujoken_kachi ?? 0),
+                            'putih_ippon'         => (int) ($m->putih_ippon ?? 0),
+                            'putih_waza_ari'      => (int) ($m->putih_waza_ari ?? 0),
+                            'putih_batsu_5'       => (int) ($m->putih_batsu_5 ?? 0),
+                            'putih_batsu_10'      => (int) ($m->putih_batsu_10 ?? 0),
+                            'putih_yusei_kachi'   => (int) ($m->putih_yusei_kachi ?? 0),
                         ];
                     })->values()->toArray();
                 }
@@ -2057,6 +2069,18 @@ class PertandinganController extends Controller
                     'skor_kanan'        => $m->skor_kanan !== null ? floatval($m->skor_kanan) : 0,
                     'pemenang_id'       => $m->pemenang_id,
                     'keterangan_menang' => $m->keterangan_menang,
+                    'merah_mujoken_kachi' => (int) ($m->merah_mujoken_kachi ?? 0),
+                    'merah_ippon'         => (int) ($m->merah_ippon ?? 0),
+                    'merah_waza_ari'      => (int) ($m->merah_waza_ari ?? 0),
+                    'merah_batsu_5'       => (int) ($m->merah_batsu_5 ?? 0),
+                    'merah_batsu_10'      => (int) ($m->merah_batsu_10 ?? 0),
+                    'merah_yusei_kachi'   => (int) ($m->merah_yusei_kachi ?? 0),
+                    'putih_mujoken_kachi' => (int) ($m->putih_mujoken_kachi ?? 0),
+                    'putih_ippon'         => (int) ($m->putih_ippon ?? 0),
+                    'putih_waza_ari'      => (int) ($m->putih_waza_ari ?? 0),
+                    'putih_batsu_5'       => (int) ($m->putih_batsu_5 ?? 0),
+                    'putih_batsu_10'      => (int) ($m->putih_batsu_10 ?? 0),
+                    'putih_yusei_kachi'   => (int) ($m->putih_yusei_kachi ?? 0),
                 ];
             })->values()->toArray();
         }
@@ -2802,10 +2826,22 @@ class PertandinganController extends Controller
 
         $validator = Validator::make($request->all(), [
             'peserta_terpilih_id' => 'required|exists:peserta_terpilihs,id',
-            'skor_kiri'           => 'required|numeric|min:0',
-            'skor_kanan'          => 'required|numeric|min:0',
-            'pemenang_id'         => 'nullable|exists:pertandingan_pesertas,id',
-            'keterangan_menang'   => 'nullable|string',
+            'merah_mujoken_kachi' => 'nullable|integer|min:0',
+            'merah_ippon'         => 'nullable|integer|min:0',
+            'merah_waza_ari'      => 'nullable|integer|min:0',
+            'merah_batsu_5'       => 'nullable|integer|min:0',
+            'merah_batsu_10'      => 'nullable|integer|min:0',
+            'merah_yusei_kachi'   => 'nullable|integer|min:0',
+            'putih_mujoken_kachi' => 'nullable|integer|min:0',
+            'putih_ippon'         => 'nullable|integer|min:0',
+            'putih_waza_ari'      => 'nullable|integer|min:0',
+            'putih_batsu_5'       => 'nullable|integer|min:0',
+            'putih_batsu_10'      => 'nullable|integer|min:0',
+            'putih_yusei_kachi'   => 'nullable|integer|min:0',
+            'skor_kiri'           => 'nullable|numeric|min:0',
+            'skor_kanan'          => 'nullable|numeric|min:0',
+            'pemenang_id'         => 'nullable',
+            'keterangan_menang'   => 'nullable|string|max:100',
         ]);
 
         if ($validator->fails()) {
@@ -2826,36 +2862,119 @@ class PertandinganController extends Controller
                 ], 400);
             }
 
-            $skorKiri = floatval($request->skor_kiri);
-            $skorKanan = floatval($request->skor_kanan);
-            $pemenangId = $request->pemenang_id;
-            $keteranganMenang = $request->keterangan_menang;
+            // 1. Ambil input jumlah teknik dari masing-masing sudut (cast integer >= 0)
+            $merahMujoken = max(0, (int) $request->input('merah_mujoken_kachi', 0));
+            $merahIppon   = max(0, (int) $request->input('merah_ippon', 0));
+            $merahWazaAri = max(0, (int) $request->input('merah_waza_ari', 0));
+            $merahBatsu5  = max(0, (int) $request->input('merah_batsu_5', 0));
+            $merahBatsu10 = max(0, (int) $request->input('merah_batsu_10', 0));
+            $merahYusei   = max(0, (int) $request->input('merah_yusei_kachi', 0));
 
-            // Jika pemenang_id tidak dipilih manual, tentukan dari skor tertinggi
-            if (empty($pemenangId)) {
-                if ($skorKiri > $skorKanan) {
-                    $pemenangId = $match->pertandingan_peserta_kiri_id;
-                    if (empty($keteranganMenang)) $keteranganMenang = 'POIN';
-                } elseif ($skorKanan > $skorKiri) {
-                    $pemenangId = $match->pertandingan_peserta_kanan_id;
-                    if (empty($keteranganMenang)) $keteranganMenang = 'POIN';
-                } else {
-                    return response()->json([
-                        'status'  => 'error',
-                        'message' => 'Skor kedua atlet seri! Silakan tentukan pemenang berdasarkan keputusan wasit (HANTEI).'
-                    ], 422);
-                }
+            $putihMujoken = max(0, (int) $request->input('putih_mujoken_kachi', 0));
+            $putihIppon   = max(0, (int) $request->input('putih_ippon', 0));
+            $putihWazaAri = max(0, (int) $request->input('putih_waza_ari', 0));
+            $putihBatsu5  = max(0, (int) $request->input('putih_batsu_5', 0));
+            $putihBatsu10 = max(0, (int) $request->input('putih_batsu_10', 0));
+            $putihYusei   = max(0, (int) $request->input('putih_yusei_kachi', 0));
+
+            $points = PesertaTerpilih::RANDORI_POINTS;
+
+            // 2. Hitung total_skor_merah dari poin teknik
+            $totalSkorMerah = ($merahMujoken * $points['mujoken_kachi'])
+                + ($merahIppon * $points['ippon'])
+                + ($merahWazaAri * $points['waza_ari'])
+                + ($merahBatsu5 * $points['batsu_5'])
+                + ($merahBatsu10 * $points['batsu_10'])
+                + ($merahYusei * $points['yusei_kachi']);
+
+            // 3. Hitung total_skor_putih dari poin teknik
+            $totalSkorPutih = ($putihMujoken * $points['mujoken_kachi'])
+                + ($putihIppon * $points['ippon'])
+                + ($putihWazaAri * $points['waza_ari'])
+                + ($putihBatsu5 * $points['batsu_5'])
+                + ($putihBatsu10 * $points['batsu_10'])
+                + ($putihYusei * $points['yusei_kachi']);
+
+            // Jika form mengirim input teknik (atau nilainya > 0), gunakan akumulasi teknik.
+            // Jika request form lama (hanya kirim skor_kiri dan skor_kanan), fallback ke nilai request.
+            $hasTeknikField = $request->hasAny([
+                'merah_mujoken_kachi', 'merah_ippon', 'merah_waza_ari', 'merah_batsu_5', 'merah_batsu_10', 'merah_yusei_kachi',
+                'putih_mujoken_kachi', 'putih_ippon', 'putih_waza_ari', 'putih_batsu_5', 'putih_batsu_10', 'putih_yusei_kachi'
+            ]);
+
+            if ($hasTeknikField) {
+                $skorKiri = (float) $totalSkorMerah;
+                $skorKanan = (float) $totalSkorPutih;
             } else {
-                if (empty($keteranganMenang)) {
-                    $keteranganMenang = ($skorKiri != $skorKanan) ? 'POIN' : 'HANTEI';
+                $skorKiri = floatval($request->input('skor_kiri', 0));
+                $skorKanan = floatval($request->input('skor_kanan', 0));
+            }
+
+            $pemenangInput = $request->input('pemenang_id');
+            $keteranganMenang = $request->input('keterangan_menang');
+
+            // Normalisasi pilihan pemenang jika form mengirim alias string ('merah' / 'putih')
+            if ($pemenangInput === 'merah' || $pemenangInput === 'kiri') {
+                $pemenangId = $match->pertandingan_peserta_kiri_id;
+            } elseif ($pemenangInput === 'putih' || $pemenangInput === 'kanan') {
+                $pemenangId = $match->pertandingan_peserta_kanan_id;
+            } else {
+                $pemenangId = !empty($pemenangInput) ? (int) $pemenangInput : null;
+            }
+
+            $isFinalAdvance = $request->boolean('is_final_advance');
+
+            // 4. Tentukan Pemenang:
+            // - Jika diskualifikasi (HANSOKU) atau cedera (KIKEN), gunakan pemenang yang ditentukan wasit jika ada.
+            // - Jika total_skor_merah > total_skor_putih => Sudut Merah
+            // - Jika total_skor_putih > total_skor_merah => Sudut Putih
+            // - Jika skor seri:
+            //   * Jika ada pilihan wasit (manual) => gunakan pemenang (HANTEI)
+            //   * Jika diarahkan ke otomatis (pemenangId kosong) => pemenangId = null
+            //   * Jika tombol final advance ditekan saat seri tanpa pemenang => tolak dengan 422
+            if (in_array($keteranganMenang, ['HANSOKU', 'KIKEN']) && !empty($pemenangId)) {
+                // Dipertahankan sesuai pilihan wasit untuk diskualifikasi / mundur
+            } elseif ($skorKiri > $skorKanan) {
+                $pemenangId = $match->pertandingan_peserta_kiri_id;
+                if (empty($keteranganMenang)) $keteranganMenang = 'POIN';
+            } elseif ($skorKanan > $skorKiri) {
+                $pemenangId = $match->pertandingan_peserta_kanan_id;
+                if (empty($keteranganMenang)) $keteranganMenang = 'POIN';
+            } else {
+                // Skor imbang / seri
+                if (!empty($pemenangId)) {
+                    if (empty($keteranganMenang)) $keteranganMenang = 'HANTEI';
+                } else {
+                    if ($isFinalAdvance) {
+                        return response()->json([
+                            'status'  => 'error',
+                            'message' => 'Skor kedua atlet seri! Silakan tentukan pemenang berdasarkan keputusan wasit (HANTEI).'
+                        ], 422);
+                    }
+                    $pemenangId = null;
+                    $keteranganMenang = null;
                 }
             }
 
-            // Simpan skor duel ke peserta_terpilihs
-            $match->skor_kiri = $skorKiri;
-            $match->skor_kanan = $skorKanan;
-            $match->pemenang_id = $pemenangId;
-            $match->keterangan_menang = $keteranganMenang;
+            // 5. Simpan seluruh jumlah teknik, total_skor_merah, total_skor_putih, dan pemenang ke database
+            $match->merah_mujoken_kachi = $merahMujoken;
+            $match->merah_ippon         = $merahIppon;
+            $match->merah_waza_ari      = $merahWazaAri;
+            $match->merah_batsu_5       = $merahBatsu5;
+            $match->merah_batsu_10      = $merahBatsu10;
+            $match->merah_yusei_kachi   = $merahYusei;
+
+            $match->putih_mujoken_kachi = $putihMujoken;
+            $match->putih_ippon         = $putihIppon;
+            $match->putih_waza_ari      = $putihWazaAri;
+            $match->putih_batsu_5       = $putihBatsu5;
+            $match->putih_batsu_10      = $putihBatsu10;
+            $match->putih_yusei_kachi   = $putihYusei;
+
+            $match->skor_kiri           = $skorKiri;
+            $match->skor_kanan          = $skorKanan;
+            $match->pemenang_id         = $pemenangId;
+            $match->keterangan_menang   = $keteranganMenang;
             $match->save();
 
             // Akumulasi total skor pada pertandingan_pesertas
@@ -2883,26 +3002,66 @@ class PertandinganController extends Controller
                     'skor_kanan'        => $skorKanan,
                     'pemenang_id'       => $pemenangId,
                     'keterangan_menang' => $keteranganMenang,
+                    'merah_teknik'      => [
+                        'mujoken_kachi' => $merahMujoken,
+                        'ippon'         => $merahIppon,
+                        'waza_ari'      => $merahWazaAri,
+                        'batsu_5'       => $merahBatsu5,
+                        'batsu_10'      => $merahBatsu10,
+                        'yusei_kachi'   => $merahYusei,
+                    ],
+                    'putih_teknik'      => [
+                        'mujoken_kachi' => $putihMujoken,
+                        'ippon'         => $putihIppon,
+                        'waza_ari'      => $putihWazaAri,
+                        'batsu_5'       => $putihBatsu5,
+                        'batsu_10'      => $putihBatsu10,
+                        'yusei_kachi'   => $putihYusei,
+                    ],
                     'updated_at'        => now()->toDateTimeString(),
                 ];
                 $listKategori->data_scoresheet = $currentScoresheet;
                 $listKategori->save();
             }
 
-            // Jalankan alur Auto-Advance dan Medali
-            self::processPartaiWinner($match, $pemenangId, $keteranganMenang);
+            // Jalankan alur Auto-Advance dan Medali jika ada pemenang yang sah
+            if (!empty($pemenangId)) {
+                self::processPartaiWinner($match, $pemenangId, $keteranganMenang);
+            }
 
-            $pemenangAtlet = PertandinganPeserta::with('Peserta')->find($pemenangId);
-            $namaPemenang = optional($pemenangAtlet?->Peserta)->nama ?? 'Pemenang';
+            $namaPemenang = 'Belum Ditentukan (Seri)';
+            if (!empty($pemenangId)) {
+                $pemenangAtlet = PertandinganPeserta::with('Peserta')->find($pemenangId);
+                $namaPemenang = optional($pemenangAtlet?->Peserta)->nama ?? 'Pemenang';
+                $pesan = "Skor Partai #{$match->nomor_partai} berhasil disimpan! {$namaPemenang} melaju ke babak berikutnya.";
+            } else {
+                $pesan = "Skor Partai #{$match->nomor_partai} berhasil disimpan (Skor Seri).";
+            }
 
             return response()->json([
                 'status'            => 'success',
-                'message'           => "Skor Partai #{$match->nomor_partai} berhasil disimpan! {$namaPemenang} melaju ke babak berikutnya.",
+                'message'           => $pesan,
                 'pemenang_id'       => $pemenangId,
                 'pemenang_nama'     => $namaPemenang,
                 'keterangan_menang' => $keteranganMenang,
                 'skor_kiri'         => $skorKiri,
                 'skor_kanan'        => $skorKanan,
+                'merah_teknik'      => [
+                    'mujoken_kachi' => $merahMujoken,
+                    'ippon'         => $merahIppon,
+                    'waza_ari'      => $merahWazaAri,
+                    'batsu_5'       => $merahBatsu5,
+                    'batsu_10'      => $merahBatsu10,
+                    'yusei_kachi'   => $merahYusei,
+                ],
+                'putih_teknik'      => [
+                    'mujoken_kachi' => $putihMujoken,
+                    'ippon'         => $putihIppon,
+                    'waza_ari'      => $putihWazaAri,
+                    'batsu_5'       => $putihBatsu5,
+                    'batsu_10'      => $putihBatsu10,
+                    'yusei_kachi'   => $putihYusei,
+                ],
             ]);
 
         } catch (\Throwable $e) {
@@ -2924,6 +3083,10 @@ class PertandinganController extends Controller
             $match->keterangan_menang = $keteranganMenang;
         }
         $match->save();
+
+        if (empty($pemenangId)) {
+            return;
+        }
 
         $currentBabak = (int) $match->babak;
         $currentPartai = (int) $match->nomor_partai;

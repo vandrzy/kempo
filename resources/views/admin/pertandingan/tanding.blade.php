@@ -399,7 +399,18 @@
                                                             kanan_kontingen: '{{ addslashes($a->PertandinganPesertaKedua->Peserta->kabupaten->name ?? ($a->PertandinganPesertaKedua->Peserta->kontigen ?? '-')) }}',
                                                             skor_kanan: {{ $a->skor_kanan !== null ? $a->skor_kanan : 'null' }},
                                                             pemenang_id: {{ $a->pemenang_id ?? 'null' }},
-                                                            keterangan_menang: '{{ $a->keterangan_menang ?? 'POIN' }}'
+                                                            merah_mujoken_kachi: {{ (int) ($a->merah_mujoken_kachi ?? 0) }},
+                                                            merah_ippon: {{ (int) ($a->merah_ippon ?? 0) }},
+                                                            merah_waza_ari: {{ (int) ($a->merah_waza_ari ?? 0) }},
+                                                            merah_batsu_5: {{ (int) ($a->merah_batsu_5 ?? 0) }},
+                                                            merah_batsu_10: {{ (int) ($a->merah_batsu_10 ?? 0) }},
+                                                            merah_yusei_kachi: {{ (int) ($a->merah_yusei_kachi ?? 0) }},
+                                                            putih_mujoken_kachi: {{ (int) ($a->putih_mujoken_kachi ?? 0) }},
+                                                            putih_ippon: {{ (int) ($a->putih_ippon ?? 0) }},
+                                                            putih_waza_ari: {{ (int) ($a->putih_waza_ari ?? 0) }},
+                                                            putih_batsu_5: {{ (int) ($a->putih_batsu_5 ?? 0) }},
+                                                            putih_batsu_10: {{ (int) ($a->putih_batsu_10 ?? 0) }},
+                                                            putih_yusei_kachi: {{ (int) ($a->putih_yusei_kachi ?? 0) }}
                                                         })"
                                                         class="{{ $a->pemenang_id ? 'btn-kempo-outline' : 'btn-kempo-1' }} inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold shadow-xs hover:shadow-sm transition-all cursor-pointer">
                                                         <i class="fas {{ $a->pemenang_id ? 'fa-edit' : 'fa-play' }}"></i>
