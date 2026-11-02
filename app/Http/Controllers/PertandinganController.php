@@ -10,11 +10,13 @@ use App\Models\ListKategori;
 use App\Models\Pertandingan;
 use App\Models\PertandinganPeserta;
 use App\Models\Peserta;
+use App\Models\LogPerubahanBagan;
 use App\Models\PesertaTerpilih;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Dotenv\Util\Str;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
@@ -3258,5 +3260,580 @@ class PertandinganController extends Controller
         return response()->json([
             'hash' => md5(json_encode($statePayload)),
         ]);
+    }
+
+    /**
+     * FASE 2: API Swap Bagan Pertandingan Randori Manual
+     * Endpoint: POST /pertandingan/{id}/swap-bagan atau POST /api/randori/swap-bracket
+     */
+    public function swapBracket(Request $request, $id = null)
+    {
+        if (!Auth::check() || !in_array(Auth::user()->role, ['admin', 'operator', 'wasit', 1, '1', 2, '2'])) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Akses ditolak. Hanya admin, operator, atau wasit yang berwenang mengubah bagan.',
+            ], 403);
+        }
+
+        $listKategoriId = $request->input('id_kelas')
+            ?? $request->input('list_kategori_id')
+            ?? $id;
+
+        if (!$listKategoriId) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Parameter id_kelas / list_kategori_id wajib disertakan.',
+            ], 422);
+        }
+
+        $sourceMatchId = $request->input('source.match_id') ?? $request->input('source.peserta_terpilih_id');
+        $targetMatchId = $request->input('target.match_id') ?? $request->input('target.peserta_terpilih_id');
+
+        $normalizeCorner = function ($corner) {
+            $c = strtolower(trim((string) $corner));
+            if (in_array($c, ['merah', 'aka', 'kiri', 'left', '1'])) {
+                return 'kiri';
+            }
+            if (in_array($c, ['putih', 'ao', 'kanan', 'right', 'biru', '2'])) {
+                return 'kanan';
+            }
+            return $c;
+        };
+
+        $sourceCorner = $normalizeCorner($request->input('source.corner') ?? $request->input('source.sudut'));
+        $targetCorner = $normalizeCorner($request->input('target.corner') ?? $request->input('target.sudut'));
+
+        if (!$sourceMatchId || !$targetMatchId) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Match ID sumber dan target wajib disertakan.',
+            ], 422);
+        }
+
+        if (!in_array($sourceCorner, ['kiri', 'kanan']) || !in_array($targetCorner, ['kiri', 'kanan'])) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Sudut posisi tidak valid (harus Merah atau Putih).',
+            ], 422);
+        }
+
+        if ($sourceMatchId == $targetMatchId && $sourceCorner == $targetCorner) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Slot asal dan slot tujuan yang dipilih sama persis.',
+            ], 422);
+        }
+
+        DB::beginTransaction();
+        try {
+            // 1. Ambil & Kunci Data (SELECT ... FOR UPDATE)
+            $sourceMatch = PesertaTerpilih::where('id', $sourceMatchId)->lockForUpdate()->first();
+            $targetMatch = ($sourceMatchId == $targetMatchId)
+                ? $sourceMatch
+                : PesertaTerpilih::where('id', $targetMatchId)->lockForUpdate()->first();
+
+            if (!$sourceMatch || !$targetMatch) {
+                DB::rollBack();
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => 'Data pertandingan tidak ditemukan.',
+                ], 404);
+            }
+
+            // 2. Validasi Kategori & Babak
+            if ($sourceMatch->list_kategori_id != $listKategoriId || $targetMatch->list_kategori_id != $listKategoriId) {
+                DB::rollBack();
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => 'Kedua pertandingan harus berada pada kategori bagan yang sama.',
+                ], 422);
+            }
+
+            // Hitung total babak dalam turnamen ini
+            $totalPeserta = PertandinganPeserta::where('list_kategori_id', $listKategoriId)->count();
+            $slotCount = pow(2, ceil(log(max(2, $totalPeserta), 2)));
+            $totalBabak = max((int) log($slotCount, 2), (int) (PesertaTerpilih::where('list_kategori_id', $listKategoriId)->max('babak') ?? 1));
+
+            // 3. Validasi Pertandingan Berjalan / Selesai
+            if ($this->isMatchActiveOrCompleted($sourceMatch)) {
+                DB::rollBack();
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => "Partai #{$sourceMatch->nomor_partai} (Babak {$sourceMatch->babak}) sudah berlangsung/selesai, tidak dapat diubah.",
+                ], 422);
+            }
+
+            if ($this->isMatchActiveOrCompleted($targetMatch)) {
+                DB::rollBack();
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => "Partai #{$targetMatch->nomor_partai} (Babak {$targetMatch->babak}) sudah berlangsung/selesai, tidak dapat diubah.",
+                ], 422);
+            }
+
+            // 4. Validasi Pertandingan Lanjutan (jika belum babak final)
+            $sourceNextMatch = null;
+            $sourceNextCoord = null;
+            if ($sourceMatch->babak < $totalBabak) {
+                $sourceNextCoord = $sourceMatch->getNextMatchCoordinates();
+                $sourceNextMatch = PesertaTerpilih::where('list_kategori_id', $listKategoriId)
+                    ->where('babak', $sourceNextCoord['babak'])
+                    ->where('nomor_partai', $sourceNextCoord['nomor_partai'])
+                    ->lockForUpdate()
+                    ->first();
+
+                if ($sourceNextMatch && $this->isMatchActiveOrCompleted($sourceNextMatch)) {
+                    DB::rollBack();
+                    return response()->json([
+                        'status'  => 'error',
+                        'message' => "Pertandingan lanjutan di Babak {$sourceNextMatch->babak} Partai #{$sourceNextMatch->nomor_partai} sudah berlangsung/selesai. Perubahan bagan tidak dapat dilakukan.",
+                    ], 422);
+                }
+            }
+
+            $targetNextMatch = null;
+            $targetNextCoord = null;
+            if ($targetMatch->babak < $totalBabak) {
+                $targetNextCoord = $targetMatch->getNextMatchCoordinates();
+                $targetNextMatch = ($sourceNextMatch && $sourceNextCoord && $sourceNextCoord['babak'] == $targetNextCoord['babak'] && $sourceNextCoord['nomor_partai'] == $targetNextCoord['nomor_partai'])
+                    ? $sourceNextMatch
+                    : PesertaTerpilih::where('list_kategori_id', $listKategoriId)
+                        ->where('babak', $targetNextCoord['babak'])
+                        ->where('nomor_partai', $targetNextCoord['nomor_partai'])
+                        ->lockForUpdate()
+                        ->first();
+
+                if ($targetNextMatch && $this->isMatchActiveOrCompleted($targetNextMatch)) {
+                    DB::rollBack();
+                    return response()->json([
+                        'status'  => 'error',
+                        'message' => "Pertandingan lanjutan di Babak {$targetNextMatch->babak} Partai #{$targetNextMatch->nomor_partai} sudah berlangsung/selesai. Perubahan bagan tidak dapat dilakukan.",
+                    ], 422);
+                }
+            }
+
+            // 5. Pre-Swap Cleanup (Rollback status BYE lama yang sudah memajukan atlet ke babak berikutnya)
+            if ($sourceNextMatch && $sourceNextCoord) {
+                if ($sourceNextCoord['sudut'] === 'kiri') {
+                    $sourceNextMatch->pertandingan_peserta_kiri_id = null;
+                } else {
+                    $sourceNextMatch->pertandingan_peserta_kanan_id = null;
+                }
+                $sourceNextMatch->save();
+            }
+
+            if ($targetNextMatch && $targetNextCoord) {
+                if ($targetNextCoord['sudut'] === 'kiri') {
+                    $targetNextMatch->pertandingan_peserta_kiri_id = null;
+                } else {
+                    $targetNextMatch->pertandingan_peserta_kanan_id = null;
+                }
+                $targetNextMatch->save();
+            }
+
+            // 6. Ambil data atlet saat ini
+            $sourceAthleteId = ($sourceCorner === 'kiri')
+                ? $sourceMatch->pertandingan_peserta_kiri_id
+                : $sourceMatch->pertandingan_peserta_kanan_id;
+
+            $targetAthleteId = ($targetCorner === 'kiri')
+                ? $targetMatch->pertandingan_peserta_kiri_id
+                : $targetMatch->pertandingan_peserta_kanan_id;
+
+            // 7. Lakukan Pertukaran Nilai (Swap)
+            if ($sourceMatch->id == $targetMatch->id) {
+                $sourceMatch->pertandingan_peserta_kiri_id = $targetAthleteId;
+                $sourceMatch->pertandingan_peserta_kanan_id = $sourceAthleteId;
+                $sourceMatch->save();
+            } else {
+                if ($sourceCorner === 'kiri') {
+                    $sourceMatch->pertandingan_peserta_kiri_id = $targetAthleteId;
+                } else {
+                    $sourceMatch->pertandingan_peserta_kanan_id = $targetAthleteId;
+                }
+                $sourceMatch->save();
+
+                if ($targetCorner === 'kiri') {
+                    $targetMatch->pertandingan_peserta_kiri_id = $sourceAthleteId;
+                } else {
+                    $targetMatch->pertandingan_peserta_kanan_id = $sourceAthleteId;
+                }
+                $targetMatch->save();
+            }
+
+            // Update babak peserta pada tabel pertandingan_pesertas
+            if ($sourceAthleteId) {
+                PertandinganPeserta::where('id', $sourceAthleteId)->update(['babak' => $targetMatch->babak]);
+            }
+            if ($targetAthleteId) {
+                PertandinganPeserta::where('id', $targetAthleteId)->update(['babak' => $sourceMatch->babak]);
+            }
+
+            // 8. Evaluasi Ulang Status BYE (Post-Swap Evaluation)
+            $this->evaluateRoundOneMatch($sourceMatch, $listKategoriId);
+            if ($sourceMatch->id != $targetMatch->id) {
+                $this->evaluateRoundOneMatch($targetMatch, $listKategoriId);
+            }
+
+            // Ambil nama atlet untuk pesan keterangan
+            $sourceAthlete = $sourceAthleteId ? PertandinganPeserta::with('Peserta')->find($sourceAthleteId) : null;
+            $targetAthlete = $targetAthleteId ? PertandinganPeserta::with('Peserta')->find($targetAthleteId) : null;
+            $namaSource = $sourceAthlete ? optional($sourceAthlete->Peserta)->nama : 'BYE/Kosong';
+            $namaTarget = $targetAthlete ? optional($targetAthlete->Peserta)->nama : 'BYE/Kosong';
+
+            $labelCorner = fn($c) => ($c === 'kiri' ? 'Merah' : 'Putih');
+
+            // 9. Simpan Catatan Audit Log
+            LogPerubahanBagan::create([
+                'list_kategori_id'          => $listKategoriId,
+                'user_id'                   => Auth::id(),
+                'peserta_terpilih_id_asal'   => $sourceMatch->id,
+                'peserta_terpilih_id_tujuan' => $targetMatch->id,
+                'sudut_asal'                => $sourceCorner,
+                'sudut_tujuan'              => $targetCorner,
+                'atlet_asal_id'             => $sourceAthleteId,
+                'atlet_tujuan_id'           => $targetAthleteId,
+                'tipe_aksi'                 => 'swap',
+                'keterangan'                => "Tukar posisi: Partai #{$sourceMatch->nomor_partai} [{$labelCorner($sourceCorner)}] ({$namaSource}) <-> Partai #{$targetMatch->nomor_partai} [{$labelCorner($targetCorner)}] ({$namaTarget})",
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'status'  => 'success',
+                'message' => "Posisi berhasil ditukar: {$namaSource} (Partai #{$sourceMatch->nomor_partai} [{$labelCorner($sourceCorner)}]) dengan {$namaTarget} (Partai #{$targetMatch->nomor_partai} [{$labelCorner($targetCorner)}]).",
+                'data'    => [
+                    'source' => [
+                        'match_id'   => $sourceMatch->id,
+                        'partai'     => $sourceMatch->nomor_partai,
+                        'corner'     => $sourceCorner,
+                        'athlete_id' => $targetAthleteId,
+                        'nama'       => $namaTarget,
+                    ],
+                    'target' => [
+                        'match_id'   => $targetMatch->id,
+                        'partai'     => $targetMatch->nomor_partai,
+                        'corner'     => $targetCorner,
+                        'athlete_id' => $sourceAthleteId,
+                        'nama'       => $namaSource,
+                    ],
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            Log::error('swapBracket error: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Terjadi kesalahan sistem saat menukar bagan: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * FASE 2: API Direct Assign / Ganti Atlet / Pindah ke Slot Kosong (BYE)
+     * Endpoint: POST /pertandingan/{id}/direct-assign-bagan atau POST /api/randori/direct-assign
+     */
+    public function directAssignBracket(Request $request, $id = null)
+    {
+        if (!Auth::check() || !in_array(Auth::user()->role, ['admin', 'operator', 'wasit', 1, '1', 2, '2'])) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Akses ditolak. Hanya admin, operator, atau wasit yang berwenang mengubah bagan.',
+            ], 403);
+        }
+
+        $listKategoriId = $request->input('id_kelas')
+            ?? $request->input('list_kategori_id')
+            ?? $id;
+
+        $matchId = $request->input('match_id') ?? $request->input('peserta_terpilih_id');
+        $newAthleteId = $request->input('pertandingan_peserta_id') ? (int) $request->input('pertandingan_peserta_id') : null;
+
+        $normalizeCorner = function ($corner) {
+            $c = strtolower(trim((string) $corner));
+            if (in_array($c, ['merah', 'aka', 'kiri', 'left', '1'])) return 'kiri';
+            if (in_array($c, ['putih', 'ao', 'kanan', 'right', 'biru', '2'])) return 'kanan';
+            return $c;
+        };
+
+        $corner = $normalizeCorner($request->input('corner') ?? $request->input('sudut'));
+
+        if (!$matchId || !in_array($corner, ['kiri', 'kanan'])) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Match ID dan sudut yang valid (Merah / Putih) wajib disertakan.',
+            ], 422);
+        }
+
+        DB::beginTransaction();
+        try {
+            $match = PesertaTerpilih::where('id', $matchId)->lockForUpdate()->first();
+            if (!$match) {
+                DB::rollBack();
+                return response()->json(['status' => 'error', 'message' => 'Data pertandingan tidak ditemukan.'], 404);
+            }
+
+            if ($match->list_kategori_id != $listKategoriId) {
+                DB::rollBack();
+                return response()->json(['status' => 'error', 'message' => 'Pertandingan tidak sesuai kategori.'], 422);
+            }
+
+            // Hitung total babak
+            $totalPeserta = PertandinganPeserta::where('list_kategori_id', $listKategoriId)->count();
+            $slotCount = pow(2, ceil(log(max(2, $totalPeserta), 2)));
+            $totalBabak = max((int) log($slotCount, 2), (int) (PesertaTerpilih::where('list_kategori_id', $listKategoriId)->max('babak') ?? 1));
+
+            if ($this->isMatchActiveOrCompleted($match)) {
+                DB::rollBack();
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => "Partai #{$match->nomor_partai} (Babak {$match->babak}) sudah berlangsung/selesai, tidak dapat diubah.",
+                ], 422);
+            }
+
+            $nextMatch = null;
+            $nextCoord = null;
+            if ($match->babak < $totalBabak) {
+                $nextCoord = $match->getNextMatchCoordinates();
+                $nextMatch = PesertaTerpilih::where('list_kategori_id', $listKategoriId)
+                    ->where('babak', $nextCoord['babak'])
+                    ->where('nomor_partai', $nextCoord['nomor_partai'])
+                    ->lockForUpdate()
+                    ->first();
+
+                if ($nextMatch && $this->isMatchActiveOrCompleted($nextMatch)) {
+                    DB::rollBack();
+                    return response()->json([
+                        'status'  => 'error',
+                        'message' => "Pertandingan lanjutan Babak {$nextMatch->babak} Partai #{$nextMatch->nomor_partai} sudah berlangsung/selesai. Perubahan ditolak.",
+                    ], 422);
+                }
+            }
+
+            // Jika atlet baru diisi, pastikan terdaftar di list kategori ini
+            if ($newAthleteId) {
+                $pp = PertandinganPeserta::where('id', $newAthleteId)->where('list_kategori_id', $listKategoriId)->first();
+                if (!$pp) {
+                    DB::rollBack();
+                    return response()->json(['status' => 'error', 'message' => 'Peserta tidak terdaftar pada kategori pertandingan ini.'], 422);
+                }
+
+                // Cek apakah atlet ini sudah menempati slot lain di bagan ini
+                $oldMatches = PesertaTerpilih::where('list_kategori_id', $listKategoriId)
+                    ->where(function ($q) use ($newAthleteId) {
+                        $q->where('pertandingan_peserta_kiri_id', $newAthleteId)
+                          ->orWhere('pertandingan_peserta_kanan_id', $newAthleteId);
+                    })
+                    ->lockForUpdate()
+                    ->get();
+
+                foreach ($oldMatches as $oldM) {
+                    if ($oldM->id == $match->id) continue;
+                    if ($oldM->pertandingan_peserta_kiri_id == $newAthleteId) {
+                        $oldM->pertandingan_peserta_kiri_id = null;
+                    }
+                    if ($oldM->pertandingan_peserta_kanan_id == $newAthleteId) {
+                        $oldM->pertandingan_peserta_kanan_id = null;
+                    }
+                    $oldM->save();
+                    $this->evaluateRoundOneMatch($oldM, $listKategoriId);
+                }
+            }
+
+            // Pre-cleanup next match Babak 2
+            if ($nextMatch) {
+                if ($nextCoord['sudut'] === 'kiri') {
+                    $nextMatch->pertandingan_peserta_kiri_id = null;
+                } else {
+                    $nextMatch->pertandingan_peserta_kanan_id = null;
+                }
+                $nextMatch->save();
+            }
+
+            $oldAthleteId = ($corner === 'kiri') ? $match->pertandingan_peserta_kiri_id : $match->pertandingan_peserta_kanan_id;
+
+            // Set new athlete
+            if ($corner === 'kiri') {
+                $match->pertandingan_peserta_kiri_id = $newAthleteId;
+            } else {
+                $match->pertandingan_peserta_kanan_id = $newAthleteId;
+            }
+            $match->save();
+
+            // Evaluasi ulang match ini
+            $this->evaluateRoundOneMatch($match, $listKategoriId);
+
+            $labelCorner = ($corner === 'kiri' ? 'Merah' : 'Putih');
+            $namaNew = $newAthleteId ? optional(PertandinganPeserta::with('Peserta')->find($newAthleteId)?->Peserta)->nama : 'BYE/Kosong';
+
+            LogPerubahanBagan::create([
+                'list_kategori_id'          => $listKategoriId,
+                'user_id'                   => Auth::id(),
+                'peserta_terpilih_id_asal'   => $match->id,
+                'peserta_terpilih_id_tujuan' => null,
+                'sudut_asal'                => $corner,
+                'sudut_tujuan'              => null,
+                'atlet_asal_id'             => $oldAthleteId,
+                'atlet_tujuan_id'           => $newAthleteId,
+                'tipe_aksi'                 => $newAthleteId ? 'direct_assign' : 'move_bye',
+                'keterangan'                => "Direct assign: Slot Partai #{$match->nomor_partai} [{$labelCorner}] diatur menjadi {$namaNew}",
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'status'  => 'success',
+                'message' => "Slot Partai #{$match->nomor_partai} [{$labelCorner}] berhasil diperbarui menjadi {$namaNew}.",
+                'data'    => [
+                    'match_id'   => $match->id,
+                    'partai'     => $match->nomor_partai,
+                    'corner'     => $corner,
+                    'athlete_id' => $newAthleteId,
+                    'nama'       => $namaNew,
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            Log::error('directAssignBracket error: ' . $e->getMessage());
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Terjadi kesalahan sistem: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Cek apakah partai sudah berlangsung atau selesai (dengan skor / teknik / pemenang non-BYE)
+     */
+    private function isMatchActiveOrCompleted(PesertaTerpilih $match): bool
+    {
+        if (floatval($match->skor_kiri) > 0 || floatval($match->skor_kanan) > 0) {
+            return true;
+        }
+
+        if ($match->hitungTotalSkorMerah() > 0 || $match->hitungTotalSkorPutih() > 0) {
+            return true;
+        }
+
+        if (in_array(strtoupper($match->keterangan_menang ?? ''), ['POIN', 'HANSOKU', 'KIKEN', 'HANTEI'])) {
+            return true;
+        }
+
+        if (!empty($match->pemenang_id) && strtoupper($match->keterangan_menang ?? '') !== 'BYE') {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Evaluasi ulang status pertandingan Babak 1 setelah swap atau assign:
+     * - Kondisi A: Kedua slot terisi atlet -> Bertanding normal di Babak 1
+     * - Kondisi B: Satu slot terisi, satu slot NULL -> Otomatis menang BYE dan maju ke Babak 2
+     * - Kondisi C: Kedua slot NULL -> Slot kosong
+     */
+    private function evaluateRoundOneMatch(PesertaTerpilih $match, $listKategoriId)
+    {
+        $kiriId = $match->pertandingan_peserta_kiri_id;
+        $kananId = $match->pertandingan_peserta_kanan_id;
+
+        $totalPeserta = PertandinganPeserta::where('list_kategori_id', $listKategoriId)->count();
+        $slotCount = pow(2, ceil(log(max(2, $totalPeserta), 2)));
+        $totalBabak = max((int) log($slotCount, 2), (int) (PesertaTerpilih::where('list_kategori_id', $listKategoriId)->max('babak') ?? 1));
+
+        // Jika ini babak final atau tidak ada babak lanjutan
+        if ($match->babak >= $totalBabak) {
+            $match->pemenang_id = null;
+            $match->keterangan_menang = null;
+            $match->save();
+            return;
+        }
+
+        $nextCoord = $match->getNextMatchCoordinates();
+        $nextMatch = PesertaTerpilih::firstOrNew([
+            'list_kategori_id' => $listKategoriId,
+            'babak'            => $nextCoord['babak'],
+            'nomor_partai'     => $nextCoord['nomor_partai'],
+        ]);
+
+        if (!$nextMatch->exists) {
+            $nextMatch->pertandingan_id = $match->pertandingan_id;
+            $nextMatch->kegiatan_id = $match->kegiatan_id;
+        }
+
+        if ($kiriId && $kananId) {
+            // KONDISI A: Dua atlet bertanding normal di babak ini
+            $match->pemenang_id = null;
+            $match->keterangan_menang = null;
+            $match->skor_kiri = null;
+            $match->skor_kanan = null;
+            $match->merah_mujoken_kachi = 0;
+            $match->merah_ippon = 0;
+            $match->merah_waza_ari = 0;
+            $match->merah_batsu_5 = 0;
+            $match->merah_batsu_10 = 0;
+            $match->merah_yusei_kachi = 0;
+            $match->putih_mujoken_kachi = 0;
+            $match->putih_ippon = 0;
+            $match->putih_waza_ari = 0;
+            $match->putih_batsu_5 = 0;
+            $match->putih_batsu_10 = 0;
+            $match->putih_yusei_kachi = 0;
+            $match->save();
+
+            PertandinganPeserta::whereIn('id', [$kiriId, $kananId])->update(['babak' => $match->babak]);
+
+            // Tarik kembali atlet dari slot babak berikutnya jika sebelumnya pernah melaju via BYE
+            if ($nextCoord['sudut'] === 'kiri') {
+                $nextMatch->pertandingan_peserta_kiri_id = null;
+            } else {
+                $nextMatch->pertandingan_peserta_kanan_id = null;
+            }
+            $nextMatch->save();
+        } elseif ($kiriId || $kananId) {
+            // KONDISI B: Terjadi BYE di babak ini
+            $byeWinnerId = $kiriId ?: $kananId;
+            $match->pemenang_id = $byeWinnerId;
+            $match->keterangan_menang = 'BYE';
+            $match->skor_kiri = 0;
+            $match->skor_kanan = 0;
+            $match->merah_mujoken_kachi = 0;
+            $match->merah_ippon = 0;
+            $match->merah_waza_ari = 0;
+            $match->merah_batsu_5 = 0;
+            $match->merah_batsu_10 = 0;
+            $match->merah_yusei_kachi = 0;
+            $match->putih_mujoken_kachi = 0;
+            $match->putih_ippon = 0;
+            $match->putih_waza_ari = 0;
+            $match->putih_batsu_5 = 0;
+            $match->putih_batsu_10 = 0;
+            $match->putih_yusei_kachi = 0;
+            $match->save();
+
+            PertandinganPeserta::where('id', $byeWinnerId)->update(['babak' => $nextCoord['babak']]);
+
+            // Majukan atlet ke slot Babak 2 pada sudut yang sesuai
+            if ($nextCoord['sudut'] === 'kiri') {
+                $nextMatch->pertandingan_peserta_kiri_id = $byeWinnerId;
+            } else {
+                $nextMatch->pertandingan_peserta_kanan_id = $byeWinnerId;
+            }
+            $nextMatch->save();
+        } else {
+            // KONDISI C: Kedua slot kosong
+            $match->pemenang_id = null;
+            $match->keterangan_menang = null;
+            $match->skor_kiri = null;
+            $match->skor_kanan = null;
+            $match->save();
+
+            if ($nextCoord['sudut'] === 'kiri') {
+                $nextMatch->pertandingan_peserta_kiri_id = null;
+            } else {
+                $nextMatch->pertandingan_peserta_kanan_id = null;
+            }
+            $nextMatch->save();
+        }
     }
 }

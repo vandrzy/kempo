@@ -114,4 +114,42 @@ class PesertaTerpilih extends Model
             default => 'Babak ' . ($this->babak ?: 1),
         };
     }
+
+    /**
+     * Hitung koordinat pertandingan di babak berikutnya (next match pointer)
+     * berdasarkan rumus pohon biner eliminasi:
+     * - Next Babak = babak + 1
+     * - Next Nomor Partai = ceil(nomor_partai / 2)
+     * - Sudut: Ganjil = 'kiri' (Merah), Genap = 'kanan' (Putih)
+     */
+    public function getNextMatchCoordinates(): array
+    {
+        $currentPartai = (int) ($this->nomor_partai ?: 1);
+        return [
+            'babak'        => ((int) $this->babak) + 1,
+            'nomor_partai' => (int) ceil($currentPartai / 2),
+            'sudut'        => ($currentPartai % 2 !== 0) ? 'kiri' : 'kanan',
+        ];
+    }
+
+    /**
+     * Cek apakah partai ini sudah dimainkan / memiliki skor atau pemenang
+     */
+    public function isPlayed(): bool
+    {
+        return !empty($this->pemenang_id)
+            || floatval($this->skor_kiri) > 0
+            || floatval($this->skor_kanan) > 0
+            || in_array(strtoupper($this->keterangan_menang ?? ''), ['HANSOKU', 'KIKEN', 'POIN', 'HANTEI']);
+    }
+
+    /**
+     * Cek apakah partai ini berstatus BYE
+     */
+    public function isBye(): bool
+    {
+        return strtoupper($this->keterangan_menang ?? '') === 'BYE'
+            || (!empty($this->pertandingan_peserta_kiri_id) && empty($this->pertandingan_peserta_kanan_id))
+            || (empty($this->pertandingan_peserta_kiri_id) && !empty($this->pertandingan_peserta_kanan_id));
+    }
 }

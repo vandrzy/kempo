@@ -13,6 +13,12 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
+    <!-- CSRF Token -->
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <!-- Tailwind CSS (CDN standalone untuk stand-alone view ini) -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -71,26 +77,88 @@
             border-color: #10b981 !important;
             box-shadow: 0 0 0 2px #10b981 !important;
             transform: scale(1.02);
-            z-index: 10;
+        /* Click-to-Swap Mode Styles */
+        .edit-mode-active .bracket-slot,
+        .edit-mode-active .bracket-slot-b1 {
+            cursor: pointer !important;
+            transition: all 0.15s ease-in-out;
+            outline: 2px dashed #94a3b8;
+            outline-offset: -2px;
+            border-radius: 8px;
+        }
+
+        .edit-mode-active .bracket-slot:hover,
+        .edit-mode-active .bracket-slot-b1:hover {
+            outline-color: #f59e0b !important;
+            background-color: #fefce8 !important;
+            transform: scale(1.02);
+            z-index: 15;
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2) !important;
+        }
+
+        .edit-mode-active .bracket-slot.slot-selected,
+        .edit-mode-active .bracket-slot-b1.slot-selected {
+            background-color: #fef3c7 !important;
+            outline: 2.5px solid #d97706 !important;
+            box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.35) !important;
+            transform: scale(1.03);
+            z-index: 25;
+        }
+
+        .edit-mode-active .bracket-slot.slot-locked,
+        .edit-mode-active .bracket-slot-b1.slot-locked {
+            cursor: not-allowed !important;
+            opacity: 0.55 !important;
+            outline: 1.5px solid #e2e8f0 !important;
+        }
+
+        .edit-mode-active .bracket-slot.slot-locked:hover,
+        .edit-mode-active .bracket-slot-b1.slot-locked:hover {
+            transform: none !important;
+            background-color: transparent !important;
+            outline-color: #e2e8f0 !important;
+            box-shadow: none !important;
+        }
+
+        .edit-mode-active .bracket-slot.slot-locked .edit-mode-lock-badge,
+        .edit-mode-active .bracket-slot-b1.slot-locked .edit-mode-lock-badge {
+            display: inline-flex !important;
+        }
+
+        #bracketSvgCanvas {
+            pointer-events: none;
+            overflow: visible;
+        }
+
+        #bracketSvgCanvas path {
+            fill: none !important;
         }
 
         .connector-line {
-            fill: none;
-            stroke: #cbd5e1;
+            fill: none !important;
+            stroke: #94a3b8;
             stroke-width: 2px;
-            transition: all 0.25s ease;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            transition: stroke 0.2s ease, stroke-width 0.2s ease;
         }
 
         .connector-line.active {
-            stroke: #10b981;
-            stroke-width: 3px;
-            filter: drop-shadow(0 2px 4px rgba(16, 185, 129, 0.25));
+            stroke: #10b981 !important;
+            stroke-width: 2.5px !important;
+            filter: drop-shadow(0 1px 3px rgba(16, 185, 129, 0.4));
+        }
+
+        .connector-line.final-champion-line.active {
+            stroke: #f59e0b !important;
+            stroke-width: 3px !important;
+            filter: drop-shadow(0 2px 4px rgba(245, 158, 11, 0.5));
         }
 
         .connector-line.highlighted {
-            stroke: #059669;
-            stroke-width: 4px;
-            filter: drop-shadow(0 2px 6px rgba(5, 150, 105, 0.4));
+            stroke: #059669 !important;
+            stroke-width: 3.5px !important;
+            filter: drop-shadow(0 2px 6px rgba(5, 150, 105, 0.6));
         }
 
         /* Custom Scrollbar */
@@ -182,7 +250,30 @@
                 font-size: 9.5px !important;
             }
             #bracketSvgCanvas {
-                display: none !important;
+                display: block !important;
+                position: absolute !important;
+                inset: 0 !important;
+                width: 100% !important;
+                height: 100% !important;
+                pointer-events: none !important;
+                z-index: 0 !important;
+                overflow: visible !important;
+            }
+            #bracketSvgCanvas path {
+                fill: none !important;
+            }
+            .connector-line {
+                stroke: #475569 !important;
+                stroke-width: 1.5px !important;
+                fill: none !important;
+            }
+            .connector-line.active {
+                stroke: #059669 !important;
+                stroke-width: 2px !important;
+            }
+            .connector-line.final-champion-line.active {
+                stroke: #d97706 !important;
+                stroke-width: 2px !important;
             }
             * {
                 -webkit-print-color-adjust: exact !important;
@@ -260,14 +351,47 @@
                     <i class="fas fa-expand text-sm"></i>
                 </button>
 
+                <!-- Edit Bagan Toggle Button -->
+                <button type="button" id="btnToggleEditBagan" onclick="toggleEditBaganMode()" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-white text-xs font-bold tracking-wide shadow-xs hover:shadow transition-all cursor-pointer" title="Aktifkan Mode Tukar Posisi Peserta">
+                    <i class="fas fa-random"></i> <span id="textToggleEditBagan">Mode Edit Bagan</span>
+                </button>
+
                 <!-- Print Button -->
-                <button type="button" onclick="window.print()" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white text-xs font-bold tracking-wide shadow-sm hover:shadow transition-all cursor-pointer">
+                <button type="button" onclick="printBagan()" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white text-xs font-bold tracking-wide shadow-sm hover:shadow transition-all cursor-pointer">
                     <i class="fas fa-print"></i> Cetak Bagan
                 </button>
             </div>
 
         </div>
     </header>
+
+    <!-- ======================================================== -->
+    <!-- STICKY ALERT BANNER MODE EDIT BAGAN                      -->
+    <!-- ======================================================== -->
+    <div id="bannerEditMode" class="hidden no-print sticky top-[61px] z-40 bg-gradient-to-r from-amber-500 via-amber-600 to-amber-500 text-white shadow-md border-b border-amber-600 transition-all">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+            <div class="flex items-center gap-2.5 min-w-0">
+                <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-white/20 text-white font-black text-xs shrink-0">
+                    <i class="fas fa-info animate-pulse"></i>
+                </span>
+                <div class="min-w-0">
+                    <p class="font-bold mb-0">Mode Edit Bagan Aktif (Click-to-Swap)</p>
+                    <p class="text-[11px] text-amber-100 mb-0 truncate" id="editModeBannerInstruction">
+                        Klik salah satu slot peserta yang ingin ditukar, lalu klik slot tujuan untuk menukar posisinya.
+                    </p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+                <span id="badgeSelectedSlot" class="hidden px-2.5 py-1 bg-black/25 text-amber-100 rounded-lg text-[11px] font-bold border border-white/20"></span>
+                <button type="button" id="btnCancelSlot" onclick="cancelSelectedSlot()" class="hidden px-2.5 py-1 bg-white hover:bg-amber-50 text-amber-900 rounded-lg text-xs font-bold transition-colors cursor-pointer shadow-xs">
+                    <i class="fas fa-times"></i> Batal Pilih
+                </button>
+                <button type="button" onclick="toggleEditBaganMode(false)" class="px-2.5 py-1 bg-amber-700/60 hover:bg-amber-800 text-white rounded-lg text-xs font-bold transition-colors cursor-pointer border border-white/10">
+                    Keluar Mode Edit
+                </button>
+            </div>
+        </div>
+    </div>
 
     <!-- ======================================================== -->
     <!-- PRINT HEADER (HANYA TAMPIL SAAT CETAK / PDF)             -->
@@ -290,10 +414,10 @@
     <main id="bracketMain" class="flex-1 overflow-x-auto overflow-y-auto bg-dot-pattern p-4 sm:p-6 lg:p-8 min-h-[calc(100vh-68px)]">
         
         <div id="bracketScrollArea" class="w-max min-w-full flex items-start justify-start py-2">
-            <div id="bracketWrapper" class="relative inline-flex items-stretch gap-6 sm:gap-8 lg:gap-10 py-4 mx-auto transition-transform duration-150 origin-top-left" style="transform: scale(1);">
+            <div id="bracketWrapper" class="relative inline-flex items-stretch gap-6 sm:gap-8 lg:gap-10 py-4 mx-auto origin-top-left" style="transform: scale(1);">
                 
                 <!-- SVG Canvas untuk garis penghubung antar partai -->
-                <svg id="bracketSvgCanvas" class="absolute inset-0 pointer-events-none z-0 w-full h-full"></svg>
+                <svg id="bracketSvgCanvas" fill="none" class="absolute inset-0 pointer-events-none z-0 w-full h-full" style="fill: none;"></svg>
 
                 @if($isRandori && $matches && $matches->isNotEmpty())
                     
@@ -350,6 +474,7 @@
 
                                     $isComplete = ($pemenangId !== null);
                                     $isReady = ($kiriId && $kananId);
+                                    $isPlayedThisMatch = (floatval($m->skor_kiri) > 0 || floatval($m->skor_kanan) > 0 || ($pemenangId && strtoupper($m->keterangan_menang ?? '') !== 'BYE'));
                                 @endphp
 
                                 <!-- Match Card -->
@@ -387,8 +512,15 @@
                                     </div>
 
                                      <!-- Competitor Red (Sudut Merah / Aka) -->
-                                    <div class="competitor-row px-3.5 py-2.5 flex items-center justify-between border-b border-slate-100 transition-all cursor-pointer {{ $kiriMenang ? 'bg-emerald-50/70 font-bold' : ($isComplete && !$kiriMenang ? 'opacity-40' : '') }}"
+                                    <div class="competitor-row px-3.5 py-2.5 flex items-center justify-between border-b border-slate-100 transition-all bracket-slot bracket-slot-b1 {{ $isPlayedThisMatch ? 'slot-locked' : '' }} {{ $kiriMenang ? 'bg-emerald-50/70 font-bold' : ($isComplete && !$kiriMenang ? 'opacity-40' : '') }}"
+                                         data-match-id="{{ $m->id }}"
+                                         data-babak="{{ $b }}"
+                                         data-corner="merah"
+                                         data-partai="{{ $m->nomor_partai }}"
                                          data-athlete-id="{{ $kiriId }}"
+                                         data-athlete-name="{{ $kiri ? ($kiri->Peserta->nama ?? 'Atlet') : 'BYE / Kosong' }}"
+                                         data-is-played="{{ $isPlayedThisMatch ? '1' : '0' }}"
+                                         onclick="handleSlotClick(this, event)"
                                          onmouseenter="highlightAthlete('{{ $kiriId }}')"
                                          onmouseleave="unhighlightAthlete()">
                                         <div class="flex items-center gap-2.5 min-w-0 pr-2">
@@ -397,12 +529,20 @@
                                                 @if($kiri)
                                                     <p class="text-xs font-semibold text-slate-900 truncate mb-0 {{ $kiriMenang ? 'text-emerald-950 font-bold' : '' }}">
                                                         {{ $kiri->Peserta->nama ?? 'Atlet' }}
+                                                        @if($isPlayedThisMatch)
+                                                            <span class="edit-mode-lock-badge hidden text-slate-400 text-[10px] ml-1.5" title="Partai sudah dimainkan, tidak dapat ditukar"><i class="fas fa-lock"></i></span>
+                                                        @endif
                                                     </p>
                                                     <p class="text-[10px] text-slate-500 truncate mb-0 font-medium">
                                                         {{ $kiri->Peserta->kabupaten->name ?? ($kiri->Peserta->kontigen ?? ($kiriId ? 'Tanpa Kontingen' : 'Belum Ada')) }}
                                                     </p>
                                                 @else
-                                                    <p class="text-xs font-medium text-slate-400 italic mb-0">Menunggu Pemenang Babak {{ $b - 1 }} Partai #{{ (2 * $m->nomor_partai) - 1 }}</p>
+                                                    <p class="text-xs font-medium text-slate-400 italic mb-0">
+                                                        Menunggu Pemenang Babak {{ $b - 1 }} Partai #{{ (2 * $m->nomor_partai) - 1 }}
+                                                        @if($b == 1)
+                                                            <span class="text-amber-600 font-bold text-[10px] ml-1">(Slot BYE)</span>
+                                                        @endif
+                                                    </p>
                                                     <p class="text-[10px] text-slate-400 mb-0">Belum Ada</p>
                                                 @endif
                                             </div>
@@ -417,11 +557,16 @@
                                                 </span>
                                             @endif
                                         </div>
-                                    </div>
-
-                                    <!-- Competitor White (Sudut Putih) -->
-                                    <div class="competitor-row px-3.5 py-2.5 flex items-center justify-between transition-all cursor-pointer {{ $kananMenang ? 'bg-emerald-50/70 font-bold' : ($isComplete && !$kananMenang ? 'opacity-40' : '') }}"
+                                    </div>                                     <!-- Competitor White (Sudut Putih) -->
+                                    <div class="competitor-row px-3.5 py-2.5 flex items-center justify-between transition-all bracket-slot bracket-slot-b1 {{ $isPlayedThisMatch ? 'slot-locked' : '' }} {{ $kananMenang ? 'bg-emerald-50/70 font-bold' : ($isComplete && !$kananMenang ? 'opacity-40' : '') }}"
+                                         data-match-id="{{ $m->id }}"
+                                         data-babak="{{ $b }}"
+                                         data-corner="putih"
+                                         data-partai="{{ $m->nomor_partai }}"
                                          data-athlete-id="{{ $kananId }}"
+                                         data-athlete-name="{{ $kanan ? ($kanan->Peserta->nama ?? 'Atlet') : 'BYE / Kosong' }}"
+                                         data-is-played="{{ $isPlayedThisMatch ? '1' : '0' }}"
+                                         onclick="handleSlotClick(this, event)"
                                          onmouseenter="highlightAthlete('{{ $kananId }}')"
                                          onmouseleave="unhighlightAthlete()">
                                         <div class="flex items-center gap-2.5 min-w-0 pr-2">
@@ -430,12 +575,20 @@
                                                 @if($kanan)
                                                     <p class="text-xs font-semibold text-slate-900 truncate mb-0 {{ $kananMenang ? 'text-emerald-950 font-bold' : '' }}">
                                                         {{ $kanan->Peserta->nama ?? 'Atlet' }}
+                                                        @if($isPlayedThisMatch)
+                                                            <span class="edit-mode-lock-badge hidden text-slate-400 text-[10px] ml-1.5" title="Partai sudah dimainkan, tidak dapat ditukar"><i class="fas fa-lock"></i></span>
+                                                        @endif
                                                     </p>
                                                     <p class="text-[10px] text-slate-500 truncate mb-0 font-medium">
                                                         {{ $kanan->Peserta->kabupaten->name ?? ($kanan->Peserta->kontigen ?? 'Tanpa Kontingen') }}
                                                     </p>
                                                 @elseif($isBye)
-                                                    <p class="text-xs font-medium text-slate-400 italic mb-0">Belum Ada Lawan (BYE)</p>
+                                                    <p class="text-xs font-medium text-slate-400 italic mb-0">
+                                                        Belum Ada Lawan (BYE)
+                                                        @if($b == 1)
+                                                            <span class="text-amber-600 font-bold text-[10px] ml-1">(Slot BYE)</span>
+                                                        @endif
+                                                    </p>
                                                     <p class="text-[10px] text-slate-400 mb-0">Belum Ada</p>
                                                 @else
                                                     <p class="text-xs font-medium text-slate-400 italic mb-0">Menunggu Pemenang Babak {{ $b - 1 }} Partai #{{ 2 * $m->nomor_partai }}</p>
@@ -622,7 +775,7 @@
             if (text) {
                 text.innerText = Math.round(currentZoom * 100) + '%';
             }
-            setTimeout(drawBracketConnectors, 100);
+            requestAnimationFrame(drawBracketConnectors);
         }
 
         function toggleFullscreen() {
@@ -662,62 +815,138 @@
             // Bersihkan path lama
             svg.innerHTML = '';
 
-            const wrapperRect = wrapper.getBoundingClientRect();
-            svg.setAttribute('viewBox', `0 0 ${wrapper.offsetWidth} ${wrapper.offsetHeight}`);
+            const w = wrapper.offsetWidth;
+            const h = wrapper.offsetHeight;
+            if (w <= 0 || h <= 0) return;
 
-            const matchCards = document.querySelectorAll('.match-card');
-            
-            matchCards.forEach(card => {
-                const babak = parseInt(card.getAttribute('data-babak'));
-                const partai = parseInt(card.getAttribute('data-partai'));
-                const winnerId = card.getAttribute('data-winner-id');
+            svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+            svg.setAttribute('fill', 'none');
 
-                // Cari partai tujuan di babak berikutnya (babak + 1, ceil(partai / 2))
-                const nextBabak = babak + 1;
-                const nextPartai = Math.ceil(partai / 2);
+            const wrapRect = wrapper.getBoundingClientRect();
+            const zoom = currentZoom || 1.0;
 
-                const nextCard = document.querySelector(`.match-card[data-babak="${nextBabak}"][data-partai="${nextPartai}"]`);
-                if (!nextCard) return;
-
-                // Titik Awal: Sisi Kanan Tengah dari Match Card saat ini
-                const fromRect = card.getBoundingClientRect();
-                const toRect = nextCard.getBoundingClientRect();
-
-                // Konversi koordinat relatif terhadap wrapper (dengan mengabaikan scale saat ini)
-                const startX = (fromRect.right - wrapperRect.left) / currentZoom;
-                const startY = (fromRect.top + fromRect.height / 2 - wrapperRect.top) / currentZoom;
-
-                // Titik Tujuan: Sisi Kiri dari Match Card berikutnya
-                // Jika partai ganjil -> sudut kiri (merah, sepertiga atas)
-                // Jika partai genap -> sudut kanan (biru, sepertiga bawah)
-                const isOdd = (partai % 2 !== 0);
-                const targetYOffset = isOdd ? (toRect.height * 0.35) : (toRect.height * 0.75);
-
-                const endX = (toRect.left - wrapperRect.left) / currentZoom;
-                const endY = (toRect.top + targetYOffset - wrapperRect.top) / currentZoom;
-
-                const midX = startX + (endX - startX) * 0.5;
-
-                // Buat Orthogonal Path (garis lurus siku-siku turnamen)
+            function createPathElement(d, isActive, isFinal = false, winnerId = null) {
                 const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-                const d = `M ${startX} ${startY} H ${midX} V ${endY} H ${endX}`;
                 path.setAttribute('d', d);
+                path.setAttribute('fill', 'none');
 
-                const isPathActive = (winnerId && winnerId !== 'null');
-                path.setAttribute('class', `connector-line ${isPathActive ? 'active' : ''}`);
+                let strokeColor = '#94a3b8';
+                let strokeWidth = '2';
+
+                if (isFinal && isActive) {
+                    strokeColor = '#f59e0b';
+                    strokeWidth = '3';
+                } else if (isActive) {
+                    strokeColor = '#10b981';
+                    strokeWidth = '2.5';
+                }
+
+                path.setAttribute('stroke', strokeColor);
+                path.setAttribute('stroke-width', strokeWidth);
+                path.setAttribute('stroke-linecap', 'round');
+                path.setAttribute('stroke-linejoin', 'round');
+
+                let className = 'connector-line';
+                if (isActive) {
+                    className += ' active';
+                    if (isFinal) className += ' final-champion-line';
+                }
+                path.setAttribute('class', className);
 
                 if (winnerId && winnerId !== 'null') {
                     path.setAttribute('data-line-athlete', winnerId);
                 }
 
                 svg.appendChild(path);
+                return path;
+            }
+
+            // 1. Hubungkan setiap Match Card ke Babak Berikutnya
+            const matchCards = document.querySelectorAll('.match-card');
+            matchCards.forEach(card => {
+                const babak = parseInt(card.getAttribute('data-babak'));
+                const partai = parseInt(card.getAttribute('data-partai'));
+                const winnerId = card.getAttribute('data-winner-id');
+
+                const nextBabak = babak + 1;
+                const nextPartai = Math.ceil(partai / 2);
+
+                const nextCard = document.querySelector(`.match-card[data-babak="${nextBabak}"][data-partai="${nextPartai}"]`);
+                if (!nextCard) return;
+
+                const fromRect = card.getBoundingClientRect();
+                const toRect = nextCard.getBoundingClientRect();
+
+                const startX = Math.round((fromRect.right - wrapRect.left) / zoom);
+                const startY = Math.round((fromRect.top + fromRect.height / 2 - wrapRect.top) / zoom);
+
+                // Partai ganjil -> Slot Merah (bagian atas, ~35% tinggi kartu)
+                // Partai genap  -> Slot Putih (bagian bawah, ~75% tinggi kartu)
+                const isOdd = (partai % 2 !== 0);
+                const targetYOffset = isOdd ? (toRect.height * 0.35) : (toRect.height * 0.75);
+
+                const endX = Math.round((toRect.left - wrapRect.left) / zoom);
+                const endY = Math.round((toRect.top + targetYOffset - wrapRect.top) / zoom);
+
+                const midX = Math.round(startX + (endX - startX) * 0.5);
+
+                const d = `M ${startX} ${startY} H ${midX} V ${endY} H ${endX}`;
+                const isPathActive = Boolean(winnerId && winnerId !== 'null');
+
+                createPathElement(d, isPathActive, false, winnerId);
             });
+
+            // 2. Hubungkan Partai FINAL ke PODIUM JUARA 1 (EMAS)
+            const finalCard = document.querySelector(`.match-card[data-babak="${totalBabakGlobal}"][data-partai="1"]`);
+            const podiumCard = document.getElementById('podiumJuara1Card');
+            if (finalCard && podiumCard) {
+                const fromRect = finalCard.getBoundingClientRect();
+                const toRect = podiumCard.getBoundingClientRect();
+
+                const startX = Math.round((fromRect.right - wrapRect.left) / zoom);
+                const startY = Math.round((fromRect.top + fromRect.height / 2 - wrapRect.top) / zoom);
+                const endX = Math.round((toRect.left - wrapRect.left) / zoom);
+                const endY = Math.round((toRect.top + toRect.height / 2 - wrapRect.top) / zoom);
+                const midX = Math.round(startX + (endX - startX) * 0.45);
+
+                const dFinal = `M ${startX} ${startY} H ${midX} V ${endY} H ${endX}`;
+                const winnerId = finalCard.getAttribute('data-winner-id');
+                const isFinalActive = Boolean(winnerId && winnerId !== 'null');
+
+                createPathElement(dFinal, isFinalActive, true, winnerId);
+            }
         }
+
+        function printBagan() {
+            drawBracketConnectors();
+            setTimeout(() => {
+                window.print();
+            }, 80);
+        }
+
+        window.addEventListener('beforeprint', () => {
+            drawBracketConnectors();
+        });
+
+        window.addEventListener('afterprint', () => {
+            fitBracketToScreen();
+            drawBracketConnectors();
+        });
 
         window.addEventListener('DOMContentLoaded', () => {
             fitBracketToScreen();
-            setTimeout(drawBracketConnectors, 250);
+            setTimeout(drawBracketConnectors, 150);
         });
+
+        window.addEventListener('load', () => {
+            drawBracketConnectors();
+        });
+
+        if (document.fonts && document.fonts.ready) {
+            document.fonts.ready.then(() => {
+                drawBracketConnectors();
+            });
+        }
 
         let resizeTimer;
         window.addEventListener('resize', () => {
@@ -725,8 +954,237 @@
             resizeTimer = setTimeout(() => {
                 fitBracketToScreen();
                 drawBracketConnectors();
-            }, 150);
+            }, 120);
         });
+
+        // ========================================================
+        // FASE 3: LOGIKA CLICK-TO-SWAP EDIT BAGAN MANUAL
+        // ========================================================
+        let isEditBaganMode = false;
+        let selectedSlot = null;
+        const listKategoriId = {{ $pertandingan->id }};
+
+        function toggleEditBaganMode(forceState) {
+            if (typeof forceState === 'boolean') {
+                isEditBaganMode = forceState;
+            } else {
+                isEditBaganMode = !isEditBaganMode;
+            }
+
+            const banner = document.getElementById('bannerEditMode');
+            const btn = document.getElementById('btnToggleEditBagan');
+            const textBtn = document.getElementById('textToggleEditBagan');
+
+            if (isEditBaganMode) {
+                document.body.classList.add('edit-mode-active');
+                if (banner) banner.classList.remove('hidden');
+                if (btn) {
+                    btn.classList.remove('bg-amber-500', 'hover:bg-amber-600');
+                    btn.classList.add('bg-slate-800', 'hover:bg-slate-900', 'ring-2', 'ring-amber-400');
+                }
+                if (textBtn) textBtn.innerText = 'Keluar Mode Edit';
+                
+                document.querySelectorAll('.edit-mode-lock-badge').forEach(el => el.classList.remove('hidden'));
+            } else {
+                cancelSelectedSlot();
+                document.body.classList.remove('edit-mode-active');
+                if (banner) banner.classList.add('hidden');
+                if (btn) {
+                    btn.classList.add('bg-amber-500', 'hover:bg-amber-600');
+                    btn.classList.remove('bg-slate-800', 'hover:bg-slate-900', 'ring-2', 'ring-amber-400');
+                }
+                if (textBtn) textBtn.innerText = 'Mode Edit Bagan';
+                
+                document.querySelectorAll('.edit-mode-lock-badge').forEach(el => el.classList.add('hidden'));
+            }
+        }
+
+        function handleSlotClick(el, event) {
+            if (!isEditBaganMode) return;
+            
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+
+            const isPlayed = el.getAttribute('data-is-played') === '1';
+            if (isPlayed) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Partai Terkunci',
+                    text: 'Partai ini sudah berlangsung atau selesai, posisinya tidak dapat diubah.',
+                    confirmButtonColor: '#d97706'
+                });
+                return;
+            }
+
+            const matchId = parseInt(el.getAttribute('data-match-id'));
+            const corner = el.getAttribute('data-corner');
+            const partai = el.getAttribute('data-partai');
+            const athleteName = el.getAttribute('data-athlete-name') || 'BYE / Kosong';
+            const athleteId = el.getAttribute('data-athlete-id');
+
+            // Klik pada slot yang sama -> Batalkan pilihan
+            if (selectedSlot && selectedSlot.matchId === matchId && selectedSlot.corner === corner) {
+                cancelSelectedSlot();
+                return;
+            }
+
+            // KLIK PERTAMA: MEMILIH SOURCE
+            if (!selectedSlot) {
+                selectedSlot = { matchId, corner, partai, athleteName, athleteId, element: el };
+                el.classList.add('slot-selected');
+                
+                const badge = document.createElement('span');
+                badge.className = 'slot-badge-selected ml-2 inline-flex items-center px-2 py-0.5 rounded text-[9px] font-black bg-amber-600 text-white shrink-0 animate-bounce';
+                badge.innerHTML = '<i class="fas fa-check mr-0.5"></i> DIPILIH';
+                el.appendChild(badge);
+
+                const badgeBanner = document.getElementById('badgeSelectedSlot');
+                if (badgeBanner) {
+                    badgeBanner.innerText = `Asal: Partai #${partai} [${corner.toUpperCase()}] - ${athleteName}`;
+                    badgeBanner.classList.remove('hidden');
+                }
+                const btnCancel = document.getElementById('btnCancelSlot');
+                if (btnCancel) btnCancel.classList.remove('hidden');
+
+                const instr = document.getElementById('editModeBannerInstruction');
+                if (instr) instr.innerText = 'Sekarang klik slot tujuan (atlet lain atau slot BYE) di bagan untuk menukar posisinya.';
+                return;
+            }
+
+            // KLIK KEDUA: MEMILIH TARGET
+            const targetSlot = { matchId, corner, partai, athleteName, athleteId, element: el };
+            const cornerLabel = (c) => (c === 'merah' ? 'Merah' : 'Putih');
+
+            Swal.fire({
+                title: 'Konfirmasi Tukar Posisi Bagan',
+                html: `
+                    <div class="text-left text-sm p-3.5 bg-slate-50 rounded-2xl border border-slate-200 shadow-inner">
+                        <div class="flex items-start gap-2.5 mb-3">
+                            <span class="w-3.5 h-3.5 rounded-full ${selectedSlot.corner === 'merah' ? 'bg-rose-600' : 'bg-blue-600'} mt-1 shrink-0"></span>
+                            <div>
+                                <div class="text-xs font-bold text-slate-500 uppercase tracking-wider">Slot Asal (Partai #${selectedSlot.partai} - Sudut ${cornerLabel(selectedSlot.corner)}):</div>
+                                <div class="font-extrabold text-base text-slate-900">${selectedSlot.athleteName}</div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-center my-2 text-amber-500">
+                            <div class="h-px bg-slate-200 flex-1"></div>
+                            <span class="px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-xs font-black flex items-center gap-1.5 border border-amber-300">
+                                <i class="fas fa-arrows-alt-v"></i> DITUKAR DENGAN
+                            </span>
+                            <div class="h-px bg-slate-200 flex-1"></div>
+                        </div>
+
+                        <div class="flex items-start gap-2.5 mt-3">
+                            <span class="w-3.5 h-3.5 rounded-full ${targetSlot.corner === 'merah' ? 'bg-rose-600' : 'bg-blue-600'} mt-1 shrink-0"></span>
+                            <div>
+                                <div class="text-xs font-bold text-slate-500 uppercase tracking-wider">Slot Tujuan (Partai #${targetSlot.partai} - Sudut ${cornerLabel(targetSlot.corner)}):</div>
+                                <div class="font-extrabold text-base text-slate-900">${targetSlot.athleteName}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-3 text-center mb-0">
+                        <i class="fas fa-shield-alt text-emerald-600 mr-1"></i> Status kemajuan babak berikutnya (BYE / partai normal) akan otomatis diselaraskan oleh sistem.
+                    </p>
+                `,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: '<i class="fas fa-check mr-1.5"></i> Ya, Tukar Posisi',
+                cancelButtonText: 'Batal',
+                confirmButtonColor: '#d97706',
+                cancelButtonColor: '#64748b',
+                reverseButtons: true,
+                focusConfirm: false
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    executeSwap(selectedSlot, targetSlot);
+                } else {
+                    cancelSelectedSlot();
+                }
+            });
+        }
+
+        function cancelSelectedSlot() {
+            if (selectedSlot && selectedSlot.element) {
+                selectedSlot.element.classList.remove('slot-selected');
+                const badge = selectedSlot.element.querySelector('.slot-badge-selected');
+                if (badge) badge.remove();
+            }
+            selectedSlot = null;
+            const badgeBanner = document.getElementById('badgeSelectedSlot');
+            if (badgeBanner) badgeBanner.classList.add('hidden');
+            const btnCancel = document.getElementById('btnCancelSlot');
+            if (btnCancel) btnCancel.classList.add('hidden');
+            const instr = document.getElementById('editModeBannerInstruction');
+            if (instr) instr.innerText = 'Klik salah satu slot peserta yang ingin ditukar, lalu klik slot tujuan untuk menukar posisinya.';
+        }
+
+        function executeSwap(source, target) {
+            Swal.fire({
+                title: 'Menyimpan Perubahan Bagan...',
+                text: 'Sedang memproses penukaran posisi dan menyelaraskan bagan...',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+            fetch('/api/randori/swap-bracket', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken || ''
+                },
+                body: JSON.stringify({
+                    id_kelas: listKategoriId,
+                    source: {
+                        match_id: source.matchId,
+                        corner: source.corner
+                    },
+                    target: {
+                        match_id: target.matchId,
+                        corner: target.corner
+                    }
+                })
+            })
+            .then(res => res.json().then(data => ({ status: res.status, ok: res.ok, data })))
+            .then(result => {
+                if (!result.ok) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal Menukar Bagan',
+                        text: result.data.message || 'Terjadi kesalahan pada server saat menukar bagan.',
+                        confirmButtonColor: '#e11d48'
+                    });
+                    cancelSelectedSlot();
+                    return;
+                }
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil Ditukar!',
+                    text: result.data.message || 'Posisi bagan berhasil diperbarui.',
+                    timer: 1500,
+                    showConfirmButton: false
+                }).then(() => {
+                    window.location.reload();
+                });
+            })
+            .catch(err => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Kesalahan Jaringan',
+                    text: 'Gagal terhubung ke server: ' + err.message,
+                    confirmButtonColor: '#e11d48'
+                });
+                cancelSelectedSlot();
+            });
+        }
     </script>
 </body>
 </html>

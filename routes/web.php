@@ -93,5 +93,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/pertandingan/{id}/peserta', [PertandinganController::class, 'getPesertaPertandingan'])->name('pertandingan.peserta');
     Route::post('/pertandingan/{id}/scoresheet', [PertandinganController::class, 'saveScoresheet'])->name('pertandingan.scoresheet');
     Route::post('/pertandingan/{id}/duel-scoresheet', [PertandinganController::class, 'saveDuelScoresheet'])->name('pertandingan.duel-scoresheet');
+
+    // Fitur Edit Bagan Pertandingan Randori Manual
+    Route::post('/pertandingan/{id}/swap-bagan', [PertandinganController::class, 'swapBracket'])->name('pertandingan.swap-bagan');
+    Route::post('/pertandingan/{id}/direct-assign-bagan', [PertandinganController::class, 'directAssignBracket'])->name('pertandingan.direct-assign-bagan');
+    Route::post('/api/randori/swap-bracket', [PertandinganController::class, 'swapBracket'])->name('api.randori.swap-bracket');
+    Route::post('/api/randori/direct-assign', [PertandinganController::class, 'directAssignBracket'])->name('api.randori.direct-assign');
 });
 

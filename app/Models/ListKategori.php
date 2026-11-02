@@ -43,6 +43,11 @@ class ListKategori extends Model
         return $this->hasMany(PesertaTerpilih::class, 'list_kategori_id', 'id');
     }
 
+    public function log_perubahan_bagans()
+    {
+        return $this->hasMany(LogPerubahanBagan::class, 'list_kategori_id', 'id')->latest();
+    }
+
     public function isBagan(): bool
     {
         return (bool) (

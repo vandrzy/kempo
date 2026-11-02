@@ -8,6 +8,37 @@
                      stripos($pertandingan->kategori->nama ?? '', 'randori') !== false ||
                      ($pertandingan->pertandingan->bagan == 1);
     @endphp
+    <style>
+        .table-edit-mode-active .table-slot,
+        .table-edit-mode-active .table-slot-b1 {
+            cursor: pointer !important;
+            transition: all 0.15s ease-in-out;
+        }
+        .table-edit-mode-active .table-slot:hover,
+        .table-edit-mode-active .table-slot-b1:hover {
+            background-color: #fefce8 !important;
+            box-shadow: inset 0 0 0 2px #f59e0b !important;
+        }
+        .table-edit-mode-active .table-slot.table-slot-selected,
+        .table-edit-mode-active .table-slot-b1.table-slot-selected {
+            background-color: #fef3c7 !important;
+            box-shadow: inset 0 0 0 3px #d97706 !important;
+        }
+        .table-edit-mode-active .table-slot.table-slot-locked,
+        .table-edit-mode-active .table-slot-b1.table-slot-locked {
+            cursor: not-allowed !important;
+            opacity: 0.55 !important;
+        }
+        .table-edit-mode-active .table-slot.table-slot-locked:hover,
+        .table-edit-mode-active .table-slot-b1.table-slot-locked:hover {
+            box-shadow: none !important;
+            background-color: inherit !important;
+        }
+        .table-edit-mode-active .table-slot.table-slot-locked .table-lock-badge,
+        .table-edit-mode-active .table-slot-b1.table-slot-locked .table-lock-badge {
+            display: inline-flex !important;
+        }
+    </style>
     <div class="space-y-6">
         <!-- Top Bar Header Card -->
         <div class="kempo-card p-6">
@@ -256,6 +287,33 @@
                                 <a href="{{ url('/pertandingan/'.$pertandingan->id.'?kegiatan_id='.$current_kegiatan_id.'&print=1') }}" target="_blank" class="btn-kempo-1 inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-xl shadow-xs hover:shadow-sm transition-all">
                                     <i class="fas fa-network-wired"></i> Buka Bagan Interaktif (Tree)
                                 </a>
+                                <button type="button" id="btnToggleTableEdit" onclick="toggleTableEditBagan()" class="btn-kempo-outline inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-xl shadow-xs hover:shadow-sm transition-all cursor-pointer">
+                                    <i class="fas fa-random text-amber-500"></i> <span id="textToggleTableEdit">Mode Edit Bagan</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Sticky/Top Banner Mode Edit Bagan Table -->
+                        <div id="tableEditBaganBanner" class="hidden mb-4 p-3.5 bg-gradient-to-r from-amber-500 via-amber-600 to-amber-500 text-white rounded-2xl shadow-sm border border-amber-600 text-xs transition-all">
+                            <div class="flex flex-col sm:flex-row items-center justify-between gap-3">
+                                <div class="flex items-center gap-2.5">
+                                    <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-white/20 text-white font-black text-xs shrink-0">
+                                        <i class="fas fa-info animate-pulse"></i>
+                                    </span>
+                                    <div>
+                                        <span class="font-bold">Mode Edit Bagan Aktif (Click-to-Swap):</span>
+                                        <span id="tableEditInstruction" class="text-amber-100 ml-1">Klik baris peserta Babak 1 yang ingin ditukar, lalu klik baris tujuan untuk menukar posisinya.</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2 shrink-0">
+                                    <span id="badgeTableSelectedSlot" class="hidden px-2.5 py-1 bg-black/25 text-amber-100 rounded-lg text-[11px] font-bold border border-white/20"></span>
+                                    <button type="button" id="btnCancelTableSlot" onclick="cancelTableSelectedSlot()" class="hidden px-2.5 py-1 bg-white hover:bg-amber-50 text-amber-900 rounded-lg text-xs font-bold transition-colors cursor-pointer shadow-xs">
+                                        <i class="fas fa-times"></i> Batal Pilih
+                                    </button>
+                                    <button type="button" onclick="toggleTableEditBagan(false)" class="px-2.5 py-1 bg-amber-700/60 hover:bg-amber-800 text-white rounded-lg text-xs font-bold transition-colors cursor-pointer border border-white/10">
+                                        Keluar Mode Edit
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
@@ -294,10 +352,18 @@
 
                                             $kiriMenang = ($a->pemenang_id && $a->pemenang_id == $a->pertandingan_peserta_kiri_id);
                                             $kananMenang = ($a->pemenang_id && $a->pemenang_id == $a->pertandingan_peserta_kanan_id);
+                                            $isPlayedThisMatch = (floatval($a->skor_kiri) > 0 || floatval($a->skor_kanan) > 0 || ($a->pemenang_id && strtoupper($a->keterangan_menang ?? '') !== 'BYE'));
                                         @endphp
 
                                         <!-- Tim Merah (Sudut Merah) -->
-                                        <tr class="bg-red-50/30 hover:bg-red-50/60 border-b border-input/60 duel-match-row" data-duel-babak="{{ $a->babak }}">
+                                        <tr class="bg-red-50/30 hover:bg-red-50/60 border-b border-input/60 duel-match-row table-slot table-slot-b1 {{ $isPlayedThisMatch ? 'table-slot-locked' : '' }}" 
+                                            data-duel-babak="{{ $a->babak }}"
+                                            data-match-id="{{ $a->id }}"
+                                            data-corner="merah"
+                                            data-partai="{{ $a->nomor_partai }}"
+                                            data-athlete-name="{{ $a->PertandinganPesertaPertama ? ($a->PertandinganPesertaPertama->Peserta->nama ?? 'Atlet') : 'BYE / Kosong' }}"
+                                            data-is-played="{{ $isPlayedThisMatch ? '1' : '0' }}"
+                                            onclick="handleTableSlotClick(this, event)">
                                             <!-- Babak & Partai (Rowspan 2) -->
                                             <td rowspan="2" class="text-center align-middle font-bold border-r border-input/60">
                                                 <div class="flex flex-col items-center gap-1">
@@ -328,6 +394,9 @@
                                                     <span class="font-bold text-sm {{ $kiriMenang ? 'text-emerald-700' : '' }}">
                                                         {{ $a->PertandinganPesertaPertama->Peserta->nama ?? 'Atlet' }}
                                                     </span>
+                                                    @if($isPlayedThisMatch)
+                                                        <span class="table-lock-badge hidden text-slate-400 text-xs ml-1.5" title="Partai sudah dimainkan / terkunci"><i class="fas fa-lock"></i></span>
+                                                    @endif
                                                     @if($kiriMenang)
                                                         <span class="ml-1.5 inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300">
                                                             ✓ MENANG
@@ -425,7 +494,14 @@
                                         </tr>
 
                                         <!-- Tim Sudut Putih -->
-                                        <tr class="bg-blue-50/30 hover:bg-blue-50/60 border-b-2 border-input duel-match-row" data-duel-babak="{{ $a->babak }}">
+                                        <tr class="bg-blue-50/30 hover:bg-blue-50/60 border-b-2 border-input duel-match-row table-slot table-slot-b1 {{ $isPlayedThisMatch ? 'table-slot-locked' : '' }}" 
+                                            data-duel-babak="{{ $a->babak }}"
+                                            data-match-id="{{ $a->id }}"
+                                            data-corner="putih"
+                                            data-partai="{{ $a->nomor_partai }}"
+                                            data-athlete-name="{{ $a->PertandinganPesertaKedua ? ($a->PertandinganPesertaKedua->Peserta->nama ?? 'Atlet') : 'BYE / Kosong' }}"
+                                            data-is-played="{{ $isPlayedThisMatch ? '1' : '0' }}"
+                                            onclick="handleTableSlotClick(this, event)">
                                             <!-- Sudut -->
                                             <td class="font-bold text-xs uppercase tracking-wide text-neutral-700">
                                                 <span class="inline-flex items-center gap-1">
@@ -444,6 +520,9 @@
                                                     <span class="font-bold text-sm {{ $kananMenang ? 'text-emerald-700' : '' }}">
                                                         {{ $a->PertandinganPesertaKedua->Peserta->nama ?? 'Atlet' }}
                                                     </span>
+                                                    @if($isPlayedThisMatch)
+                                                        <span class="table-lock-badge hidden text-slate-400 text-xs ml-1.5" title="Partai sudah dimainkan / terkunci"><i class="fas fa-lock"></i></span>
+                                                    @endif
                                                     @if($kananMenang)
                                                         <span class="ml-1.5 inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300">
                                                             ✓ MENANG
@@ -568,7 +647,7 @@
                                                 <a href="{{ url('pertandingan/'.$pertandingan->id.'?kegiatan_id='.$current_kegiatan_id.'&kabupaten_id='.($item->kabupaten->id ?? null).'&status=print&kontigen_id_1='.$item->id.'&kontigen_id_2='. (isset($item->kabupaten->KontigenPertandinganKedua->id) ? $item->kabupaten->KontigenPertandinganKedua->id : (isset($databye[$list_byte]) ? $databye[$list_byte]->id : '')) ) }}" target="_blank" class="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-2xl bg-neutral-700 text-white hover:bg-neutral-800 transition-all shadow-2xs">
                                                     <i class="fa fa-print"></i> Nilai
                                                 </a>
-                                                @if(isset($item->kabupaten))
+                                                @if(!$isRandori && isset($item->kabupaten))
                                                     <button type="button" onclick="openScoresheetModal({{ $pertandingan->id }}, {{ $item->kabupaten->id }}, '{{ addslashes($item->kabupaten->name) }}')" class="btn-kempo-4 inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold shadow-2xs hover:opacity-90 transition-all cursor-pointer">
                                                         <i class="fa fa-file-text-o"></i> Scoresheet
                                                     </button>
@@ -641,7 +720,7 @@
                                                     <a href="{{ url('pertandingan/'.$pertandingan->id.'?kegiatan_id='.$current_kegiatan_id.'&kabupaten_id='.($kabupatenId ?? null) ) }}" class="btn-kempo-4 inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold shadow-2xs hover:opacity-90 transition-all">
                                                         <i class="fa fa-eye"></i> Detail
                                                     </a>
-                                                    @if($kabupatenId)
+                                                    @if(!$isRandori && $kabupatenId)
                                                         <button type="button" onclick="openScoresheetModal({{ $pertandingan->id }}, {{ $kabupatenId }}, '{{ addslashes($kabupatenName ?? '') }}')" class="btn-kempo-4 inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold shadow-2xs hover:opacity-90 transition-all cursor-pointer">
                                                             <i class="fa fa-file-text-o"></i> Scoresheet
                                                         </button>
@@ -879,5 +958,255 @@
         }
         url.searchParams.delete('page');
         window.location.href = url.toString();
+    };
+
+    // ========================================================
+    // FASE 3: CLICK-TO-SWAP EDIT BAGAN MANUAL PADA TABEL DUEL
+    // ========================================================
+    let isTableEditMode = false;
+    let selectedTableSlot = null;
+    const tableListKategoriId = {{ $pertandingan->id }};
+
+    window.toggleTableEditBagan = function(forceState) {
+        if (typeof forceState === 'boolean') {
+            isTableEditMode = forceState;
+        } else {
+            isTableEditMode = !isTableEditMode;
+        }
+
+        const banner = document.getElementById('tableEditBaganBanner');
+        const btn = document.getElementById('btnToggleTableEdit');
+        const textBtn = document.getElementById('textToggleTableEdit');
+
+        if (isTableEditMode) {
+            document.body.classList.add('table-edit-mode-active');
+            if (banner) banner.classList.remove('hidden');
+            if (btn) {
+                btn.classList.add('bg-neutral-900', 'text-white', 'border-neutral-900');
+            }
+            if (textBtn) textBtn.innerText = 'Keluar Mode Edit';
+        } else {
+            cancelTableSelectedSlot();
+            document.body.classList.remove('table-edit-mode-active');
+            if (banner) banner.classList.add('hidden');
+            if (btn) {
+                btn.classList.remove('bg-neutral-900', 'text-white', 'border-neutral-900');
+            }
+            if (textBtn) textBtn.innerText = 'Mode Edit Bagan';
+        }
+    };
+
+    window.handleTableSlotClick = function(el, event) {
+        if (!isTableEditMode) return;
+
+        // Jika mengklik tombol aksi di kolom aksi, abaikan agar tombol tetap berfungsi
+        if (event.target.closest('button') || event.target.closest('a')) {
+            return;
+        }
+
+        const isPlayed = el.getAttribute('data-is-played') === '1';
+        if (isPlayed) {
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Partai Terkunci',
+                    text: 'Partai ini sudah berlangsung atau selesai, posisinya tidak dapat diubah.',
+                    confirmButtonColor: '#d97706'
+                });
+            } else {
+                alert('Partai ini sudah berlangsung atau selesai, posisinya tidak dapat diubah.');
+            }
+            return;
+        }
+
+        const matchId = parseInt(el.getAttribute('data-match-id'));
+        const corner = el.getAttribute('data-corner');
+        const partai = el.getAttribute('data-partai');
+        const athleteName = el.getAttribute('data-athlete-name') || 'BYE / Kosong';
+
+        // Klik slot yang sama -> Batalkan pilihan
+        if (selectedTableSlot && selectedTableSlot.matchId === matchId && selectedTableSlot.corner === corner) {
+            cancelTableSelectedSlot();
+            return;
+        }
+
+        // KLIK PERTAMA: MEMILIH SOURCE
+        if (!selectedTableSlot) {
+            selectedTableSlot = { matchId, corner, partai, athleteName, element: el };
+            el.classList.add('table-slot-selected');
+
+            const badge = document.createElement('span');
+            badge.className = 'table-badge-selected ml-2 inline-flex items-center px-2 py-0.5 rounded text-[9px] font-black bg-amber-600 text-white shrink-0 animate-bounce';
+            badge.innerHTML = '<i class="fas fa-check mr-0.5"></i> DIPILIH';
+            const nameTd = el.querySelector('td:nth-child(4)') || el;
+            nameTd.appendChild(badge);
+
+            const badgeBanner = document.getElementById('badgeTableSelectedSlot');
+            if (badgeBanner) {
+                badgeBanner.innerText = `Asal: Partai #${partai} [${corner.toUpperCase()}] - ${athleteName}`;
+                badgeBanner.classList.remove('hidden');
+            }
+            const btnCancel = document.getElementById('btnCancelTableSlot');
+            if (btnCancel) btnCancel.classList.remove('hidden');
+
+            const instr = document.getElementById('tableEditInstruction');
+            if (instr) instr.innerText = 'Sekarang klik baris tujuan (atlet lain atau slot BYE) di bagan untuk menukar posisinya.';
+            return;
+        }
+
+        // KLIK KEDUA: MEMILIH TARGET
+        const targetSlot = { matchId, corner, partai, athleteName, element: el };
+        const cornerLabel = (c) => (c === 'merah' ? 'Merah' : 'Putih');
+
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                title: 'Konfirmasi Tukar Posisi Bagan',
+                html: `
+                    <div class="text-left text-sm p-3.5 bg-neutral-50 rounded-2xl border border-input shadow-inner">
+                        <div class="flex items-start gap-2.5 mb-3">
+                            <span class="w-3.5 h-3.5 rounded-full ${selectedTableSlot.corner === 'merah' ? 'bg-red-600' : 'bg-blue-600'} mt-1 shrink-0"></span>
+                            <div>
+                                <div class="text-xs font-bold text-neutral-500 uppercase tracking-wider">Slot Asal (Partai #${selectedTableSlot.partai} - Sudut ${cornerLabel(selectedTableSlot.corner)}):</div>
+                                <div class="font-extrabold text-base text-foreground">${selectedTableSlot.athleteName}</div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-center my-2 text-amber-500">
+                            <div class="h-px bg-neutral-200 flex-1"></div>
+                            <span class="px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-xs font-black flex items-center gap-1.5 border border-amber-300">
+                                <i class="fas fa-arrows-alt-v"></i> DITUKAR DENGAN
+                            </span>
+                            <div class="h-px bg-neutral-200 flex-1"></div>
+                        </div>
+
+                        <div class="flex items-start gap-2.5 mt-3">
+                            <span class="w-3.5 h-3.5 rounded-full ${targetSlot.corner === 'merah' ? 'bg-red-600' : 'bg-blue-600'} mt-1 shrink-0"></span>
+                            <div>
+                                <div class="text-xs font-bold text-neutral-500 uppercase tracking-wider">Slot Tujuan (Partai #${targetSlot.partai} - Sudut ${cornerLabel(targetSlot.corner)}):</div>
+                                <div class="font-extrabold text-base text-foreground">${targetSlot.athleteName}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-xs text-neutral-500 mt-3 text-center mb-0">
+                        <i class="fas fa-shield-alt text-emerald-600 mr-1"></i> Status kemajuan babak berikutnya (BYE / partai normal) akan otomatis diselaraskan oleh sistem.
+                    </p>
+                `,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: '<i class="fas fa-check mr-1.5"></i> Ya, Tukar Posisi',
+                cancelButtonText: 'Batal',
+                confirmButtonColor: '#d97706',
+                cancelButtonColor: '#64748b',
+                reverseButtons: true,
+                focusConfirm: false
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    executeTableSwap(selectedTableSlot, targetSlot);
+                } else {
+                    cancelTableSelectedSlot();
+                }
+            });
+        } else {
+            if (confirm(`Tukar posisi:\n${selectedTableSlot.athleteName} (Partai #${selectedTableSlot.partai})\ndengan\n${targetSlot.athleteName} (Partai #${targetSlot.partai})?`)) {
+                executeTableSwap(selectedTableSlot, targetSlot);
+            } else {
+                cancelTableSelectedSlot();
+            }
+        }
+    };
+
+    window.cancelTableSelectedSlot = function() {
+        if (selectedTableSlot && selectedTableSlot.element) {
+            selectedTableSlot.element.classList.remove('table-slot-selected');
+            const badge = selectedTableSlot.element.querySelector('.table-badge-selected');
+            if (badge) badge.remove();
+        }
+        selectedTableSlot = null;
+        const badgeBanner = document.getElementById('badgeTableSelectedSlot');
+        if (badgeBanner) badgeBanner.classList.add('hidden');
+        const btnCancel = document.getElementById('btnCancelTableSlot');
+        if (btnCancel) btnCancel.classList.add('hidden');
+        const instr = document.getElementById('tableEditInstruction');
+        if (instr) instr.innerText = 'Klik pada baris peserta yang ingin ditukar, lalu klik baris tujuan untuk menukar posisinya.';
+    };
+
+    window.executeTableSwap = function(source, target) {
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                title: 'Menyimpan Perubahan Bagan...',
+                text: 'Sedang memproses penukaran posisi dan menyelaraskan bagan...',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+        }
+
+        const csrfToken = $('meta[name="csrf-token"]').attr('content') || $('input[name="_token"]').val();
+
+        fetch('/api/randori/swap-bracket', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': csrfToken || ''
+            },
+            body: JSON.stringify({
+                id_kelas: tableListKategoriId,
+                source: {
+                    match_id: source.matchId,
+                    corner: source.corner
+                },
+                target: {
+                    match_id: target.matchId,
+                    corner: target.corner
+                }
+            })
+        })
+        .then(res => res.json().then(data => ({ status: res.status, ok: res.ok, data })))
+        .then(result => {
+            if (!result.ok) {
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal Menukar Bagan',
+                        text: result.data.message || 'Terjadi kesalahan pada server saat menukar bagan.',
+                        confirmButtonColor: '#e11d48'
+                    });
+                } else {
+                    alert('Gagal menukar bagan: ' + (result.data.message || 'Terjadi kesalahan'));
+                }
+                cancelTableSelectedSlot();
+                return;
+            }
+
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil Ditukar!',
+                    text: result.data.message || 'Posisi bagan berhasil diperbarui.',
+                    timer: 1500,
+                    showConfirmButton: false
+                }).then(() => {
+                    window.location.reload();
+                });
+            } else {
+                alert('Posisi bagan berhasil diperbarui!');
+                window.location.reload();
+            }
+        })
+        .catch(err => {
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Kesalahan Jaringan',
+                    text: 'Gagal terhubung ke server: ' + err.message,
+                    confirmButtonColor: '#e11d48'
+                });
+            } else {
+                alert('Gagal terhubung ke server: ' + err.message);
+            }
+            cancelTableSelectedSlot();
+        });
     };
 @endsection
