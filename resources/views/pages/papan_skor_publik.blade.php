@@ -277,13 +277,13 @@
                     <!-- Header Sudut Merah -->
                     <div class="bg-red-600 text-white px-3.5 py-1.5 flex items-center justify-between shadow-sm flex-shrink-0">
                         <span class="font-extrabold text-xs sm:text-sm uppercase tracking-wider">
-                            SUDUT MERAH
+                            PITA MERAH
                         </span>
                     </div>
 
                     <!-- Profil Atlet Merah -->
                     <div class="py-2 px-3 text-center flex-shrink-0 border-b border-slate-100 bg-red-50/25">
-                        <h2 id="randoriNamaKiri" class="text-base sm:text-xl md:text-2xl font-black text-slate-800 truncate tracking-tight">
+                        <h2 id="randoriNamaKiri" class="text-base sm:text-xl md:text-2xl lg:text-3xl xl:text-5xl font-black text-slate-800 truncate tracking-tight">
                             -
                         </h2>
                         <div class="mt-0.5 flex items-center justify-center">
@@ -296,7 +296,7 @@
 
                     <!-- Display Skor Raksasa Merah -->
                     <div class="flex-1 flex items-center justify-center p-2 min-h-0 bg-white overflow-hidden">
-                        <div id="randoriSkorKiri" class="score-font font-black text-red-600 randori-score-digits text-[2rem] sm:text-[4rem] md:text-[15rem] lg:text-[50vh] xl:text-[55vh] leading-none select-none">
+                        <div id="randoriSkorKiri" class="score-font font-black text-red-600 randori-score-digits text-[2rem] sm:text-[4rem] md:text-[15rem] lg:text-[50vh] xl:text-[60vh] leading-none select-none">
                             0
                         </div>
                     </div>
@@ -312,13 +312,13 @@
                     <!-- Header Sudut Putih -->
                     <div class="bg-blue-600 text-white px-3.5 py-1.5 flex items-center justify-between shadow-sm flex-shrink-0">
                         <span class="font-extrabold text-xs sm:text-sm uppercase tracking-wider">
-                            SUDUT PUTIH
+                            PITA PUTIH
                         </span>
                     </div>
 
                     <!-- Profil Atlet Putih -->
                     <div class="py-2 px-3 text-center flex-shrink-0 border-b border-slate-100 bg-blue-50/25">
-                        <h2 id="randoriNamaKanan" class="text-base sm:text-xl md:text-2xl font-black text-slate-800 truncate tracking-tight">
+                        <h2 id="randoriNamaKanan" class="text-base sm:text-xl md:text-2xl lg:text-3xl xl:text-5xl font-black text-slate-800 truncate tracking-tight">
                             -
                         </h2>
                         <div class="mt-0.5 flex items-center justify-center">
@@ -331,7 +331,7 @@
 
                     <!-- Display Skor Raksasa Biru -->
                     <div class="flex-1 flex items-center justify-center p-2 min-h-0 bg-white overflow-hidden">
-                        <div id="randoriSkorKanan" class="score-font font-black text-blue-600 randori-score-digits text-[2rem] sm:text-[4rem] md:text-[15rem] lg:text-[50vh] xl:text-[55vh] leading-none select-none">
+                        <div id="randoriSkorKanan" class="score-font font-black text-blue-600 randori-score-digits text-[2rem] sm:text-[4rem] md:text-[15rem] lg:text-[50vh] xl:text-[60vh] leading-none select-none">
                             0
                         </div>
                     </div>
