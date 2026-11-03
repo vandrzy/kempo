@@ -178,9 +178,9 @@
             <td class="info-colon">:</td>
             <td class="info-val font-bold">{{ $listKategori->kegiatan->nama ?? '-' }}</td>
 
-            <td class="info-label">Tatami</td>
+            <td class="info-label">Court</td>
             <td class="info-colon">:</td>
-            <td class="info-val font-bold">{{ $scoresheet['tatami'] ?? '-' }}</td>
+            <td class="info-val font-bold">A / B</td>
         </tr>
         <tr>
             <td class="info-label">Kategori</td>
@@ -213,8 +213,8 @@
         <thead>
             <tr>
                 <th rowspan="2" style="width: 25px;">No.</th>
-                <th rowspan="2" style="width: 120px;">Kontingen</th>
                 <th rowspan="2">Nama Kenshi / Peserta</th>
+                <th rowspan="2" style="width: 120px;">Kontingen</th>
                 <th colspan="5">Nilai Wasit / Juri</th>
                 <th rowspan="2" class="col-score">Denda (Minus)</th>
                 <th rowspan="2" class="col-total">Total Nilai</th>
@@ -237,8 +237,8 @@
                 @foreach($entries as $index => $row)
                     <tr>
                         <td class="text-center">{{ $loop->iteration }}</td>
-                        <td class="font-bold">{{ $row['kontingen'] ?? '-' }}</td>
                         <td>{{ $row['peserta'] ?? '-' }}</td>
+                        <td class="font-bold">{{ $row['kontingen'] ?? '-' }}</td>
                         <td class="text-center">{{ $row['juri_1'] ?? '' }}</td>
                         <td class="text-center">{{ $row['juri_2'] ?? '' }}</td>
                         <td class="text-center">{{ $row['juri_3'] ?? '' }}</td>
@@ -373,9 +373,9 @@
                 <td class="info-colon">:</td>
                 <td class="info-val font-bold">{{ $listKategori->kegiatan->nama ?? '-' }}</td>
 
-                <td class="info-label">Tatami</td>
+                <td class="info-label">Court</td>
                 <td class="info-colon">:</td>
-                <td class="info-val font-bold">{{ $scoresheet['tatami'] ?? '-' }}</td>
+                <td class="info-val font-bold">A / B</td>
             </tr>
             <tr>
                 <td class="info-label">Kategori</td>
@@ -408,8 +408,8 @@
             <thead>
                 <tr>
                     <th rowspan="2" style="width: 25px;">No.</th>
-                    <th rowspan="2" style="width: 130px;">Kontingen</th>
                     <th rowspan="2">Nama Kenshi / Peserta</th>
+                    <th rowspan="2" style="width: 130px;">Kontingen</th>
                     <th colspan="5">Nilai Wasit / Juri</th>
                     <th rowspan="2" class="col-score">Denda (Minus)</th>
                     <th rowspan="2" class="col-total">Total Nilai Babak 1</th>
@@ -426,8 +426,8 @@
                 @forelse($dataBabak1 as $index => $row)
                     <tr>
                         <td class="text-center">{{ $loop->iteration }}</td>
-                        <td class="font-bold">{{ $row['kontingen'] ?? '-' }}</td>
                         <td>{{ $row['nama'] ?? '-' }}</td>
+                        <td class="font-bold">{{ $row['kontingen'] ?? '-' }}</td>
                         <td class="text-center">{{ $row['juri_1'] ?? '' }}</td>
                         <td class="text-center">{{ $row['juri_2'] ?? '' }}</td>
                         <td class="text-center">{{ $row['juri_3'] ?? '' }}</td>
@@ -460,9 +460,9 @@
                 <td class="info-colon">:</td>
                 <td class="info-val font-bold">{{ $listKategori->kegiatan->nama ?? '-' }}</td>
 
-                <td class="info-label">Tatami</td>
+                <td class="info-label">Court</td>
                 <td class="info-colon">:</td>
-                <td class="info-val font-bold">{{ $scoresheet['tatami'] ?? '-' }}</td>
+                <td class="info-val font-bold">A / B</td>
             </tr>
             <tr>
                 <td class="info-label">Kategori</td>
@@ -495,8 +495,8 @@
             <thead>
                 <tr>
                     <th rowspan="2" style="width: 25px;">No.</th>
-                    <th rowspan="2" style="width: 130px;">Kontingen</th>
                     <th rowspan="2">Nama Kenshi / Peserta</th>
+                    <th rowspan="2" style="width: 130px;">Kontingen</th>
                     <th colspan="5">Nilai Wasit / Juri</th>
                     <th rowspan="2" class="col-score">Denda (Minus)</th>
                     <th rowspan="2" class="col-total">Total Nilai Babak 2</th>
@@ -513,8 +513,8 @@
                 @forelse($dataBabak2 as $index => $row)
                     <tr>
                         <td class="text-center">{{ $loop->iteration }}</td>
-                        <td class="font-bold">{{ $row['kontingen'] ?? '-' }}</td>
                         <td>{{ $row['nama'] ?? '-' }}</td>
+                        <td class="font-bold">{{ $row['kontingen'] ?? '-' }}</td>
                         <td class="text-center">{{ $row['juri_1'] ?? '' }}</td>
                         <td class="text-center">{{ $row['juri_2'] ?? '' }}</td>
                         <td class="text-center">{{ $row['juri_3'] ?? '' }}</td>
@@ -547,9 +547,9 @@
                 <td class="info-colon">:</td>
                 <td class="info-val font-bold">{{ $listKategori->kegiatan->nama ?? '-' }}</td>
 
-                <td class="info-label">Tatami</td>
+                <td class="info-label">Court</td>
                 <td class="info-colon">:</td>
-                <td class="info-val font-bold">{{ $scoresheet['tatami'] ?? '-' }}</td>
+                <td class="info-val font-bold">A / B</td>
             </tr>
             <tr>
                 <td class="info-label">Kategori</td>
@@ -582,8 +582,8 @@
             <thead>
                 <tr>
                     <th style="width: 25px;">No.</th>
-                    <th style="width: 140px;">Kontingen</th>
                     <th>Nama Atlet / Anggota</th>
+                    <th style="width: 140px;">Kontingen</th>
                     <th style="width: 75px;" class="text-center">Nilai Babak 1</th>
                     <th style="width: 75px;" class="text-center">Nilai Babak 2</th>
                     <th style="width: 75px;" class="col-total">Nilai Akhir</th>
@@ -594,8 +594,8 @@
                 @forelse($dataNilaiAkhir as $index => $row)
                     <tr>
                         <td class="text-center">{{ $loop->iteration }}</td>
-                        <td class="font-bold">{{ $row['kontingen'] ?? '-' }}</td>
                         <td>{{ $row['nama'] ?? '-' }}</td>
+                        <td class="font-bold">{{ $row['kontingen'] ?? '-' }}</td>
                         <td class="text-center font-bold">{{ $row['nilai_babak_1'] ?? '-' }}</td>
                         <td class="text-center font-bold">{{ $row['nilai_babak_2'] ?? '-' }}</td>
                         <td class="col-total">{{ $row['nilai_akhir'] ?? '-' }}</td>
