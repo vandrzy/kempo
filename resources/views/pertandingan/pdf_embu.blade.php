@@ -411,6 +411,8 @@
                     <th rowspan="2">Nama Kenshi / Peserta</th>
                     <th rowspan="2" style="width: 130px;">Kontingen</th>
                     <th colspan="5">Nilai Wasit / Juri</th>
+                    <th rowspan="2" class="col-score-base">Nilai Awal</th>
+                    <th rowspan="2" class="col-time">Waktu</th>
                     <th rowspan="2" class="col-score">Denda (Minus)</th>
                     <th rowspan="2" class="col-total">Total Nilai Babak 1</th>
                 </tr>
@@ -433,6 +435,8 @@
                         <td class="text-center">{{ $row['juri_3'] ?? '' }}</td>
                         <td class="text-center">{{ $row['juri_4'] ?? '' }}</td>
                         <td class="text-center">{{ $row['juri_5'] ?? '' }}</td>
+                        <td class="text-center">{{ (int)$row['total'] + (int)$row['hukuman'] ?? '-' }}</td>
+                        <td class="text-center">{{ $row['waktu'] ?? '--:--' }}</td>
                         <td class="text-center text-red">{{ $row['hukuman'] ?? '0' }}</td>
                         <td class="col-total">{{ $row['total'] ?? '' }}</td>
                     </tr>
@@ -498,6 +502,8 @@
                     <th rowspan="2">Nama Kenshi / Peserta</th>
                     <th rowspan="2" style="width: 130px;">Kontingen</th>
                     <th colspan="5">Nilai Wasit / Juri</th>
+                    <th rowspan="2" class="col-score-base">Nilai Awal</th>
+                    <th rowspan="2" class="col-time">Waktu</th>
                     <th rowspan="2" class="col-score">Denda (Minus)</th>
                     <th rowspan="2" class="col-total">Total Nilai Babak 2</th>
                 </tr>
@@ -520,6 +526,8 @@
                         <td class="text-center">{{ $row['juri_3'] ?? '' }}</td>
                         <td class="text-center">{{ $row['juri_4'] ?? '' }}</td>
                         <td class="text-center">{{ $row['juri_5'] ?? '' }}</td>
+                        <td class="text-center">{{ $row['total'] ?? '-' }}</td>
+                        <td class="text-center">{{ $row['waktu'] ?? '--:--' }}</td>
                         <td class="text-center text-red">{{ $row['hukuman'] ?? '0' }}</td>
                         <td class="col-total">{{ $row['total'] ?? '' }}</td>
                     </tr>

@@ -1419,6 +1419,7 @@ class PertandinganController extends Controller
                 $b1_n4 = $b1Items->pluck('nilai_4')->filter(fn($v) => !is_null($v) && $v !== '')->first();
                 $b1_n5 = $b1Items->pluck('nilai_5')->filter(fn($v) => !is_null($v) && $v !== '')->first();
                 $b1_minus = $b1Items->pluck('minus')->filter(fn($v) => !is_null($v) && $v !== '')->first();
+                $b1_time = $b1Items->pluck('waktu')->filter(fn($v) => !is_null($v) && $v !== '')->first();
                 $b1_total = $b1Items->pluck('total_nilai')->filter(fn($v) => !is_null($v) && $v !== '')->first()
                     ?? $b1Items->pluck('total_babak_1')->filter(fn($v) => !is_null($v) && $v !== '')->first();
 
@@ -1431,6 +1432,7 @@ class PertandinganController extends Controller
                         $b1_n4 = $foundJ['juri_4'] ?? $b1_n4;
                         $b1_n5 = $foundJ['juri_5'] ?? $b1_n5;
                         $b1_minus = $foundJ['hukuman'] ?? $b1_minus;
+                        $b1_time = $foundJ['time'] ?? $b1_time;
                         $b1_total = $foundJ['total'] ?? $b1_total;
                     }
                 }
@@ -1443,6 +1445,7 @@ class PertandinganController extends Controller
                 $b2_n4 = $b2Items->pluck('nilai_4')->filter(fn($v) => !is_null($v) && $v !== '')->first();
                 $b2_n5 = $b2Items->pluck('nilai_5')->filter(fn($v) => !is_null($v) && $v !== '')->first();
                 $b2_minus = $b2Items->pluck('minus')->filter(fn($v) => !is_null($v) && $v !== '')->first();
+                $b2_time = $b2Items->pluck('waktu')->filter(fn($v) => !is_null($v) && $v !== '')->first();
                 $b2_total = $b2Items->pluck('total_nilai')->filter(fn($v) => !is_null($v) && $v !== '')->first()
                     ?? $b2Items->pluck('total_babak_2')->filter(fn($v) => !is_null($v) && $v !== '')->first();
 
@@ -1455,6 +1458,7 @@ class PertandinganController extends Controller
                         $b2_n4 = $foundJ2['juri_4'] ?? $b2_n4;
                         $b2_n5 = $foundJ2['juri_5'] ?? $b2_n5;
                         $b2_minus = $foundJ2['hukuman'] ?? $b2_minus;
+                        $b2_time = $foundJ2['waktu'] ?? $b2_time;
                         $b2_total = $foundJ2['total'] ?? $b2_total;
                     }
                 }
@@ -1484,6 +1488,7 @@ class PertandinganController extends Controller
                     'hukuman'   => $b1_minus,
                     'total'     => $b1_total,
                     'urutan'    => $first->urutan ?? 0,
+                    'waktu'     => $b1_time,
                 ];
 
                 $dataBabak2[] = [
@@ -1497,6 +1502,7 @@ class PertandinganController extends Controller
                     'hukuman'   => $b2_minus,
                     'total'     => $b2_total,
                     'urutan'    => $first->urutan ?? 0,
+                    'waktu'     => $b2_time,
                 ];
 
                 $dataNilaiAkhir[] = [
