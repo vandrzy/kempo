@@ -130,6 +130,7 @@ class PertandinganController extends Controller
         $data['isRandori'] = $isRandori;
 
         if ($isRandori) {
+            $this->syncByeAdvancements($id);
             $is_diacak = PesertaTerpilih::where('list_kategori_id', $id)->exists();
             $data['is_diacak'] = $is_diacak;
             $data['peserta_ready'] = $is_diacak ? 0 : PertandinganPeserta::where('list_kategori_id', $id)->count();
@@ -4005,6 +4006,72 @@ class PertandinganController extends Controller
         }
 
         return false;
+    }
+
+    /**
+     * Restore missing next-round slots for BYE winners in existing brackets.
+     */
+    private function syncByeAdvancements($listKategoriId): void
+    {
+        DB::transaction(function () use ($listKategoriId) {
+            $totalPeserta = PertandinganPeserta::where('list_kategori_id', $listKategoriId)->count();
+            $slotCount = pow(2, ceil(log(max(2, $totalPeserta), 2)));
+            $totalBabak = max(
+                (int) log($slotCount, 2),
+                (int) (PesertaTerpilih::where('list_kategori_id', $listKategoriId)->max('babak') ?? 1)
+            );
+
+            $byeMatches = PesertaTerpilih::where('list_kategori_id', $listKategoriId)
+                ->where('keterangan_menang', 'BYE')
+                ->whereNotNull('pemenang_id')
+                ->orderBy('babak')
+                ->orderBy('nomor_partai')
+                ->lockForUpdate()
+                ->get();
+
+            foreach ($byeMatches as $match) {
+                if ((int) $match->babak >= $totalBabak) {
+                    continue;
+                }
+
+                $nextCoord = $match->getNextMatchCoordinates();
+                $nextMatch = PesertaTerpilih::where('list_kategori_id', $listKategoriId)
+                    ->where('babak', $nextCoord['babak'])
+                    ->where('nomor_partai', $nextCoord['nomor_partai'])
+                    ->lockForUpdate()
+                    ->first();
+
+                if (!$nextMatch) {
+                    continue;
+                }
+
+                $slot = $nextCoord['sudut'] === 'kiri'
+                    ? 'pertandingan_peserta_kiri_id'
+                    : 'pertandingan_peserta_kanan_id';
+                $winnerId = $match->pemenang_id;
+
+                if ($nextMatch->{$slot} == $winnerId) {
+                    continue;
+                }
+
+                if ($nextMatch->{$slot} !== null || $this->isMatchActiveOrCompleted($nextMatch)) {
+                    Log::warning('Tidak dapat menyelaraskan BYE ke slot babak berikutnya karena slot sudah terisi atau partai sudah dimainkan.', [
+                        'list_kategori_id' => $listKategoriId,
+                        'bye_match_id' => $match->id,
+                        'next_match_id' => $nextMatch->id,
+                        'winner_id' => $winnerId,
+                    ]);
+                    continue;
+                }
+
+                $nextMatch->{$slot} = $winnerId;
+                $nextMatch->save();
+
+                PertandinganPeserta::where('id', $winnerId)
+                    ->where('list_kategori_id', $listKategoriId)
+                    ->update(['babak' => $nextCoord['babak']]);
+            }
+        });
     }
 
     /**

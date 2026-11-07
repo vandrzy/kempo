@@ -127,32 +127,31 @@ class PesertaTerpilih extends Model
         $currentPartai = (int) ($this->nomor_partai ?: 1);
         $currentBabak = (int) ($this->babak ?: 1);
 
-        // Kasus khusus bagan 6 peserta dengan dua partai BYE tambahan di Babak 1.
+        // Kasus khusus bagan 6 peserta dengan dua BYE pada babak 1.
+        // Kondisi ini tidak boleh memotong bracket 8 peserta / 4 peserta yang mengikuti
+        // aturan pohon eliminasi standar.
         if ($currentBabak === 1 && $this->list_kategori_id) {
-            $b1Count = self::where('list_kategori_id', $this->list_kategori_id)->where('babak', 1)->count();
-            $b2Count = self::where('list_kategori_id', $this->list_kategori_id)->where('babak', 2)->count();
-            if ($b1Count === 4 && $b2Count === 2) {
-                if ($currentPartai <= 2) {
+            $totalPeserta = PertandinganPeserta::where('list_kategori_id', $this->list_kategori_id)->count();
+
+            if ($totalPeserta === 6) {
+                $b1Count = self::where('list_kategori_id', $this->list_kategori_id)->where('babak', 1)->count();
+                $b2Count = self::where('list_kategori_id', $this->list_kategori_id)->where('babak', 2)->count();
+
+                if ($b1Count === 4 && $b2Count === 2) {
+                    if ($currentPartai <= 2) {
+                        return [
+                            'babak'        => 2,
+                            'nomor_partai' => $currentPartai,
+                            'sudut'        => 'kiri',
+                        ];
+                    }
+
                     return [
                         'babak'        => 2,
-                        'nomor_partai' => $currentPartai,
-                        'sudut'        => 'kiri',
+                        'nomor_partai' => $currentPartai - 2,
+                        'sudut'        => 'kanan',
                     ];
                 }
-
-                return [
-                    'babak'        => 2,
-                    'nomor_partai' => $currentPartai - 2,
-                    'sudut'        => 'kanan',
-                ];
-            }
-
-            if ($b1Count === 2 && $b2Count === 2) {
-                return [
-                    'babak'        => 2,
-                    'nomor_partai' => $currentPartai,
-                    'sudut'        => 'kiri',
-                ];
             }
         }
 
@@ -174,16 +173,20 @@ class PesertaTerpilih extends Model
             return 'Belum Ada';
         }
 
-        // Kasus khusus bagan 6 peserta (Babak 2 ada 2 partai dan Babak 1 ada 2 partai)
-        // Partai 1 Babak 2 (Semifinal 1) menunggu Babak 1 Partai 1
-        // Partai 2 Babak 2 (Semifinal 2) menunggu Babak 1 Partai 2
+        // Kasus khusus bagan 6 peserta: dua slot BYE di Babak 1 memindahkan pemenang
+        // ke babak 2 dengan pola yang berbeda dari aturan pohon eliminasi standar.
         if ($babak === 2 && $this->list_kategori_id) {
-            $b1Count = self::where('list_kategori_id', $this->list_kategori_id)->where('babak', 1)->count();
-            $b2Count = self::where('list_kategori_id', $this->list_kategori_id)->where('babak', 2)->count();
-            if ($b1Count === 2 && $b2Count === 2) {
-                if ($corner === 'kiri') {
-                    return "Menunggu Pemenang Babak 1 Partai #{$this->nomor_partai}";
-                }
+            $totalPeserta = PertandinganPeserta::where('list_kategori_id', $this->list_kategori_id)->count();
+            if ($totalPeserta === 6) {
+                $sourcePartai = match ([$this->nomor_partai, $corner]) {
+                    [1, 'kiri']  => 1,
+                    [1, 'kanan'] => 2,
+                    [2, 'kiri']  => 3,
+                    [2, 'kanan'] => 4,
+                    default      => 1,
+                };
+
+                return "Menunggu Pemenang Babak 1 Partai #{$sourcePartai}";
             }
         }
 
