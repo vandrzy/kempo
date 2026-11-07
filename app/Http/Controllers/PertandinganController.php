@@ -798,6 +798,13 @@ class PertandinganController extends Controller
                 return ['error' => 'Data peserta pada nomor undian ini tidak lengkap.', 'changed' => false];
             }
 
+            if ((int) $pesertaDipilih->babak !== (int) $pesertaTujuan->babak) {
+                return [
+                    'error' => 'Nomor undian hanya dapat ditukar dengan peserta pada babak yang sama.',
+                    'changed' => false,
+                ];
+            }
+
             $matches = PesertaTerpilih::where('list_kategori_id', $id)
                 ->lockForUpdate()
                 ->get();
@@ -811,17 +818,13 @@ class PertandinganController extends Controller
                 }
             }
 
-            $babakDipilih = $pesertaDipilih->babak;
-            $babakTujuan = $pesertaTujuan->babak;
             $pesertaDipilih->urutan = ((int) $semuaPeserta->max('urutan')) + 1;
             $pesertaDipilih->save();
 
             $pesertaTujuan->urutan = $nomorLama;
-            $pesertaTujuan->babak = $babakDipilih;
             $pesertaTujuan->save();
 
             $pesertaDipilih->urutan = $nomorBaru;
-            $pesertaDipilih->babak = $babakTujuan;
             $pesertaDipilih->save();
 
             foreach ($matches as $match) {
@@ -3596,6 +3599,14 @@ class PertandinganController extends Controller
                 return response()->json([
                     'status'  => 'error',
                     'message' => 'Kedua pertandingan harus berada pada kategori bagan yang sama.',
+                ], 422);
+            }
+
+            if ((int) $sourceMatch->babak !== (int) $targetMatch->babak) {
+                DB::rollBack();
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => 'Posisi hanya dapat ditukar dengan atlet atau slot BYE pada babak yang sama.',
                 ], 422);
             }
 

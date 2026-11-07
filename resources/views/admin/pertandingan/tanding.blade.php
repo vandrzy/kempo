@@ -302,7 +302,7 @@
                                     </span>
                                     <div>
                                         <span class="font-bold">Mode Edit Bagan Aktif (Click-to-Swap):</span>
-                                        <span id="tableEditInstruction" class="text-amber-100 ml-1">Klik baris peserta Babak 1 yang ingin ditukar, lalu klik baris tujuan untuk menukar posisinya.</span>
+                                        <span id="tableEditInstruction" class="text-amber-100 ml-1">Klik baris peserta yang ingin ditukar, lalu klik slot tujuan pada babak yang sama.</span>
                                     </div>
                                 </div>
                                 <div class="flex items-center gap-2 shrink-0">
@@ -340,14 +340,16 @@
                                 </thead>
                                 <tbody>
                                     @php
-                                        $jumlahPesertaUndian = $kolom1->count();
+                                        $jumlahPesertaUndian = $totalPesertaKategori;
                                         $jumlahSlotUndian = $isRandori
                                             ? (int) pow(2, ceil(log(max(2, $jumlahPesertaUndian), 2)))
                                             : 0;
                                         $jumlahPartaiBabak1 = max(0, $jumlahPesertaUndian - intdiv($jumlahSlotUndian, 2));
+                                        $babakSebelumnya = null;
                                     @endphp
                                     @forelse ($peserta_lawan as $a)
                                         @php
+                                            $babakBaru = $babakSebelumnya !== (int) $a->babak;
                                             $isReady = $a->pertandingan_peserta_kiri_id && $a->pertandingan_peserta_kanan_id;
                                             $isBye = $a->keterangan_menang === 'BYE'
                                                 && (bool) $a->pertandingan_peserta_kiri_id !== (bool) $a->pertandingan_peserta_kanan_id;
@@ -356,14 +358,14 @@
                                                 : ($isBye
                                                     ? ($a->nomor_partai > $jumlahPartaiBabak1
                                                         ? $jumlahPesertaUndian + $a->nomor_partai - $jumlahPartaiBabak1
-                                                        : 'BYE')
+                                                        : (($a->nomor_partai - 1) * 2) + 1)
                                                     : '-');
                                             $nomorUndianPutih = $a->PertandinganPesertaKedua
                                                 ? $a->PertandinganPesertaKedua->urutan + 1
                                                 : ($isBye
                                                     ? ($a->nomor_partai > $jumlahPartaiBabak1
                                                         ? $jumlahPesertaUndian + $a->nomor_partai - $jumlahPartaiBabak1
-                                                        : 'BYE')
+                                                        : (($a->nomor_partai - 1) * 2) + 2)
                                                     : '-');
                                             
                                             $namaBabak = 'Babak ' . $a->babak;
@@ -374,11 +376,20 @@
                                             } elseif ($totalBabakKategori >= 3 && $a->babak == $totalBabakKategori - 2) {
                                                 $namaBabak = 'Perempatfinal';
                                             }
+                                            $babakSebelumnya = (int) $a->babak;
 
                                             $kiriMenang = ($a->pemenang_id && $a->pemenang_id == $a->pertandingan_peserta_kiri_id);
                                             $kananMenang = ($a->pemenang_id && $a->pemenang_id == $a->pertandingan_peserta_kanan_id);
                                             $isPlayedThisMatch = (floatval($a->skor_kiri) > 0 || floatval($a->skor_kanan) > 0 || ($a->pemenang_id && strtoupper($a->keterangan_menang ?? '') !== 'BYE'));
                                         @endphp
+
+                                        @if($babakBaru)
+                                            <tr class="bg-slate-100 border-y-2 border-slate-300">
+                                                <th colspan="{{ $isRandori ? 11 : 10 }}" class="px-4 py-2 text-left text-xs font-black uppercase tracking-wider text-slate-700">
+                                                    {{ $namaBabak }}
+                                                </th>
+                                            </tr>
+                                        @endif
 
                                         <!-- Tim Merah (Sudut Merah) -->
                                         <tr class="bg-red-50/30 hover:bg-red-50/60 border-b border-input/60 duel-match-row table-slot table-slot-b1 {{ $isPlayedThisMatch ? 'table-slot-locked' : '' }}" 
@@ -1090,8 +1101,8 @@
         const athleteId = el.getAttribute('data-athlete-id');
         const isByeSlot = el.getAttribute('data-bye-slot') === '1';
 
-        // Mencegah memilih slot kosong di babak lanjutan yang menunggu pemenang partai sebelumnya
-        if ((!athleteId || athleteId === 'null') && babak > 1) {
+        // Empty slots in later rounds are reserved for winners of earlier matches.
+        if ((!athleteId || athleteId === 'null') && babak > 1 && !isByeSlot) {
             if (typeof Swal !== 'undefined') {
                 Swal.fire({
                     icon: 'info',
@@ -1105,16 +1116,6 @@
             return;
         }
 
-        if (isByeSlot && !selectedTableSlot) {
-            const message = 'Pilih atlet di Babak 1 terlebih dahulu, lalu pilih slot BYE yang ingin diisi.';
-            if (typeof Swal !== 'undefined') {
-                Swal.fire({ icon: 'info', title: 'Pilih Atlet', text: message, confirmButtonColor: '#3b82f6' });
-            } else {
-                alert(message);
-            }
-            return;
-        }
-
         // Klik slot yang sama -> Batalkan pilihan
         if (selectedTableSlot && selectedTableSlot.matchId === matchId && selectedTableSlot.corner === corner) {
             cancelTableSelectedSlot();
@@ -1123,8 +1124,8 @@
 
         // KLIK PERTAMA: MEMILIH SOURCE
         if (!selectedTableSlot) {
-            if (!athleteId || athleteId === 'null') {
-                const message = 'Pilih baris atlet terlebih dahulu sebelum memilih slot tujuan.';
+            if ((!athleteId || athleteId === 'null') && !isByeSlot) {
+                const message = 'Pilih atlet atau slot BYE terlebih dahulu.';
                 if (typeof Swal !== 'undefined') {
                     Swal.fire({ icon: 'info', title: 'Pilih Atlet', text: message, confirmButtonColor: '#3b82f6' });
                 } else {
@@ -1150,19 +1151,18 @@
             if (btnCancel) btnCancel.classList.remove('hidden');
 
             const instr = document.getElementById('tableEditInstruction');
-            if (instr) instr.innerText = 'Sekarang klik baris tujuan (atlet lain atau slot BYE) di bagan untuk menukar posisinya.';
+            if (instr) instr.innerText = 'Sekarang klik atlet lain atau slot BYE pada babak yang sama.';
             return;
         }
 
         // KLIK KEDUA: MEMILIH TARGET
-        if (isByeSlot && selectedTableSlot.babak !== 1) {
-            const message = 'Slot BYE hanya dapat diisi dengan atlet yang dipilih dari Babak 1.';
+        if (selectedTableSlot.babak !== babak) {
+            const message = 'Posisi hanya dapat ditukar dengan atlet atau slot BYE pada babak yang sama.';
             if (typeof Swal !== 'undefined') {
                 Swal.fire({ icon: 'warning', title: 'Babak Tidak Sesuai', text: message, confirmButtonColor: '#d97706' });
             } else {
                 alert(message);
             }
-            cancelTableSelectedSlot();
             return;
         }
 
@@ -1248,7 +1248,7 @@
         const btnCancel = document.getElementById('btnCancelTableSlot');
         if (btnCancel) btnCancel.classList.add('hidden');
         const instr = document.getElementById('tableEditInstruction');
-        if (instr) instr.innerText = 'Klik pada baris peserta yang ingin ditukar, lalu klik baris tujuan untuk menukar posisinya.';
+        if (instr) instr.innerText = 'Klik baris peserta yang ingin ditukar, lalu klik slot tujuan pada babak yang sama.';
     };
 
     window.executeTableSwap = function(source, target) {
