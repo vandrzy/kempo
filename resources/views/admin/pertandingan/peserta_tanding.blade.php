@@ -162,7 +162,7 @@
 
     <!-- Header Dokumen -->
     <div class="header-title">
-        <h2>PERSAUDARAAN BELADIRI SHORINJI KEMPO (PERKEMI)</h2>
+        <h2>PERSAUDARAAN SHORINJI KEMPO INDONESIA (PERKEMI)</h2>
         <h3>BAGAN PERTANDINGAN &amp; PASANGAN LAWAN RANDORI</h3>
     </div>
 
@@ -261,7 +261,7 @@
                         @if($a->PertandinganPesertaPertama)
                             <strong style="{{ $kiriMenang ? 'color: #15803d;' : '' }}">{{ $atletMerah->nama ?? 'Atlet Merah' }}</strong>
                             @if($kiriMenang)
-                                <span class="badge-menang">✓ MENANG</span>
+                                <span class="badge-menang">MENANG</span>
                             @endif
                         @else
                             <span style="color: #6b7280; font-style: italic;">{{ $a->getWaitingPlaceholderText('kiri') }}</span>
@@ -306,7 +306,7 @@
                         @if($a->PertandinganPesertaKedua)
                             <strong style="{{ $kananMenang ? 'color: #15803d;' : '' }}">{{ $atletPutih->nama ?? 'Atlet Putih' }}</strong>
                             @if($kananMenang)
-                                <span class="badge-menang">✓ MENANG</span>
+                                <span class="badge-menang">MENANG</span>
                             @endif
                         @elseif($isBye)
                             <span style="color: #6b7280; font-style: italic;">Belum Ada Lawan (BYE)</span>
@@ -343,7 +343,7 @@
                 ( ____________________________________ )
             </td>
             <td style="width: 50%;">
-                Petugas Pencatat,<br>
+                <br>
                 <strong>Technical Delegate</strong>
                 <br><br>
                 <div class="sign-line"></div>

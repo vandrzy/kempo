@@ -312,45 +312,43 @@
         </table>
     </div>
 
-    <table class="signature-table">
-        <tr>
-            <td style="width: 18%;">
-                Juri I<br>
-                <div class="sign-line"></div>
-                <span>{{ $scoresheet['wasit_1'] ?? '( ......................... )' }}</span>
-            </td>
-            <td style="width: 18%;">
-                Juri II<br>
-                <div class="sign-line"></div>
-                <span>{{ $scoresheet['wasit_2'] ?? '( ......................... )' }}</span>
-            </td>
-            <td style="width: 18%;">
-                Juri III<br>
-                <div class="sign-line"></div>
-                <span>{{ $scoresheet['wasit_3'] ?? '( ......................... )' }}</span>
-            </td>
-            <td style="width: 18%;">
-                Juri IV<br>
-                <div class="sign-line"></div>
-                <span>{{ $scoresheet['wasit_4'] ?? '( ......................... )' }}</span>
-            </td>
-            <td style="width: 18%;">
-                Juri V<br>
-                <div class="sign-line"></div>
-                <span>{{ $scoresheet['wasit_5'] ?? '( ......................... )' }}</span>
-            </td>
-        </tr>
-        <tr>
-            <td colspan="5" style="padding-top: 15px;">
-                Mengetahui,<br>
-                <strong>Wasit Kepala / Pengawas Pertandingan</strong>
-                <br>
-                <div class="sign-line" style="width: 200px;"></div>
-                <br>
-                <span>{{ $scoresheet['wasit_kepala'] ?? '( ............................................... )' }}</span>
-            </td>
-        </tr>
-    </table>
+   <table class="signature-table">
+            <tr>
+                <td>
+                    Mengetahui,<br>
+                    <strong>Koordinator Pertandingan</strong>
+                    <br>
+                    <div class="sign-line" style="width: 200px;"></div>
+                    <br>
+                    <span>{{ $scoresheet['wasit_kepala'] ?? '( ............................................... )' }}</span>
+                </td>
+                <td style="width: 18%;">
+                    <br>
+                    <br>
+                    <div class="sign-line"></div>
+                    <br>
+                    <span>{{ '1.  ......................... ' }}</span>
+                </td>
+                <td style="width: 18%;">
+                    <br>
+                    <strong>Para Panitera</strong><br>
+                    <div class="sign-line"></div>
+                    <br>
+                    <span>{{ '2.  ......................... ' }}</span>
+                </td>
+                <td style="width: 18%;">
+                    <br>
+                    <br>
+                    <div class="sign-line"></div>
+                    <br>
+                    <span>{{ '3.  ......................... ' }}</span>
+                </td>
+            </tr>
+            <tr>
+                
+            </tr>
+        </table>
+    
 
 @else
     {{-- TEMPLATE 3 HALAMAN UNTUK EMBU --}}
@@ -441,6 +439,42 @@
                 @endforelse
             </tbody>
         </table>
+        <table class="signature-table">
+            <tr>
+                <td>
+                    Mengetahui,<br>
+                    <strong>Koordinator Pertandingan</strong>
+                    <br>
+                    <div class="sign-line" style="width: 200px;"></div>
+                    <br>
+                    <span>{{ $scoresheet['wasit_kepala'] ?? '( ............................................... )' }}</span>
+                </td>
+                <td style="width: 18%;">
+                    <br>
+                    <br>
+                    <div class="sign-line"></div>
+                    <br>
+                    <span>{{ '1.  ......................... ' }}</span>
+                </td>
+                <td style="width: 18%;">
+                    <br>
+                    <strong>Para Panitera</strong><br>
+                    <div class="sign-line"></div>
+                    <br>
+                    <span>{{ '2.  ......................... ' }}</span>
+                </td>
+                <td style="width: 18%;">
+                    <br>
+                    <br>
+                    <div class="sign-line"></div>
+                    <br>
+                    <span>{{ '3.  ......................... ' }}</span>
+                </td>
+            </tr>
+            <tr>
+                
+            </tr>
+        </table>
     </div>
 
     {{-- ======================================================== --}}
@@ -530,6 +564,42 @@
                 @endforelse
             </tbody>
         </table>
+        <table class="signature-table">
+            <tr>
+                <td>
+                    Mengetahui,<br>
+                    <strong>Koordinator Pertandingan</strong>
+                    <br>
+                    <div class="sign-line" style="width: 200px;"></div>
+                    <br>
+                    <span>{{ $scoresheet['wasit_kepala'] ?? '( ............................................... )' }}</span>
+                </td>
+                <td style="width: 18%;">
+                    <br>
+                    <br>
+                    <div class="sign-line"></div>
+                    <br>
+                    <span>{{ '1.  ......................... ' }}</span>
+                </td>
+                <td style="width: 18%;">
+                    <br>
+                    <strong>Para Panitera</strong><br>
+                    <div class="sign-line"></div>
+                    <br>
+                    <span>{{ '2.  ......................... ' }}</span>
+                </td>
+                <td style="width: 18%;">
+                    <br>
+                    <br>
+                    <div class="sign-line"></div>
+                    <br>
+                    <span>{{ '3.  ......................... ' }}</span>
+                </td>
+            </tr>
+            <tr>
+                
+            </tr>
+        </table>
     </div>
 
     {{-- ======================================================== --}}
@@ -615,65 +685,8 @@
             </tbody>
         </table>
 
-        {{-- Bagian Rekap Peraih Medali HANYA DI HALAMAN 3 --}}
-        {{-- <div class="juara-box">
-            <h4>Rekapitulasi Peraih Medali / Juara</h4>
-            <table class="juara-table">
-                <tr>
-                    <td style="width: 15%;" class="font-bold">Medali Emas (Juara I)</td>
-                    <td style="width: 2%;">:</td>
-                    <td style="width: 33%;">
-                        <strong>{{ $juara['emas']['kabupaten_nama'] ?? '-' }}</strong>
-                        @if(!empty($juara['emas']['peserta_nama'])) ({{ $juara['emas']['peserta_nama'] }}) @endif
-                    </td>
-
-                    <td style="width: 15%;" class="font-bold">Medali Perak (Juara II)</td>
-                    <td style="width: 2%;">:</td>
-                    <td style="width: 33%;">
-                        <strong>{{ $juara['perak']['kabupaten_nama'] ?? '-' }}</strong>
-                        @if(!empty($juara['perak']['peserta_nama'])) ({{ $juara['perak']['peserta_nama'] }}) @endif
-                    </td>
-                </tr>
-                <tr>
-                    <td class="font-bold">Medali Perunggu (Juara III)</td>
-                    <td>:</td>
-                    <td colspan="4">
-                        <strong>{{ $juara['perunggu']['kabupaten_nama'] ?? '-' }}</strong>
-                        @if(!empty($juara['perunggu']['peserta_nama'])) ({{ $juara['perunggu']['peserta_nama'] }}) @endif
-                    </td>
-                </tr>
-            </table>
-        </div> --}}
-
         {{-- Blok Tanda Tangan Wasit HANYA DI HALAMAN 3 --}}
         <table class="signature-table">
-            {{-- <tr>
-                <td style="width: 18%;">
-                    Juri I<br>
-                    <div class="sign-line"></div>
-                    <span>{{ $scoresheet['wasit_1'] ?? '( ......................... )' }}</span>
-                </td>
-                <td style="width: 18%;">
-                    Juri II<br>
-                    <div class="sign-line"></div>
-                    <span>{{ $scoresheet['wasit_2'] ?? '( ......................... )' }}</span>
-                </td>
-                <td style="width: 18%;">
-                    Juri III<br>
-                    <div class="sign-line"></div>
-                    <span>{{ $scoresheet['wasit_3'] ?? '( ......................... )' }}</span>
-                </td>
-                <td style="width: 18%;">
-                    Juri IV<br>
-                    <div class="sign-line"></div>
-                    <span>{{ $scoresheet['wasit_4'] ?? '( ......................... )' }}</span>
-                </td>
-                <td style="width: 18%;">
-                    Juri V<br>
-                    <div class="sign-line"></div>
-                    <span>{{ $scoresheet['wasit_5'] ?? '( ......................... )' }}</span>
-                </td>
-            </tr> --}}
             <tr>
                 <td>
                     Mengetahui,<br>
