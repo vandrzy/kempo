@@ -323,6 +323,9 @@
                                     <tr>
                                         <th rowspan="2" class="w-32 text-center">Babak &amp; Partai</th>
                                         <th rowspan="2" class="w-36">Sudut</th>
+                                        @if($isRandori)
+                                            <th rowspan="2" class="text-center w-28 tabular-nums">Nomor Undian</th>
+                                        @endif
                                         <th rowspan="2">Kontingen</th>
                                         <th rowspan="2">Nama Atlet</th>
                                         <th colspan="2" class="text-center w-20">Sabuk</th>
@@ -336,10 +339,32 @@
                                     </tr>
                                 </thead>
                                 <tbody>
+                                    @php
+                                        $jumlahPesertaUndian = $kolom1->count();
+                                        $jumlahSlotUndian = $isRandori
+                                            ? (int) pow(2, ceil(log(max(2, $jumlahPesertaUndian), 2)))
+                                            : 0;
+                                        $jumlahPartaiBabak1 = max(0, $jumlahPesertaUndian - intdiv($jumlahSlotUndian, 2));
+                                    @endphp
                                     @forelse ($peserta_lawan as $a)
                                         @php
                                             $isReady = $a->pertandingan_peserta_kiri_id && $a->pertandingan_peserta_kanan_id;
-                                            $isBye = ($a->pertandingan_peserta_kanan_id === null && $a->keterangan_menang === 'BYE');
+                                            $isBye = $a->keterangan_menang === 'BYE'
+                                                && (bool) $a->pertandingan_peserta_kiri_id !== (bool) $a->pertandingan_peserta_kanan_id;
+                                            $nomorUndianMerah = $a->PertandinganPesertaPertama
+                                                ? $a->PertandinganPesertaPertama->urutan + 1
+                                                : ($isBye
+                                                    ? ($a->nomor_partai > $jumlahPartaiBabak1
+                                                        ? $jumlahPesertaUndian + $a->nomor_partai - $jumlahPartaiBabak1
+                                                        : 'BYE')
+                                                    : '-');
+                                            $nomorUndianPutih = $a->PertandinganPesertaKedua
+                                                ? $a->PertandinganPesertaKedua->urutan + 1
+                                                : ($isBye
+                                                    ? ($a->nomor_partai > $jumlahPartaiBabak1
+                                                        ? $jumlahPesertaUndian + $a->nomor_partai - $jumlahPartaiBabak1
+                                                        : 'BYE')
+                                                    : '-');
                                             
                                             $namaBabak = 'Babak ' . $a->babak;
                                             if ($a->babak == $totalBabakKategori) {
@@ -364,6 +389,7 @@
                                             data-athlete-id="{{ $a->pertandingan_peserta_kiri_id }}"
                                             data-athlete-name="{{ $a->PertandinganPesertaPertama ? ($a->PertandinganPesertaPertama->Peserta->nama ?? 'Atlet') : 'BYE / Kosong' }}"
                                             data-is-played="{{ $isPlayedThisMatch ? '1' : '0' }}"
+                                            data-bye-slot="{{ $isBye && !$a->pertandingan_peserta_kiri_id ? '1' : '0' }}"
                                             onclick="handleTableSlotClick(this, event)">
                                             <!-- Babak & Partai (Rowspan 2) -->
                                             <td rowspan="2" class="text-center align-middle font-bold border-r border-input/60">
@@ -384,13 +410,19 @@
                                                 </span>
                                             </td>
 
+                                            @if($isRandori)
+                                                <td class="text-center font-bold tabular-nums text-foreground">
+                                                    {{ $nomorUndianMerah }}
+                                                </td>
+                                            @endif
+
                                             <!-- Kontingen -->
                                             <td class="font-semibold text-xs text-foreground">
                                                 {{ $a->PertandinganPesertaPertama->Peserta->kabupaten->name ?? ($a->PertandinganPesertaPertama->Peserta->kontigen ?? ($a->pertandingan_peserta_kiri_id ? 'Tanpa Kontingen' : 'Belum Ada')) }}
                                             </td>
 
                                             <!-- Nama Atlet -->
-                                            <td class="font-medium text-foreground">
+                                            <td data-athlete-name-cell class="font-medium text-foreground">
                                                 @if($a->PertandinganPesertaPertama)
                                                     <span class="font-bold text-sm {{ $kiriMenang ? 'text-emerald-700' : '' }}">
                                                         {{ $a->PertandinganPesertaPertama->Peserta->nama ?? 'Atlet' }}
@@ -404,7 +436,9 @@
                                                         </span>
                                                     @endif
                                                 @else
-                                                    <span class="text-neutral-400 italic text-xs">{{ $a->getWaitingPlaceholderText('kiri') }}</span>
+                                                    <span class="text-neutral-400 italic text-xs">
+                                                        {{ $isBye ? 'Slot BYE — klik untuk assign' : $a->getWaitingPlaceholderText('kiri') }}
+                                                    </span>
                                                 @endif
                                             </td>
 
@@ -503,6 +537,7 @@
                                             data-athlete-id="{{ $a->pertandingan_peserta_kanan_id }}"
                                             data-athlete-name="{{ $a->PertandinganPesertaKedua ? ($a->PertandinganPesertaKedua->Peserta->nama ?? 'Atlet') : 'BYE / Kosong' }}"
                                             data-is-played="{{ $isPlayedThisMatch ? '1' : '0' }}"
+                                            data-bye-slot="{{ $isBye && !$a->pertandingan_peserta_kanan_id ? '1' : '0' }}"
                                             onclick="handleTableSlotClick(this, event)">
                                             <!-- Sudut -->
                                             <td class="font-bold text-xs uppercase tracking-wide text-neutral-700">
@@ -511,13 +546,19 @@
                                                 </span>
                                             </td>
 
+                                            @if($isRandori)
+                                                <td class="text-center font-bold tabular-nums text-foreground">
+                                                    {{ $nomorUndianPutih }}
+                                                </td>
+                                            @endif
+
                                             <!-- Kontingen -->
                                             <td class="font-semibold text-xs text-foreground">
                                                 {{ $a->PertandinganPesertaKedua->Peserta->kabupaten->name ?? ($a->PertandinganPesertaKedua->Peserta->kontigen ?? ($a->pertandingan_peserta_kanan_id ? 'Tanpa Kontingen' : 'Belum Ada')) }}
                                             </td>
 
                                             <!-- Nama Atlet -->
-                                            <td class="font-medium text-foreground">
+                                            <td data-athlete-name-cell class="font-medium text-foreground">
                                                 @if($a->PertandinganPesertaKedua)
                                                     <span class="font-bold text-sm {{ $kananMenang ? 'text-emerald-700' : '' }}">
                                                         {{ $a->PertandinganPesertaKedua->Peserta->nama ?? 'Atlet' }}
@@ -531,7 +572,7 @@
                                                         </span>
                                                     @endif
                                                 @elseif($isBye)
-                                                    <span class="text-neutral-400 italic text-xs">Belum Ada Lawan (BYE)</span>
+                                                    <span class="text-neutral-400 italic text-xs">Slot BYE — klik untuk assign</span>
                                                 @else
                                                     <span class="text-neutral-400 italic text-xs">{{ $a->getWaitingPlaceholderText('kanan') }}</span>
                                                 @endif
@@ -554,7 +595,7 @@
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="9" class="py-8 text-center text-paragraph">Tidak ada partai duel pada babak ini atau belum ada bagan tanding yang diacak.</td>
+                                            <td colspan="{{ $isRandori ? 10 : 9 }}" class="py-8 text-center text-paragraph">Tidak ada partai duel pada babak ini atau belum ada bagan tanding yang diacak.</td>
                                         </tr>
                                     @endforelse
                                 </tbody>
@@ -621,9 +662,29 @@
                                             @endif
                                         </td>
                                         <td class="col-team-{{ $index_list }} text-center font-bold tabular-nums text-foreground">
-                                            <span class="inline-block px-2.5 py-1 rounded bg-neutral-100 text-neutral-800">
-                                                {{ $item->undian + 1 }}
-                                            </span>
+                                            @if($isRandori && !isset($_GET['kabupaten_id']))
+                                                <form action="{{ route('pertandingan.update-undian', [$pertandingan->id, $item->id]) }}" method="post" class="inline-flex items-center justify-center gap-1">
+                                                    @csrf
+                                                    <input
+                                                        type="number"
+                                                        name="nomor_undian"
+                                                        value="{{ $item->undian + 1 }}"
+                                                        min="1"
+                                                        max="{{ $kolom1->count() }}"
+                                                        aria-label="Nomor undian untuk {{ $item->kabupaten->name ?? 'peserta' }}"
+                                                        title="Mengubah nomor akan menukar posisi dengan peserta yang memakai nomor tujuan"
+                                                        class="w-14 rounded bg-neutral-100 px-2 py-1 text-center text-neutral-800"
+                                                        required
+                                                    >
+                                                    <button type="submit" class="rounded px-1.5 py-1 text-neutral-600 hover:bg-neutral-200" aria-label="Simpan nomor undian">
+                                                        <i class="fa fa-save"></i>
+                                                    </button>
+                                                </form>
+                                            @else
+                                                <span class="inline-block px-2.5 py-1 rounded bg-neutral-100 text-neutral-800">
+                                                    {{ $item->undian + 1 }}
+                                                </span>
+                                            @endif
                                         </td>
                                         @if(!$isRandori)
                                             <td class="col-team-{{ $index_list }} text-center font-bold tabular-nums text-foreground">
@@ -1027,6 +1088,7 @@
         const partai = el.getAttribute('data-partai');
         const athleteName = el.getAttribute('data-athlete-name') || 'BYE / Kosong';
         const athleteId = el.getAttribute('data-athlete-id');
+        const isByeSlot = el.getAttribute('data-bye-slot') === '1';
 
         // Mencegah memilih slot kosong di babak lanjutan yang menunggu pemenang partai sebelumnya
         if ((!athleteId || athleteId === 'null') && babak > 1) {
@@ -1043,6 +1105,16 @@
             return;
         }
 
+        if (isByeSlot && !selectedTableSlot) {
+            const message = 'Pilih atlet di Babak 1 terlebih dahulu, lalu pilih slot BYE yang ingin diisi.';
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({ icon: 'info', title: 'Pilih Atlet', text: message, confirmButtonColor: '#3b82f6' });
+            } else {
+                alert(message);
+            }
+            return;
+        }
+
         // Klik slot yang sama -> Batalkan pilihan
         if (selectedTableSlot && selectedTableSlot.matchId === matchId && selectedTableSlot.corner === corner) {
             cancelTableSelectedSlot();
@@ -1051,13 +1123,22 @@
 
         // KLIK PERTAMA: MEMILIH SOURCE
         if (!selectedTableSlot) {
-            selectedTableSlot = { matchId, corner, partai, athleteName, element: el };
+            if (!athleteId || athleteId === 'null') {
+                const message = 'Pilih baris atlet terlebih dahulu sebelum memilih slot tujuan.';
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({ icon: 'info', title: 'Pilih Atlet', text: message, confirmButtonColor: '#3b82f6' });
+                } else {
+                    alert(message);
+                }
+                return;
+            }
+            selectedTableSlot = { matchId, corner, partai, babak, athleteId, athleteName, element: el };
             el.classList.add('table-slot-selected');
 
             const badge = document.createElement('span');
             badge.className = 'table-badge-selected ml-2 inline-flex items-center px-2 py-0.5 rounded text-[9px] font-black bg-amber-600 text-white shrink-0 animate-bounce';
             badge.innerHTML = '<i class="fas fa-check mr-0.5"></i> DIPILIH';
-            const nameTd = el.querySelector('td:nth-child(4)') || el;
+            const nameTd = el.querySelector('[data-athlete-name-cell]') || el;
             nameTd.appendChild(badge);
 
             const badgeBanner = document.getElementById('badgeTableSelectedSlot');
@@ -1074,6 +1155,27 @@
         }
 
         // KLIK KEDUA: MEMILIH TARGET
+        if (isByeSlot && selectedTableSlot.babak !== 1) {
+            const message = 'Slot BYE hanya dapat diisi dengan atlet yang dipilih dari Babak 1.';
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({ icon: 'warning', title: 'Babak Tidak Sesuai', text: message, confirmButtonColor: '#d97706' });
+            } else {
+                alert(message);
+            }
+            cancelTableSelectedSlot();
+            return;
+        }
+
+        if (isByeSlot && selectedTableSlot.matchId === matchId) {
+            const message = 'Pilih atlet dari partai lain untuk mengisi slot BYE ini.';
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({ icon: 'info', title: 'Pilih Atlet Lain', text: message, confirmButtonColor: '#3b82f6' });
+            } else {
+                alert(message);
+            }
+            return;
+        }
+
         const targetSlot = { matchId, corner, partai, athleteName, element: el };
         const cornerLabel = (c) => (c === 'merah' ? 'Merah' : 'Putih');
 

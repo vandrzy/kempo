@@ -506,9 +506,27 @@ class PertandinganController extends Controller
                     'keterangan_menang'            => null,
                 ]);
 
+                foreach ([
+                    3 => $bye1,
+                    4 => $bye2,
+                ] as $nomorPartaiBye => $atletBye) {
+                    $matchBye = PesertaTerpilih::create([
+                        'list_kategori_id'             => $id,
+                        'pertandingan_id'              => $check->id,
+                        'kegiatan_id'                  => $listKategori->kegiatan_id,
+                        'babak'                        => 1,
+                        'nomor_partai'                 => $nomorPartaiBye,
+                        'pertandingan_peserta_kiri_id'  => $atletBye?->id,
+                        'pertandingan_peserta_kanan_id' => null,
+                        'pemenang_id'                  => $atletBye?->id,
+                        'keterangan_menang'            => 'BYE',
+                    ]);
+                    $this->evaluateRoundOneMatch($matchBye, $id);
+                }
+
                 $msg = 'Bagan pertandingan Randori (6 peserta) berhasil diundi. 2 atlet mendapatkan hak BYE dan ditempatkan langsung menunggu di Semifinal (disebar di blok atas & blok bawah), sementara 4 atlet lainnya bertanding di Babak 1.';
             } else {
-                // Ada slot kosong: Atlet yang mendapat slot kosong LANGSUNG melaju ke Babak 2 tanpa membuat partai BYE di Babak 1
+                // Atlet yang mendapat BYE ditempatkan di Babak 2 dan juga dicatat pada slot BYE Babak 1.
                 $totalPartaiBabak1 = $totalPeserta - ($slotCount / 2);
                 $pesertaBabak1Count = 2 * $totalPartaiBabak1;
 
@@ -546,6 +564,7 @@ class PertandinganController extends Controller
                 // 2. Buat Babak 2: Tempatkan atlet yang langsung lolos ke slot kosong Babak 2
                 $directIdx = $pesertaBabak1Count;
                 $totalPartaiBabak2 = (int) ($slotCount / 4);
+                $byeParticipants = [];
 
                 for ($p2 = 1; $p2 <= $totalPartaiBabak2; $p2++) {
                     $p1Kiri = 2 * $p2 - 1;
@@ -559,6 +578,7 @@ class PertandinganController extends Controller
                             $kiriAtlet->babak = 2;
                             $kiriAtlet->sudah_terpilih = 'true';
                             $kiriAtlet->save();
+                            $byeParticipants[$p1Kiri] = $kiriAtlet;
                         }
                     }
 
@@ -570,6 +590,7 @@ class PertandinganController extends Controller
                             $kananAtlet->babak = 2;
                             $kananAtlet->sudah_terpilih = 'true';
                             $kananAtlet->save();
+                            $byeParticipants[$p1Kanan] = $kananAtlet;
                         }
                     }
 
@@ -584,6 +605,21 @@ class PertandinganController extends Controller
                         'pemenang_id'                  => null,
                         'keterangan_menang'            => null,
                     ]);
+                }
+
+                foreach ($byeParticipants as $nomorPartaiBye => $atletBye) {
+                    $matchBye = PesertaTerpilih::create([
+                        'list_kategori_id'             => $id,
+                        'pertandingan_id'              => $check->id,
+                        'kegiatan_id'                  => $listKategori->kegiatan_id,
+                        'babak'                        => 1,
+                        'nomor_partai'                 => $nomorPartaiBye,
+                        'pertandingan_peserta_kiri_id'  => $atletBye->id,
+                        'pertandingan_peserta_kanan_id' => null,
+                        'pemenang_id'                  => $atletBye->id,
+                        'keterangan_menang'            => 'BYE',
+                    ]);
+                    $this->evaluateRoundOneMatch($matchBye, $id);
                 }
 
                 // 3. Inisialisasi Babak 3 s/d Final (jika ada)
@@ -604,7 +640,7 @@ class PertandinganController extends Controller
                     }
                 }
 
-                $msg = 'Bagan pertandingan Randori berhasil diundi (' . $totalPartaiBabak1 . ' partai Babak 1, ' . $totalByes . ' atlet langsung melaju ke Babak 2 tanpa bagan BYE).';
+                $msg = 'Bagan pertandingan Randori berhasil diundi (' . $totalPartaiBabak1 . ' partai Babak 1 dan ' . $totalByes . ' slot BYE).';
             }
 
             return redirect()->back()
@@ -698,6 +734,128 @@ class PertandinganController extends Controller
                 ->with('success', 'Kontingen dan nomor undian tanding berhasil diacak!')
                 ->withInput();
         }
+    }
+
+    public function updateUndian(Request $request, $id, $kontigenId)
+    {
+        if (!Auth::check() || !in_array(Auth::user()->role, ['admin', 'operator', 'wasit', 1, '1', 2, '2'])) {
+            abort(403, 'Akses ditolak');
+        }
+
+        $listKategori = ListKategori::with(['pertandingan', 'kategori'])->findOrFail($id);
+        $check = $listKategori->pertandingan;
+        $isRandori = ($check && $check->bagan == 1) ||
+            stripos($check->nama ?? '', 'randori') !== false ||
+            stripos(optional($listKategori->kategori)->nama ?? '', 'randori') !== false;
+
+        abort_unless($isRandori, 404);
+
+        $totalUndian = KontigenPertandingan::where('list_kategori_id', $id)
+            ->where('urutan', 1)
+            ->count();
+
+        $validator = Validator::make($request->all(), [
+            'nomor_undian' => ['required', 'integer', 'min:1', 'max:'.$totalUndian],
+        ]);
+        if ($validator->fails()) {
+            return redirect()->back()->with('error', $validator->errors()->first())->withInput();
+        }
+
+        $nomorBaru = (int) $request->input('nomor_undian') - 1;
+
+        $result = DB::transaction(function () use ($id, $kontigenId, $nomorBaru) {
+            $undianDipilih = KontigenPertandingan::where('id', $kontigenId)
+                ->where('list_kategori_id', $id)
+                ->where('urutan', 1)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            $nomorLama = (int) $undianDipilih->undian;
+            if ($nomorLama === $nomorBaru) {
+                return ['error' => null, 'changed' => false];
+            }
+
+            $undianTujuan = KontigenPertandingan::where('list_kategori_id', $id)
+                ->where('urutan', 1)
+                ->where('undian', $nomorBaru)
+                ->lockForUpdate()
+                ->first();
+
+            if (!$undianTujuan) {
+                return ['error' => 'Nomor undian tujuan tidak tersedia.', 'changed' => false];
+            }
+
+            $semuaPeserta = PertandinganPeserta::where('list_kategori_id', $id)
+                ->lockForUpdate()
+                ->get();
+            $peserta = $semuaPeserta
+                ->whereIn('urutan', [$nomorLama, $nomorBaru])
+                ->keyBy('urutan');
+
+            $pesertaDipilih = $peserta->get($nomorLama);
+            $pesertaTujuan = $peserta->get($nomorBaru);
+            if ($peserta->count() !== 2 || !$pesertaDipilih || !$pesertaTujuan || $pesertaDipilih->is($pesertaTujuan)) {
+                return ['error' => 'Data peserta pada nomor undian ini tidak lengkap.', 'changed' => false];
+            }
+
+            $matches = PesertaTerpilih::where('list_kategori_id', $id)
+                ->lockForUpdate()
+                ->get();
+
+            foreach ($matches as $match) {
+                if ($this->isMatchActiveOrCompleted($match)) {
+                    return [
+                        'error' => 'Nomor undian tidak dapat diubah karena pertandingan sudah berlangsung atau selesai.',
+                        'changed' => false,
+                    ];
+                }
+            }
+
+            $babakDipilih = $pesertaDipilih->babak;
+            $babakTujuan = $pesertaTujuan->babak;
+            $pesertaDipilih->urutan = ((int) $semuaPeserta->max('urutan')) + 1;
+            $pesertaDipilih->save();
+
+            $pesertaTujuan->urutan = $nomorLama;
+            $pesertaTujuan->babak = $babakDipilih;
+            $pesertaTujuan->save();
+
+            $pesertaDipilih->urutan = $nomorBaru;
+            $pesertaDipilih->babak = $babakTujuan;
+            $pesertaDipilih->save();
+
+            foreach ($matches as $match) {
+                foreach ([
+                    'pertandingan_peserta_kiri_id',
+                    'pertandingan_peserta_kanan_id',
+                    'pemenang_id',
+                ] as $field) {
+                    if ($match->{$field} == $pesertaDipilih->id) {
+                        $match->{$field} = $pesertaTujuan->id;
+                    } elseif ($match->{$field} == $pesertaTujuan->id) {
+                        $match->{$field} = $pesertaDipilih->id;
+                    }
+                }
+                if ($match->isDirty()) {
+                    $match->save();
+                }
+            }
+
+            $undianDipilih->undian = $nomorBaru;
+            $undianDipilih->save();
+            $undianTujuan->undian = $nomorLama;
+            $undianTujuan->save();
+
+            return ['error' => null, 'changed' => true];
+        });
+
+        if ($result['error']) {
+            return redirect()->back()->with('error', $result['error']);
+        }
+
+        return redirect()->back()->with('success', $result['changed']
+            ? 'Nomor undian berhasil diperbarui dan ditukar dengan peserta pada nomor tujuan.'
+            : 'Nomor undian tidak berubah.');
     }
 
     public function batal_tanding(Request $request)

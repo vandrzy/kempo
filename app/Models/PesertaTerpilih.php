@@ -127,12 +127,26 @@ class PesertaTerpilih extends Model
         $currentPartai = (int) ($this->nomor_partai ?: 1);
         $currentBabak = (int) ($this->babak ?: 1);
 
-        // Kasus khusus bagan 6 peserta (Babak 1 ada 2 partai dan Babak 2 ada 2 partai)
-        // Partai 1 Babak 1 -> Semifinal 1 (Partai 1), Sudut Kiri (Merah)
-        // Partai 2 Babak 1 -> Semifinal 2 (Partai 2), Sudut Kiri (Merah)
+        // Kasus khusus bagan 6 peserta dengan dua partai BYE tambahan di Babak 1.
         if ($currentBabak === 1 && $this->list_kategori_id) {
             $b1Count = self::where('list_kategori_id', $this->list_kategori_id)->where('babak', 1)->count();
             $b2Count = self::where('list_kategori_id', $this->list_kategori_id)->where('babak', 2)->count();
+            if ($b1Count === 4 && $b2Count === 2) {
+                if ($currentPartai <= 2) {
+                    return [
+                        'babak'        => 2,
+                        'nomor_partai' => $currentPartai,
+                        'sudut'        => 'kiri',
+                    ];
+                }
+
+                return [
+                    'babak'        => 2,
+                    'nomor_partai' => $currentPartai - 2,
+                    'sudut'        => 'kanan',
+                ];
+            }
+
             if ($b1Count === 2 && $b2Count === 2) {
                 return [
                     'babak'        => 2,

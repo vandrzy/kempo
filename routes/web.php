@@ -97,7 +97,7 @@ Route::middleware('auth')->group(function () {
     // Fitur Edit Bagan Pertandingan Randori Manual
     Route::post('/pertandingan/{id}/swap-bagan', [PertandinganController::class, 'swapBracket'])->name('pertandingan.swap-bagan');
     Route::post('/pertandingan/{id}/direct-assign-bagan', [PertandinganController::class, 'directAssignBracket'])->name('pertandingan.direct-assign-bagan');
+    Route::post('/pertandingan/{id}/undian/{kontigenId}', [PertandinganController::class, 'updateUndian'])->name('pertandingan.update-undian');
     Route::post('/api/randori/swap-bracket', [PertandinganController::class, 'swapBracket'])->name('api.randori.swap-bracket');
     Route::post('/api/randori/direct-assign', [PertandinganController::class, 'directAssignBracket'])->name('api.randori.direct-assign');
 });
-
