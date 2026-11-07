@@ -493,9 +493,11 @@
                     let html = "";
                     let html2 = "";
                     let option = "";
+                    let availableOptions = "";
                     if(response.data.length > 0) {
                         $.each(response.data, function(index, value) {
                             option += `<option value="${value.id}">${value.pertandingan.nama} </option>`;
+                            availableOptions += `<input type="hidden" name="available_pertandingan_id[]" value="${value.id}">`;
                         });
                     } else {
                         option += `<option value="" selected>Usia anda tidak tersedia untuk pertandingan ini!</option>`
@@ -503,6 +505,7 @@
                     html += `
                             <div class="mt-4 ml-4">
                                 <label for="">${response.kategori.nama}</label>
+                                ${availableOptions}
                                 <select name="pertandingan_id[]" ${response.data.length == 0 ? 'disabled' : ''}  class="pertandingan_kategori w-full pl-9 text-sm focus:shadow-primary-outline ease leading-5.6 relative -ml-px block min-w-0 flex-auto rounded-lg border border-solid border-gray-300 dark:bg-slate-850 dark:text-white bg-white bg-clip-padding py-2 pr-3 text-gray-700 transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:transition-shadow" multiple="multiple" status="{{ (is_array(old('pertandingan_id')) && count(old('pertandingan_id'))) > 0 ? 'true' : 'false' }}" kategori_id="${response.kategori.id}" id="pilihan_${response.kategori.id}">
                                     ${option}
                                 </select>

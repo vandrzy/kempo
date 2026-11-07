@@ -447,9 +447,18 @@ class PesertaController extends Controller
         $data['list_kategori_terpilih'] = $data['peserta']->PertandinganPeserta->filter()->toArray();
 
         // dd($data['kategori_terpilih']);
-        $dataPertandinganKegiatan = PertandinganPeserta::where('peserta_id', $data['peserta']->id)->first();
+        $kegiatanId = request('kegiatan_id');
+        $dataPertandinganKegiatan = $data['peserta']->PertandinganPeserta->first(function ($registration) use ($kegiatanId) {
+            return !$kegiatanId
+                || (string) $registration->kegiatan_id === (string) $kegiatanId
+                || (string) $registration->list_kategori?->kegiatan_id === (string) $kegiatanId;
+        });
         $data['kabupatens'] = Kabupaten::get();
-        $data['kegiatan'] = Kegiatan::find($dataPertandinganKegiatan->kegiatan_id);
+        $data['kegiatan'] = Kegiatan::find(
+            $kegiatanId
+                ?? $dataPertandinganKegiatan?->kegiatan_id
+                ?? $dataPertandinganKegiatan?->list_kategori?->kegiatan_id
+        );
 
         $tahun = old('tanggal_lahir');
         $kelamin = old('jenis_kelamin');
@@ -484,12 +493,15 @@ class PesertaController extends Controller
      */
     public function update(Request $request, string $id)
     {
-            $peserta = Peserta::where('id', $id)->update([
+        $kegiatanId = $request->input('kegiatan_id');
+
+        DB::transaction(function () use ($request, $id, $kegiatanId) {
+            $peserta = Peserta::findOrFail($id);
+            $peserta->update([
                 'nama' => $request->nama,
                 'jenis_kelamin'=> $request->jenis_kelamin,
                 'golongan_darah'=> $request->golongan_darah,
                 'nik'=> $request->nik,
-                // 'tingkat'=> $request->tingkat,
                 'status'=> $request->status,
                 'tempat'=> $request->tempat,
                 'tanggal_lahir'=> $request->tanggal_lahir,
@@ -501,69 +513,125 @@ class PesertaController extends Controller
                 'kecamatan_id' => $request->kecamatan_id,
                 'kelurahan_id' => $request->kelurahan_id,
                 'disabilitas' => $request->disabilitas,
-                'tingkatan_sabuk' => $request->tingkatan_sabuk_a."-".$request->tingkatan_sabuk_b,
+                'tingkatan_sabuk' => $request->tingkatan_sabuk_a . '-' . $request->tingkatan_sabuk_b,
             ]);
 
-            $peserta = Peserta::find($id);
-            if ($peserta) {
-                foreach($peserta->PertandinganPeserta as $a) {
-                    $a->UrutanKomposisiPeserta()->delete();
-                }
-                $peserta->PertandinganPeserta()->delete();
-            }
-
-            if($request->foto) {
+            if ($request->hasFile('foto')) {
                 $fotoPath = FotoHelper::simpanFoto($request->file('foto'));
                 if ($fotoPath) {
-                    $peserta_image = Peserta::find($id);
-                    $peserta_image->foto = $fotoPath;
-                    $peserta_image->save();
+                    $peserta->update(['foto' => $fotoPath]);
                 }
             }
 
-            if ($request->has('pertandingan_id') && is_array($request->pertandingan_id)) {
-                foreach($request->pertandingan_id as $index => $a) {
-                    $existing = PertandinganPeserta::where('list_kategori_id', $a)
+            $kategoriIds = collect($request->input('kategori_id', []))
+                ->filter()
+                ->map(fn ($kategoriId) => (int) $kategoriId)
+                ->unique()
+                ->values();
+
+            // Treat a missing selection as an incomplete form submission, not a request to
+            // remove every registration for this participant.
+            if (!$kegiatanId || $kategoriIds->isEmpty()) {
+                return;
+            }
+
+            $submittedListKategoriIds = $request->input('pertandingan_id', []);
+            $availableListKategoriIds = $request->input('available_pertandingan_id', []);
+            $submittedListKategoriIds = is_array($submittedListKategoriIds) ? $submittedListKategoriIds : [];
+            $availableListKategoriIds = is_array($availableListKategoriIds) ? $availableListKategoriIds : [];
+
+            $selectedListKategori = ListKategori::where('kegiatan_id', $kegiatanId)
+                ->whereIn('kategori_id', $kategoriIds)
+                ->whereIn('id', $submittedListKategoriIds)
+                ->get();
+            $availableListKategoriIds = ListKategori::where('kegiatan_id', $kegiatanId)
+                ->whereIn('kategori_id', $kategoriIds)
+                ->whereIn('id', $availableListKategoriIds)
+                ->pluck('id')
+                ->filter()
+                ->map(fn ($listKategoriId) => (int) $listKategoriId)
+                ->unique();
+
+            $registrations = PertandinganPeserta::where('peserta_id', $peserta->id)
+                ->where(function ($query) use ($kegiatanId) {
+                    $query->where('kegiatan_id', $kegiatanId)
+                        ->orWhereHas('list_kategori', fn ($listKategori) => $listKategori->where('kegiatan_id', $kegiatanId));
+                })
+                ->with('list_kategori')
+                ->get();
+
+            foreach ($registrations as $registration) {
+                $kategoriId = $registration->list_kategori?->kategori_id;
+                if ($kategoriId === null) {
+                    continue;
+                }
+
+                if (!$kategoriIds->contains((int) $kategoriId)) {
+                    $registration->UrutanKomposisiPeserta()->delete();
+                    $registration->delete();
+                    continue;
+                }
+
+                if (
+                    $availableListKategoriIds->contains((int) $registration->list_kategori_id)
+                    && !$selectedListKategori->contains('id', $registration->list_kategori_id)
+                ) {
+                    $registration->UrutanKomposisiPeserta()->delete();
+                    $registration->delete();
+                }
+            }
+
+            foreach ($selectedListKategori as $listKategori) {
+                $registration = PertandinganPeserta::where('peserta_id', $peserta->id)
+                    ->where('list_kategori_id', $listKategori->id)
+                    ->first();
+
+                if ($registration) {
+                    $komposisi = $registration->UrutanKomposisiPeserta()->firstOrNew();
+                    $komposisi->nama = $request->input("nama_tanding.{$listKategori->id}")
+                        ?: ($komposisi->nama ?: $peserta->nama);
+                    $komposisi->tingkat = $request->input("tingkat_tanding.{$listKategori->id}")
+                        ?: ($komposisi->tingkat ?: $peserta->tingkatan_sabuk);
+                    $komposisi->save();
+                    continue;
+                }
+
+                $existingUrutans = PertandinganPeserta::where('list_kategori_id', $listKategori->id)
                     ->orderBy('urutan')
                     ->pluck('urutan')
                     ->toArray();
 
-                    // Cari urutan kosong
-                    $urutanBaru = 1;
-                    foreach ($existing as $num) {
-                        if ($num == $urutanBaru) {
-                            $urutanBaru++;
-                        } else {
-                            break; // lubang ditemukan
-                        }
+                $urutanBaru = 1;
+                foreach ($existingUrutans as $urutan) {
+                    if ($urutan == $urutanBaru) {
+                        $urutanBaru++;
+                    } else {
+                        break;
                     }
-
-                    $PPA = PertandinganPeserta::create([
-                        'peserta_id' => $peserta->id,
-                        'list_kategori_id' => $a,
-                        'urutan' => $urutanBaru,
-                        'kegiatan_id' => $request->kegiatan_id
-                    ]);
-
-                    $namaTanding = (!empty($request->nama_tanding[$a]) && $request->nama_tanding[$a] !== '-')
-                        ? $request->nama_tanding[$a]
-                        : $peserta->nama;
-                    $tingkatTanding = (!empty($request->tingkat_tanding[$a]) && $request->tingkat_tanding[$a] !== '-')
-                        ? $request->tingkat_tanding[$a]
-                        : $peserta->tingkatan_sabuk;
-
-                    $UKP = new UrutanKomposisiPeserta();
-                    $UKP->pertandingan_peserta_id = $PPA->id;
-                    $UKP->nama = $namaTanding ?? "-";
-                    $UKP->tingkat = $tingkatTanding ?? "-";
-                    $deskripsiUKP = "";
-                    $UKP->urutan_komposisi = $deskripsiUKP;
-                    $UKP->save();
                 }
+
+                $registration = PertandinganPeserta::create([
+                    'peserta_id' => $peserta->id,
+                    'list_kategori_id' => $listKategori->id,
+                    'urutan' => $urutanBaru,
+                    'kegiatan_id' => $kegiatanId,
+                ]);
+
+                UrutanKomposisiPeserta::create([
+                    'pertandingan_peserta_id' => $registration->id,
+                    'nama' => $request->input("nama_tanding.{$listKategori->id}") ?: $peserta->nama,
+                    'tingkat' => $request->input("tingkat_tanding.{$listKategori->id}") ?: $peserta->tingkatan_sabuk,
+                    'urutan_komposisi' => '',
+                ]);
             }
+        });
 
+        $redirectUrl = url('peserta');
+        if ($kegiatanId) {
+            $redirectUrl .= '?kegiatan_id=' . urlencode($kegiatanId);
+        }
 
-            return redirect('peserta')->with('success', 'Peserta telah tersimpan');
+        return redirect($redirectUrl)->with('success', 'Peserta telah tersimpan');
     }
 
     /**

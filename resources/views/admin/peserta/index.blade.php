@@ -186,7 +186,7 @@
                                         </a>
 
                                         <!-- Tombol Edit (Button 3 Warning/Action) -->
-                                        <a href="{{ url('peserta/'.$a->id.'/edit') }}"
+                                        <a href="{{ url('peserta/'.$a->id.'/edit') . '?kegiatan_id=' . (Request('kegiatan_id') ?? @$kegiatan_get->id) }}"
                                             class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-white bg-[#fd822b] hover:bg-[#e06e1f] shadow-2xs hover:-translate-y-px transition-all"
                                             title="Edit Peserta">
                                             <i class="fas fa-pen text-[10px]"></i>
@@ -259,4 +259,3 @@
         if (form) HTMLFormElement.prototype.submit.call(form);
     });
 @endsection
-
