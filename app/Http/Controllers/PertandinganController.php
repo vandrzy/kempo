@@ -131,10 +131,12 @@ class PertandinganController extends Controller
 
         if ($isRandori) {
             $this->syncByeAdvancements($id);
+            $data['hasSubmittedScores'] = $this->hasSubmittedDuelScores($id);
             $is_diacak = PesertaTerpilih::where('list_kategori_id', $id)->exists();
             $data['is_diacak'] = $is_diacak;
             $data['peserta_ready'] = $is_diacak ? 0 : PertandinganPeserta::where('list_kategori_id', $id)->count();
         } else {
+            $data['hasSubmittedScores'] = false;
             $is_diacak = KontigenPertandingan::where('list_kategori_id', $id)->exists();
             $data['is_diacak'] = $is_diacak;
             $data['peserta_ready'] = $is_diacak ? 0 : PertandinganPeserta::where('sudah_terpilih', 'false')->where('list_kategori_id', $id)->count();
@@ -3600,6 +3602,14 @@ class PertandinganController extends Controller
 
         DB::beginTransaction();
         try {
+            if ($this->hasSubmittedDuelScores($listKategoriId)) {
+                DB::rollBack();
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => 'Mode edit bagan dinonaktifkan karena skor pertandingan sudah disubmit.',
+                ], 422);
+            }
+
             // 1. Ambil & Kunci Data (SELECT ... FOR UPDATE)
             $sourceMatch = PesertaTerpilih::where('id', $sourceMatchId)->lockForUpdate()->first();
             $targetMatch = ($sourceMatchId == $targetMatchId)
@@ -3849,6 +3859,14 @@ class PertandinganController extends Controller
 
         DB::beginTransaction();
         try {
+            if ($this->hasSubmittedDuelScores($listKategoriId)) {
+                DB::rollBack();
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => 'Mode edit bagan dinonaktifkan karena skor pertandingan sudah disubmit.',
+                ], 422);
+            }
+
             $match = PesertaTerpilih::where('id', $matchId)->lockForUpdate()->first();
             if (!$match) {
                 DB::rollBack();
@@ -4006,6 +4024,33 @@ class PertandinganController extends Controller
         }
 
         return false;
+    }
+
+    private function hasSubmittedDuelScores($listKategoriId): bool
+    {
+        return PesertaTerpilih::where('list_kategori_id', $listKategoriId)
+            ->where(function ($query) {
+                $query->whereNotNull('skor_kiri')
+                    ->orWhereNotNull('skor_kanan')
+                    ->orWhereNotNull('pemenang_id')
+                    ->orWhere('merah_mujoken_kachi', '>', 0)
+                    ->orWhere('merah_ippon', '>', 0)
+                    ->orWhere('merah_waza_ari', '>', 0)
+                    ->orWhere('merah_batsu_5', '>', 0)
+                    ->orWhere('merah_batsu_10', '>', 0)
+                    ->orWhere('merah_yusei_kachi', '>', 0)
+                    ->orWhere('putih_mujoken_kachi', '>', 0)
+                    ->orWhere('putih_ippon', '>', 0)
+                    ->orWhere('putih_waza_ari', '>', 0)
+                    ->orWhere('putih_batsu_5', '>', 0)
+                    ->orWhere('putih_batsu_10', '>', 0)
+                    ->orWhere('putih_yusei_kachi', '>', 0);
+            })
+            ->where(function ($query) {
+                $query->whereNull('keterangan_menang')
+                    ->orWhere('keterangan_menang', '!=', 'BYE');
+            })
+            ->exists();
     }
 
     /**

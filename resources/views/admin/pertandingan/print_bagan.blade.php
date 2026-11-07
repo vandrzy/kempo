@@ -352,8 +352,8 @@
                 </button>
 
                 <!-- Edit Bagan Toggle Button -->
-                <button type="button" id="btnToggleEditBagan" onclick="toggleEditBaganMode()" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-white text-xs font-bold tracking-wide shadow-xs hover:shadow transition-all cursor-pointer" title="Aktifkan Mode Tukar Posisi Peserta">
-                    <i class="fas fa-random"></i> <span id="textToggleEditBagan">Mode Edit Bagan</span>
+                <button type="button" id="btnToggleEditBagan" onclick="toggleEditBaganMode()" {{ ($hasSubmittedScores ?? false) ? 'disabled' : '' }} class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-white text-xs font-bold tracking-wide shadow-xs hover:shadow transition-all {{ ($hasSubmittedScores ?? false) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer' }}" title="{{ ($hasSubmittedScores ?? false) ? 'Mode edit dinonaktifkan karena skor pertandingan sudah disubmit.' : 'Aktifkan Mode Tukar Posisi Peserta' }}">
+                    <i class="fas fa-random"></i> <span id="textToggleEditBagan">{{ ($hasSubmittedScores ?? false) ? 'Edit Bagan Terkunci' : 'Mode Edit Bagan' }}</span>
                 </button>
 
                 <!-- Print Button -->
@@ -971,8 +971,11 @@
         let isEditBaganMode = false;
         let selectedSlot = null;
         const listKategoriId = {{ $pertandingan->id }};
+        const bracketEditLocked = @json($hasSubmittedScores ?? false);
 
         function toggleEditBaganMode(forceState) {
+            if (bracketEditLocked && forceState !== false) return;
+
             if (typeof forceState === 'boolean') {
                 isEditBaganMode = forceState;
             } else {

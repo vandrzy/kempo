@@ -294,8 +294,8 @@
                                 <a href="{{ url('/pertandingan/'.$pertandingan->id.'?kegiatan_id='.$current_kegiatan_id.'&print=1') }}" target="_blank" class="btn-kempo-1 inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-xl shadow-xs hover:shadow-sm transition-all">
                                     <i class="fas fa-network-wired"></i> Buka Bagan Interaktif (Tree)
                                 </a>
-                                <button type="button" id="btnToggleTableEdit" onclick="toggleTableEditBagan()" class="btn-kempo-outline inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-xl shadow-xs hover:shadow-sm transition-all cursor-pointer">
-                                    <i class="fas fa-random text-amber-500"></i> <span id="textToggleTableEdit">Mode Edit Bagan</span>
+                                <button type="button" id="btnToggleTableEdit" onclick="toggleTableEditBagan()" {{ ($hasSubmittedScores ?? false) ? 'disabled' : '' }} title="{{ ($hasSubmittedScores ?? false) ? 'Mode edit dinonaktifkan karena skor pertandingan sudah disubmit.' : 'Aktifkan mode edit bagan' }}" class="btn-kempo-outline inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-xl shadow-xs hover:shadow-sm transition-all {{ ($hasSubmittedScores ?? false) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer' }}">
+                                    <i class="fas fa-random text-amber-500"></i> <span id="textToggleTableEdit">{{ ($hasSubmittedScores ?? false) ? 'Edit Bagan Terkunci' : 'Mode Edit Bagan' }}</span>
                                 </button>
                             </div>
                         </div>
@@ -1047,8 +1047,11 @@
     let isTableEditMode = false;
     let selectedTableSlot = null;
     const tableListKategoriId = {{ $pertandingan->id }};
+    const tableBracketEditLocked = @json($hasSubmittedScores ?? false);
 
     window.toggleTableEditBagan = function(forceState) {
+        if (tableBracketEditLocked && forceState !== false) return;
+
         if (typeof forceState === 'boolean') {
             isTableEditMode = forceState;
         } else {
