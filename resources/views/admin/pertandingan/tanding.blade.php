@@ -353,19 +353,19 @@
                                             $isReady = $a->pertandingan_peserta_kiri_id && $a->pertandingan_peserta_kanan_id;
                                             $isBye = $a->keterangan_menang === 'BYE'
                                                 && (bool) $a->pertandingan_peserta_kiri_id !== (bool) $a->pertandingan_peserta_kanan_id;
-                                            $nomorUndianMerah = $a->PertandinganPesertaPertama
-                                                ? $a->PertandinganPesertaPertama->urutan + 1
-                                                : ($isBye
-                                                    ? ($a->nomor_partai > $jumlahPartaiBabak1
-                                                        ? $jumlahPesertaUndian + $a->nomor_partai - $jumlahPartaiBabak1
-                                                        : (($a->nomor_partai - 1) * 2) + 1)
+                                            $nomorUndianMerah = (int) $a->babak === 1
+                                                ? ($a->nomor_partai > $jumlahPartaiBabak1
+                                                    ? $a->nomor_partai + $jumlahPartaiBabak1
+                                                    : (($a->nomor_partai - 1) * 2) + 1)
+                                                : ($a->PertandinganPesertaPertama
+                                                    ? $a->PertandinganPesertaPertama->urutan + 1
                                                     : '-');
-                                            $nomorUndianPutih = $a->PertandinganPesertaKedua
-                                                ? $a->PertandinganPesertaKedua->urutan + 1
-                                                : ($isBye
-                                                    ? ($a->nomor_partai > $jumlahPartaiBabak1
-                                                        ? $jumlahPesertaUndian + $a->nomor_partai - $jumlahPartaiBabak1
-                                                        : (($a->nomor_partai - 1) * 2) + 2)
+                                            $nomorUndianPutih = (int) $a->babak === 1
+                                                ? ($a->nomor_partai > $jumlahPartaiBabak1
+                                                    ? $jumlahPesertaUndian + $a->nomor_partai - $jumlahPartaiBabak1
+                                                    : (($a->nomor_partai - 1) * 2) + 2)
+                                                : ($a->PertandinganPesertaKedua
+                                                    ? $a->PertandinganPesertaKedua->urutan + 1
                                                     : '-');
                                             
                                             $namaBabak = 'Babak ' . $a->babak;
