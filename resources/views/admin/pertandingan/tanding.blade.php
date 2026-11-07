@@ -331,7 +331,7 @@
                                         <th rowspan="2" class="w-32 text-center">Babak &amp; Partai</th>
                                         <th rowspan="2" class="w-36">Sudut</th>
                                         @if($isRandori)
-                                            <th rowspan="2" class="text-center w-28 tabular-nums">Nomor Undian</th>
+                                            <th rowspan="2" class="text-center w-28 tabular-nums">No Urutan</th>
                                         @endif
                                         <th rowspan="2">Kontingen</th>
                                         <th rowspan="2">Nama Atlet</th>
@@ -347,11 +347,6 @@
                                 </thead>
                                 <tbody>
                                     @php
-                                        $jumlahPesertaUndian = $totalPesertaKategori;
-                                        $jumlahSlotUndian = $isRandori
-                                            ? (int) pow(2, ceil(log(max(2, $jumlahPesertaUndian), 2)))
-                                            : 0;
-                                        $jumlahPartaiBabak1 = max(0, $jumlahPesertaUndian - intdiv($jumlahSlotUndian, 2));
                                         $babakSebelumnya = null;
                                     @endphp
                                     @forelse ($peserta_lawan as $a)
@@ -360,22 +355,10 @@
                                             $isReady = $a->pertandingan_peserta_kiri_id && $a->pertandingan_peserta_kanan_id;
                                             $isBye = $a->keterangan_menang === 'BYE'
                                                 && (bool) $a->pertandingan_peserta_kiri_id !== (bool) $a->pertandingan_peserta_kanan_id;
-                                            $nomorUndianMerah = (int) $a->babak === 1
-                                                ? ($a->nomor_partai > $jumlahPartaiBabak1
-                                                    ? $a->nomor_partai + $jumlahPartaiBabak1
-                                                    : (($a->nomor_partai - 1) * 2) + 1)
-                                                : ($a->PertandinganPesertaPertama
-                                                    ? $a->PertandinganPesertaPertama->urutan + 1
-                                                    : '-');
-                                            $nomorUndianPutih = (int) $a->babak === 1
-                                                ? ($a->nomor_partai > $jumlahPartaiBabak1
-                                                    ? $jumlahPesertaUndian + $a->nomor_partai - $jumlahPartaiBabak1
-                                                    : (($a->nomor_partai - 1) * 2) + 2)
-                                                : ($a->PertandinganPesertaKedua
-                                                    ? $a->PertandinganPesertaKedua->urutan + 1
-                                                    : '-');
+                                                $nomorUrutanMerah = (((int) $a->nomor_partai - 1) * (2 ** (int) $a->babak)) + 1;
+                                                $nomorUrutanPutih = $nomorUrutanMerah + (2 ** ((int) $a->babak - 1));
                                             
-                                            $namaBabak = 'Babak ' . $a->babak;
+                                                $namaBabak = 'Babak ' . $a->babak;
                                             if ($a->babak == $totalBabakKategori) {
                                                 $namaBabak = 'Final';
                                             } elseif ($totalBabakKategori >= 2 && $a->babak == $totalBabakKategori - 1) {
@@ -430,7 +413,7 @@
 
                                             @if($isRandori)
                                                 <td class="text-center font-bold tabular-nums text-foreground">
-                                                    {{ $nomorUndianMerah }}
+                                                    {{ $nomorUrutanMerah }}
                                                 </td>
                                             @endif
 
@@ -566,7 +549,7 @@
 
                                             @if($isRandori)
                                                 <td class="text-center font-bold tabular-nums text-foreground">
-                                                    {{ $nomorUndianPutih }}
+                                                    {{ $nomorUrutanPutih }}
                                                 </td>
                                             @endif
 
@@ -1170,16 +1153,6 @@
             const message = 'Posisi hanya dapat ditukar dengan atlet atau slot BYE pada babak yang sama.';
             if (typeof Swal !== 'undefined') {
                 Swal.fire({ icon: 'warning', title: 'Babak Tidak Sesuai', text: message, confirmButtonColor: '#d97706' });
-            } else {
-                alert(message);
-            }
-            return;
-        }
-
-        if (isByeSlot && selectedTableSlot.matchId === matchId) {
-            const message = 'Pilih atlet dari partai lain untuk mengisi slot BYE ini.';
-            if (typeof Swal !== 'undefined') {
-                Swal.fire({ icon: 'info', title: 'Pilih Atlet Lain', text: message, confirmButtonColor: '#3b82f6' });
             } else {
                 alert(message);
             }
