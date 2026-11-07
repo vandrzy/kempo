@@ -677,7 +677,7 @@
             <tr>
                 <td>
                     Mengetahui,<br>
-                    <strong>Wasit Kepala / Pengawas Pertandingan</strong>
+                    <strong>Koordinator Pertandingan</strong>
                     <br>
                     <div class="sign-line" style="width: 200px;"></div>
                     <br>
