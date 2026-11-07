@@ -127,9 +127,8 @@ class PesertaTerpilih extends Model
         $currentPartai = (int) ($this->nomor_partai ?: 1);
         $currentBabak = (int) ($this->babak ?: 1);
 
-        // Kasus khusus bagan 6 peserta dengan dua BYE pada babak 1.
-        // Kondisi ini tidak boleh memotong bracket 8 peserta / 4 peserta yang mengikuti
-        // aturan pohon eliminasi standar.
+        // In a six-participant bracket, the two BYE winners meet in semifinal 1,
+        // while the winners of first-round matches 1 and 2 meet in semifinal 2.
         if ($currentBabak === 1 && $this->list_kategori_id) {
             $totalPeserta = PertandinganPeserta::where('list_kategori_id', $this->list_kategori_id)->count();
 
@@ -138,18 +137,26 @@ class PesertaTerpilih extends Model
                 $b2Count = self::where('list_kategori_id', $this->list_kategori_id)->where('babak', 2)->count();
 
                 if ($b1Count === 4 && $b2Count === 2) {
-                    if ($currentPartai <= 2) {
+                    if ($currentPartai === 1) {
                         return [
                             'babak'        => 2,
-                            'nomor_partai' => $currentPartai,
+                            'nomor_partai' => 2,
                             'sudut'        => 'kiri',
+                        ];
+                    }
+
+                    if ($currentPartai === 2) {
+                        return [
+                            'babak'        => 2,
+                            'nomor_partai' => 2,
+                            'sudut'        => 'kanan',
                         ];
                     }
 
                     return [
                         'babak'        => 2,
-                        'nomor_partai' => $currentPartai - 2,
-                        'sudut'        => 'kanan',
+                        'nomor_partai' => 1,
+                        'sudut'        => $currentPartai === 3 ? 'kiri' : 'kanan',
                     ];
                 }
             }
@@ -178,11 +185,11 @@ class PesertaTerpilih extends Model
         if ($babak === 2 && $this->list_kategori_id) {
             $totalPeserta = PertandinganPeserta::where('list_kategori_id', $this->list_kategori_id)->count();
             if ($totalPeserta === 6) {
-                $sourcePartai = match ([$this->nomor_partai, $corner]) {
-                    [1, 'kiri']  => 1,
-                    [1, 'kanan'] => 2,
-                    [2, 'kiri']  => 3,
-                    [2, 'kanan'] => 4,
+                $sourcePartai = match ([(int) $this->nomor_partai, $corner]) {
+                    [1, 'kiri']  => 3,
+                    [1, 'kanan'] => 4,
+                    [2, 'kiri']  => 1,
+                    [2, 'kanan'] => 2,
                     default      => 1,
                 };
 

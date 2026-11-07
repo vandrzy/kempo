@@ -355,8 +355,8 @@
                                             $isReady = $a->pertandingan_peserta_kiri_id && $a->pertandingan_peserta_kanan_id;
                                             $isBye = $a->keterangan_menang === 'BYE'
                                                 && (bool) $a->pertandingan_peserta_kiri_id !== (bool) $a->pertandingan_peserta_kanan_id;
-                                                $nomorUrutanMerah = (((int) $a->nomor_partai - 1) * (2 ** (int) $a->babak)) + 1;
-                                                $nomorUrutanPutih = $nomorUrutanMerah + (2 ** ((int) $a->babak - 1));
+                                            $nomorUrutanMerah = (((int) $a->nomor_partai - 1) * 2) + 1;
+                                            $nomorUrutanPutih = $nomorUrutanMerah + 1;
                                             
                                                 $namaBabak = 'Babak ' . $a->babak;
                                             if ($a->babak == $totalBabakKategori) {

@@ -4095,11 +4095,8 @@ class PertandinganController extends Controller
                     : 'pertandingan_peserta_kanan_id';
                 $winnerId = $match->pemenang_id;
 
-                if ($nextMatch->{$slot} == $winnerId) {
-                    continue;
-                }
-
-                if ($nextMatch->{$slot} !== null || $this->isMatchActiveOrCompleted($nextMatch)) {
+                if (($nextMatch->{$slot} !== null && (int) $nextMatch->{$slot} !== (int) $winnerId)
+                    || ($this->isMatchActiveOrCompleted($nextMatch) && (int) $nextMatch->{$slot} !== (int) $winnerId)) {
                     Log::warning('Tidak dapat menyelaraskan BYE ke slot babak berikutnya karena slot sudah terisi atau partai sudah dimainkan.', [
                         'list_kategori_id' => $listKategoriId,
                         'bye_match_id' => $match->id,
@@ -4109,8 +4106,47 @@ class PertandinganController extends Controller
                     continue;
                 }
 
-                $nextMatch->{$slot} = $winnerId;
-                $nextMatch->save();
+                $nextRoundMatches = PesertaTerpilih::where('list_kategori_id', $listKategoriId)
+                    ->where('babak', $nextCoord['babak'])
+                    ->where(function ($query) use ($winnerId) {
+                        $query->where('pertandingan_peserta_kiri_id', $winnerId)
+                            ->orWhere('pertandingan_peserta_kanan_id', $winnerId);
+                    })
+                    ->lockForUpdate()
+                    ->get();
+
+                $hasUnremovableDuplicate = false;
+                foreach ($nextRoundMatches as $advancedMatch) {
+                    foreach (['pertandingan_peserta_kiri_id', 'pertandingan_peserta_kanan_id'] as $candidateSlot) {
+                        $isExpectedSlot = (int) $advancedMatch->id === (int) $nextMatch->id
+                            && $candidateSlot === $slot;
+                        if (!$isExpectedSlot && (int) $advancedMatch->{$candidateSlot} === (int) $winnerId) {
+                            if ($this->isMatchActiveOrCompleted($advancedMatch)) {
+                                Log::warning('Duplikasi atlet BYE tidak dapat dihapus karena partai lanjutan sudah dimainkan.', [
+                                    'list_kategori_id' => $listKategoriId,
+                                    'bye_match_id' => $match->id,
+                                    'next_match_id' => $advancedMatch->id,
+                                    'winner_id' => $winnerId,
+                                ]);
+                                $hasUnremovableDuplicate = true;
+                                break;
+                            }
+
+                            $advancedMatch->{$candidateSlot} = null;
+                            $advancedMatch->save();
+                        }
+                    }
+                }
+
+                if ($hasUnremovableDuplicate) {
+                    continue;
+                }
+
+                if ((int) $nextMatch->{$slot} !== (int) $winnerId) {
+                    $nextMatch->refresh();
+                    $nextMatch->{$slot} = $winnerId;
+                    $nextMatch->save();
+                }
 
                 PertandinganPeserta::where('id', $winnerId)
                     ->where('list_kategori_id', $listKategoriId)
@@ -4120,14 +4156,10 @@ class PertandinganController extends Controller
     }
 
     /**
-     * Evaluasi ulang status pertandingan Babak 1 setelah swap atau assign:
-     * - Kondisi A: Kedua slot terisi atlet -> Bertanding normal di Babak 1
-     * - Kondisi B: Satu slot terisi, satu slot NULL -> Otomatis menang BYE dan maju ke Babak 2
-     * - Kondisi C: Kedua slot NULL -> Slot kosong
+     * Evaluasi ulang status BYE setelah perubahan slot Babak 1.
      */
     private function evaluateRoundOneMatch(PesertaTerpilih $match, $listKategoriId)
     {
-        // Hanya berlaku untuk evaluasi partai di Babak 1
         if ((int) $match->babak !== 1) {
             return;
         }
@@ -4181,11 +4213,26 @@ class PertandinganController extends Controller
 
             PertandinganPeserta::whereIn('id', [$kiriId, $kananId])->update(['babak' => $match->babak]);
 
-            // Tarik kembali atlet dari slot babak berikutnya jika sebelumnya pernah melaju via BYE
-            if ($nextCoord['sudut'] === 'kiri') {
-                $nextMatch->pertandingan_peserta_kiri_id = null;
-            } else {
-                $nextMatch->pertandingan_peserta_kanan_id = null;
+            // Remove stale advancement for either athlete from the next round.
+            $staleAdvancements = PesertaTerpilih::where('list_kategori_id', $listKategoriId)
+                ->where('babak', $nextCoord['babak'])
+                ->where(function ($query) use ($kiriId, $kananId) {
+                    $query->whereIn('pertandingan_peserta_kiri_id', [$kiriId, $kananId])
+                        ->orWhereIn('pertandingan_peserta_kanan_id', [$kiriId, $kananId]);
+                })
+                ->lockForUpdate()
+                ->get();
+
+            foreach ($staleAdvancements as $advancedMatch) {
+                foreach (['pertandingan_peserta_kiri_id', 'pertandingan_peserta_kanan_id'] as $slot) {
+                    if (in_array((int) $advancedMatch->{$slot}, [(int) $kiriId, (int) $kananId], true)) {
+                        $advancedMatch->{$slot} = null;
+                    }
+                }
+                $advancedMatch->save();
+            }
+            if ($nextMatch->exists) {
+                $nextMatch->refresh();
             }
             $nextMatch->save();
         } elseif ($kiriId || $kananId) {
@@ -4211,7 +4258,26 @@ class PertandinganController extends Controller
 
             PertandinganPeserta::where('id', $byeWinnerId)->update(['babak' => $nextCoord['babak']]);
 
-            // Majukan atlet ke slot Babak 2 pada sudut yang sesuai
+            // Remove stale copies before advancing the winner to its correct slot.
+            foreach (PesertaTerpilih::where('list_kategori_id', $listKategoriId)
+                ->where('babak', $nextCoord['babak'])
+                ->where(function ($query) use ($byeWinnerId) {
+                    $query->where('pertandingan_peserta_kiri_id', $byeWinnerId)
+                        ->orWhere('pertandingan_peserta_kanan_id', $byeWinnerId);
+                })
+                ->lockForUpdate()
+                ->get() as $advancedMatch) {
+                foreach (['pertandingan_peserta_kiri_id', 'pertandingan_peserta_kanan_id'] as $slot) {
+                    if ((int) $advancedMatch->{$slot} === (int) $byeWinnerId) {
+                        $advancedMatch->{$slot} = null;
+                    }
+                }
+                $advancedMatch->save();
+            }
+
+            if ($nextMatch->exists) {
+                $nextMatch->refresh();
+            }
             if ($nextCoord['sudut'] === 'kiri') {
                 $nextMatch->pertandingan_peserta_kiri_id = $byeWinnerId;
             } else {
