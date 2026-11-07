@@ -127,8 +127,8 @@ class PesertaTerpilih extends Model
         $currentPartai = (int) ($this->nomor_partai ?: 1);
         $currentBabak = (int) ($this->babak ?: 1);
 
-        // In a six-participant bracket, the two BYE winners meet in semifinal 1,
-        // while the winners of first-round matches 1 and 2 meet in semifinal 2.
+        // In a six-participant bracket, first-round matches 1 and 2 feed semifinal 1,
+        // while the two BYE winners meet in semifinal 2.
         if ($currentBabak === 1 && $this->list_kategori_id) {
             $totalPeserta = PertandinganPeserta::where('list_kategori_id', $this->list_kategori_id)->count();
 
@@ -137,25 +137,17 @@ class PesertaTerpilih extends Model
                 $b2Count = self::where('list_kategori_id', $this->list_kategori_id)->where('babak', 2)->count();
 
                 if ($b1Count === 4 && $b2Count === 2) {
-                    if ($currentPartai === 1) {
+                    if ($currentPartai <= 2) {
                         return [
                             'babak'        => 2,
-                            'nomor_partai' => 2,
-                            'sudut'        => 'kiri',
-                        ];
-                    }
-
-                    if ($currentPartai === 2) {
-                        return [
-                            'babak'        => 2,
-                            'nomor_partai' => 2,
-                            'sudut'        => 'kanan',
+                            'nomor_partai' => 1,
+                            'sudut'        => $currentPartai === 1 ? 'kiri' : 'kanan',
                         ];
                     }
 
                     return [
                         'babak'        => 2,
-                        'nomor_partai' => 1,
+                        'nomor_partai' => 2,
                         'sudut'        => $currentPartai === 3 ? 'kiri' : 'kanan',
                     ];
                 }
@@ -186,10 +178,10 @@ class PesertaTerpilih extends Model
             $totalPeserta = PertandinganPeserta::where('list_kategori_id', $this->list_kategori_id)->count();
             if ($totalPeserta === 6) {
                 $sourcePartai = match ([(int) $this->nomor_partai, $corner]) {
-                    [1, 'kiri']  => 3,
-                    [1, 'kanan'] => 4,
-                    [2, 'kiri']  => 1,
-                    [2, 'kanan'] => 2,
+                    [1, 'kiri']  => 1,
+                    [1, 'kanan'] => 2,
+                    [2, 'kiri']  => 3,
+                    [2, 'kanan'] => 4,
                     default      => 1,
                 };
 
