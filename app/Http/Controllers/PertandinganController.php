@@ -1853,6 +1853,26 @@ class PertandinganController extends Controller
             ->with('success', 'Peraih medali berhasil disimpan dan tercatat di Laporan Kegiatan!');
     }
 
+    public function resetMedali(string $id)
+    {
+        if (!Auth::check() || !in_array(Auth::user()->role, ['admin', 'operator', 'wasit', 1, '1', 2, '2'])) {
+            abort(403, 'Akses ditolak');
+        }
+
+        DB::transaction(function () use ($id) {
+            $listKategori = ListKategori::findOrFail($id);
+            $listKategori->data_juara = null;
+            $listKategori->save();
+
+            PertandinganPeserta::where('list_kategori_id', $id)->update(['medali' => null]);
+        });
+
+        return redirect()->back()->with(
+            'success',
+            'Peraih medali berhasil direset. Nomor tanding, bagan, dan nilai pertandingan tetap tersimpan.'
+        );
+    }
+
     /**
      * Helper untuk menyelesaikan ID kabupaten dari ID langsung atau nama kontingen
      */

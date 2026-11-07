@@ -74,6 +74,13 @@
                         <button type="button" onclick="openMedaliModal({{ $pertandingan->id }})" class="btn-kempo-5 inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold uppercase tracking-wider shadow-xs hover:opacity-90 transition-all cursor-pointer">
                             <i class="fa fa-trophy"></i> Peraih Medali
                         </button>
+                        <form action="{{ route('pertandingan.reset-medali', $pertandingan->id) }}" method="post" class="inline-block mb-0" onsubmit="return confirm('Reset semua peraih medali pada kategori ini? Nomor tanding, bagan, dan nilai pertandingan tidak akan berubah.')">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold uppercase tracking-wider text-amber-800 bg-amber-100 hover:bg-amber-200 rounded-2xl shadow-xs transition-all cursor-pointer">
+                                <i class="fa fa-undo"></i> Reset Peraih Medali
+                            </button>
+                        </form>
                         @if($peserta_ready == 0)
                             @if($isRandori)
                                 <a href="{{ url('pertandingans/'.$pertandingan->id.'/print') }}?kegiatan_id={{ $current_kegiatan_id }}" target="_blank" class="btn-kempo-4 inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold uppercase tracking-wider shadow-xs hover:opacity-90 transition-all cursor-pointer">
