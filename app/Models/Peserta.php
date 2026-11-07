@@ -9,6 +9,17 @@ class Peserta extends Model
     //
     protected $guarded = ['id'];
 
+// Mutator (on save)
+public function setNamaAttribute($value)
+{
+    $this->attributes['name'] = mb_strtoupper($value);
+}
+
+// Accessor (on read)
+public function getNamaAttribute($value)
+{
+    return mb_strtoupper($value);
+}
 
     public function kabupaten() {
         return $this->belongsTo(Kabupaten::class);
