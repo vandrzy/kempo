@@ -193,7 +193,7 @@
 
             <td class="info-label">Tanggal Cetak</td>
             <td class="info-colon">:</td>
-            <td class="info-val">{{ date('d-m-Y H:i') }} WIB</td>
+            <td class="info-val">{{ date('d-m-Y') }} WIB</td>
         </tr>
     </table>
 
@@ -201,18 +201,14 @@
     <table class="kempo-table">
         <thead>
             <tr>
-                <th rowspan="2" style="width: 13%;">Babak &amp; Partai</th>
-                <th rowspan="2" style="width: 11%;">Sudut</th>
-                <th rowspan="2" style="width: 18%;">Kontingen</th>
-                <th rowspan="2" style="width: 25%;">Nama Atlet</th>
-                <th colspan="2" style="width: 10%;">Sabuk</th>
-                <th rowspan="2" style="width: 8%;">Skor</th>
-                <th rowspan="2" style="width: 15%;">Status &amp; Pemenang</th>
+                <th rowspan="1" style="width: 13%;">Babak &amp; Partai</th>
+                <th rowspan="1" style="width: 11%;">Sudut</th>
+                <th rowspan="1" style="width: 18%;">Kontingen</th>
+                <th rowspan="1" style="width: 25%;">Nama Atlet</th>
+                <th rowspan="1" style="width: 8%;">Skor</th>
+                <th rowspan="1" style="width: 15%;">Status &amp; Pemenang</th>
             </tr>
-            <tr>
-                <th style="width: 5%;">KYU</th>
-                <th style="width: 5%;">DAN</th>
-            </tr>
+
         </thead>
         <tbody>
             @php
@@ -252,7 +248,7 @@
 
                     <!-- Sudut Merah -->
                     <td class="font-bold text-center" style="color: #dc2626;">
-                        ● [Merah]
+                        Merah
                     </td>
 
                     <!-- Kontingen Merah -->
@@ -272,15 +268,6 @@
                         @endif
                     </td>
 
-                    <!-- Sabuk KYU Merah -->
-                    <td class="text-center font-bold">
-                        {{ strtoupper(substr($atletMerah->tingkatan_sabuk ?? '', 0, 1)) == "K" ? "✓" : '-' }}
-                    </td>
-
-                    <!-- Sabuk DAN Merah -->
-                    <td class="text-center font-bold">
-                        {{ strtoupper(substr($atletMerah->tingkatan_sabuk ?? '', 0, 1)) == "D" ? "✓" : '-' }}
-                    </td>
 
                     <!-- Skor Merah -->
                     <td class="text-center font-bold" style="font-size: 12px; color: #dc2626;">
@@ -306,7 +293,7 @@
                 <tr class="row-putih">
                     <!-- Sudut Putih -->
                     <td class="font-bold text-center" style="color: #2563eb;">
-                        ○ [Putih]
+                        Putih
                     </td>
 
                     <!-- Kontingen Putih -->
@@ -328,15 +315,6 @@
                         @endif
                     </td>
 
-                    <!-- Sabuk KYU Putih -->
-                    <td class="text-center font-bold">
-                        {{ strtoupper(substr($atletPutih->tingkatan_sabuk ?? '', 0, 1)) == "K" ? "✓" : '-' }}
-                    </td>
-
-                    <!-- Sabuk DAN Putih -->
-                    <td class="text-center font-bold">
-                        {{ strtoupper(substr($atletPutih->tingkatan_sabuk ?? '', 0, 1)) == "D" ? "✓" : '-' }}
-                    </td>
 
                     <!-- Skor Putih -->
                     <td class="text-center font-bold" style="font-size: 12px; color: #2563eb;">
@@ -358,7 +336,7 @@
         <tr>
             <td style="width: 50%;">
                 Mengetahui,<br>
-                <strong>Dewan Wasit / Wasit Kepala (Shinpan-cho)</strong>
+                <strong>Koordinator Pertandingan</strong>
                 <br><br>
                 <div class="sign-line"></div>
                 <br>
@@ -366,7 +344,7 @@
             </td>
             <td style="width: 50%;">
                 Petugas Pencatat,<br>
-                <strong>Operator Gelanggang (Kiroku)</strong>
+                <strong>Technical Delegate</strong>
                 <br><br>
                 <div class="sign-line"></div>
                 <br>

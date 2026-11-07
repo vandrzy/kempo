@@ -168,7 +168,7 @@
 @if(!empty($isRandori))
     {{-- TEMPLATE 1 HALAMAN UNTUK RANDORI --}}
     <div class="header-title">
-        <h2 class="uppercase">PERSAUDARAAN BELADIRI SHORINJI KEMPO (PERKEMI)</h2>
+        <h2 class="uppercase">PERSAUDARAAN SHORINJI KEMPO INDONESIA (PERKEMI)</h2>
         <h3>LEMBAR PENILAIAN PERTANDINGAN RANDORI</h3>
     </div>
 
@@ -360,7 +360,7 @@
     {{-- ======================================================== --}}
     <div class="page-break">
         <div class="header-title">
-            <h2 class="uppercase">PERSAUDARAAN BELADIRI SHORINJI KEMPO (PERKEMI)</h2>
+            <h2 class="uppercase">PERSAUDARAAN SHORINJI KEMPO INDONESIA (PERKEMI)</h2>
             <h3>LEMBAR PENILAIAN PERTANDINGAN KERAPIAN TEKNIK (EMBUSHO) - BABAK 1</h3>
             <h3>{{ $listKategori->pertandingan->nama ?? '-' }}</h3>
         </div>
@@ -448,7 +448,7 @@
     {{-- ======================================================== --}}
     <div class="page-break">
         <div class="header-title">
-            <h2 class="uppercase">PERSAUDARAAN BELADIRI SHORINJI KEMPO (PERKEMI)</h2>
+            <h2 class="uppercase">PERSAUDARAAN SHORINJI KEMPO INDONESIA (PERKEMI)</h2>
             <h3>LEMBAR PENILAIAN PERTANDINGAN KERAPIAN TEKNIK (EMBUSHO) - BABAK 2</h3>
             <h3>{{ $listKategori->pertandingan->nama ?? '-' }}</h3>
         </div>
@@ -537,7 +537,7 @@
     {{-- ======================================================== --}}
     <div>
         <div class="header-title">
-            <h2 class="uppercase">PERSAUDARAAN BELADIRI SHORINJI KEMPO (PERKEMI)</h2>
+            <h2 class="uppercase">PERSAUDARAAN SHORINJI KEMPO INDONESIA (PERKEMI)</h2>
             <h3>LEMBAR PENILAIAN PERTANDINGAN KERAPIAN TEKNIK (EMBUSHO) - REKAPITULASI NILAI AKHIR</h3>
             <h3>{{ $listKategori->pertandingan->nama ?? '-' }} </h3>
         </div>
@@ -685,14 +685,14 @@
                 </td>
                 <td style="width: 18%;">
                     <br>
-                    <strong>Para Panitera</strong><br>
+                    <br>
                     <div class="sign-line"></div>
                     <br>
                     <span>{{ '1.  ......................... ' }}</span>
                 </td>
                 <td style="width: 18%;">
                     <br>
-                    <br>
+                    <strong>Para Panitera</strong><br>
                     <div class="sign-line"></div>
                     <br>
                     <span>{{ '2.  ......................... ' }}</span>
