@@ -196,9 +196,6 @@
             <td class="info-colon">:</td>
             <td class="info-val font-bold">{{ $listKategori->pertandingan->nama ?? '-' }} ({{ $listKategori->pertandingan->kelas ?? '-' }})</td>
 
-            <td class="info-label">Jenis Kelamin</td>
-            <td class="info-colon">:</td>
-            <td class="info-val">{{ $listKategori->pertandingan->jenis_kelamin ?? 'Campuran / Bebas' }}</td>
         </tr>
         @if(!empty($filteredKabupaten))
         <tr>
@@ -365,6 +362,7 @@
         <div class="header-title">
             <h2 class="uppercase">PERSAUDARAAN BELADIRI SHORINJI KEMPO (PERKEMI)</h2>
             <h3>LEMBAR PENILAIAN PERTANDINGAN KERAPIAN TEKNIK (EMBUSHO) - BABAK 1</h3>
+            <h3>{{ $listKategori->pertandingan->nama ?? '-' }}</h3>
         </div>
 
         <table class="info-table">
@@ -390,10 +388,6 @@
                 <td class="info-label">Nomor / Kelas</td>
                 <td class="info-colon">:</td>
                 <td class="info-val font-bold">{{ $listKategori->pertandingan->nama ?? '-' }} ({{ $listKategori->pertandingan->kelas ?? '-' }})</td>
-
-                <td class="info-label">Jenis Kelamin</td>
-                <td class="info-colon">:</td>
-                <td class="info-val">{{ $listKategori->pertandingan->jenis_kelamin ?? 'Campuran / Bebas' }}</td>
             </tr>
             @if(!empty($filteredKabupaten))
             <tr>
@@ -456,6 +450,7 @@
         <div class="header-title">
             <h2 class="uppercase">PERSAUDARAAN BELADIRI SHORINJI KEMPO (PERKEMI)</h2>
             <h3>LEMBAR PENILAIAN PERTANDINGAN KERAPIAN TEKNIK (EMBUSHO) - BABAK 2</h3>
+            <h3>{{ $listKategori->pertandingan->nama ?? '-' }}</h3>
         </div>
 
         <table class="info-table">
@@ -482,9 +477,6 @@
                 <td class="info-colon">:</td>
                 <td class="info-val font-bold">{{ $listKategori->pertandingan->nama ?? '-' }} ({{ $listKategori->pertandingan->kelas ?? '-' }})</td>
 
-                <td class="info-label">Jenis Kelamin</td>
-                <td class="info-colon">:</td>
-                <td class="info-val">{{ $listKategori->pertandingan->jenis_kelamin ?? 'Campuran / Bebas' }}</td>
             </tr>
             @if(!empty($filteredKabupaten))
             <tr>
@@ -547,6 +539,7 @@
         <div class="header-title">
             <h2 class="uppercase">PERSAUDARAAN BELADIRI SHORINJI KEMPO (PERKEMI)</h2>
             <h3>LEMBAR PENILAIAN PERTANDINGAN KERAPIAN TEKNIK (EMBUSHO) - REKAPITULASI NILAI AKHIR</h3>
+            <h3>{{ $listKategori->pertandingan->nama ?? '-' }} </h3>
         </div>
 
         <table class="info-table">
@@ -573,9 +566,6 @@
                 <td class="info-colon">:</td>
                 <td class="info-val font-bold">{{ $listKategori->pertandingan->nama ?? '-' }} ({{ $listKategori->pertandingan->kelas ?? '-' }})</td>
 
-                <td class="info-label">Jenis Kelamin</td>
-                <td class="info-colon">:</td>
-                <td class="info-val">{{ $listKategori->pertandingan->jenis_kelamin ?? 'Campuran / Bebas' }}</td>
             </tr>
             @if(!empty($filteredKabupaten))
             <tr>
@@ -626,7 +616,7 @@
         </table>
 
         {{-- Bagian Rekap Peraih Medali HANYA DI HALAMAN 3 --}}
-        <div class="juara-box">
+        {{-- <div class="juara-box">
             <h4>Rekapitulasi Peraih Medali / Juara</h4>
             <table class="juara-table">
                 <tr>
@@ -653,11 +643,11 @@
                     </td>
                 </tr>
             </table>
-        </div>
+        </div> --}}
 
         {{-- Blok Tanda Tangan Wasit HANYA DI HALAMAN 3 --}}
         <table class="signature-table">
-            <tr>
+            {{-- <tr>
                 <td style="width: 18%;">
                     Juri I<br>
                     <div class="sign-line"></div>
@@ -683,9 +673,9 @@
                     <div class="sign-line"></div>
                     <span>{{ $scoresheet['wasit_5'] ?? '( ......................... )' }}</span>
                 </td>
-            </tr>
+            </tr> --}}
             <tr>
-                <td colspan="5" style="padding-top: 15px;">
+                <td>
                     Mengetahui,<br>
                     <strong>Wasit Kepala / Pengawas Pertandingan</strong>
                     <br>
@@ -693,6 +683,30 @@
                     <br>
                     <span>{{ $scoresheet['wasit_kepala'] ?? '( ............................................... )' }}</span>
                 </td>
+                <td style="width: 18%;">
+                    <br>
+                    <strong>Para Panitera</strong><br>
+                    <div class="sign-line"></div>
+                    <br>
+                    <span>{{ '1.  ......................... ' }}</span>
+                </td>
+                <td style="width: 18%;">
+                    <br>
+                    <br>
+                    <div class="sign-line"></div>
+                    <br>
+                    <span>{{ '2.  ......................... ' }}</span>
+                </td>
+                <td style="width: 18%;">
+                    <br>
+                    <br>
+                    <div class="sign-line"></div>
+                    <br>
+                    <span>{{ '3.  ......................... ' }}</span>
+                </td>
+            </tr>
+            <tr>
+                
             </tr>
         </table>
     </div>
